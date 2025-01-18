@@ -1,3 +1,5 @@
+IMPORTANT: MAKE SURE TO INSTALL THE FRAMEWORK ON D:\ DRIVE
+
 # **Vertex Form 3D Open Source VR Unity Starter Kit**  
 
 [![Watch the video](https://github.com/evgeniyasimmons/my-sandbox/raw/main/ShortVF3D.gif)](https://youtu.be/1Xt_7Uxr8T)  
