@@ -37,6 +37,7 @@ Developers can pull **reliable updates** from the core repository while maintain
   - **Material Examples**
   -  **Earth Terrain**  
   -  **Moon Terrain**  
-  - **Games Room** 
+  - **Games Room**
+  - XRI Interaction Examples 
 
 🔹 *And more...*  
