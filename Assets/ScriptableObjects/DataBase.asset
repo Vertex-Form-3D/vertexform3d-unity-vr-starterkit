@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21827747aa21c47408d5e785e43cd124, type: 3}
+  m_Name: DataBase
+  m_EditorClassIdentifier: 
+  _placeItemDatas:
+  - sceneProvider: 0
+    placeName: Earth Terrain
+    placeImage: {fileID: 21300000, guid: 0068bbc61dbc44e46a5e683b43156547, type: 3}
+    maxPlaceRoomCount: 20
+    CesiumWorld:
+      placeName: 
+      loadFromURL: 0
+      URL: 
+      latitude: 0
+      longitude: 0
+      height: 0
+  - sceneProvider: 0
+    placeName: Moon Terrain
+    placeImage: {fileID: 21300000, guid: d00d7b756bb37cd498b519c772cfd351, type: 3}
+    maxPlaceRoomCount: 20
+    CesiumWorld:
+      placeName: 
+      loadFromURL: 0
+      URL: 
+      latitude: 0
+      longitude: 0
+      height: 0
+  _hubItemDatas:
+  - HubName: Campfire
+    HubImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  - HubName: Dark Space
+    HubImage: {fileID: 21300000, guid: 9c9cb025d886ca24e9b0af1416589e5a, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  - HubName: Bright Space
+    HubImage: {fileID: 21300000, guid: c6ad4fd66735ec7419f4f0a41284a0c0, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  - HubName: Materials Examples
+    HubImage: {fileID: 21300000, guid: 1f7c26e3fa3c9234aac14ed5ca91b9da, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  - HubName: Games
+    HubImage: {fileID: 21300000, guid: ba956be2dc747c84cb5aa20a77ea3a87, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  - HubName: Ocean Villa
+    HubImage: {fileID: 21300000, guid: be96b4c00f375bf478889b601850b20c, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  - HubName: DemoScene
+    HubImage: {fileID: 21300000, guid: 91257573c13190d45a7244227449ec90, type: 3}
+    HubMaxRoomCount: 0
+    sceneProvider: 0
+  _otherScenesDatas:
+  - 1122555

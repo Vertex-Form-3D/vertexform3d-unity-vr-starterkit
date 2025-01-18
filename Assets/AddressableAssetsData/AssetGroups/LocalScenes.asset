@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: LocalScenes
+  m_EditorClassIdentifier: 
+  m_GroupName: LocalScenes
+  m_GUID: 635e9b242c41d2f4ca0a86a48509b67e
+  m_SerializeEntries:
+  - m_GUID: 1bb6a7c89a22c8143b2edaffab766c26
+    m_Address: Campfire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Campfire
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1d37c5ae841148e4eaff678c0c156d51
+    m_Address: Moon Terrain
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Moon Terrain
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 21a91d0e9ac47844d84cc0632d478bda
+    m_Address: Ocean Villa
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Ocean Villa
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e136767693ee5445bc9e95fcb379f35
+    m_Address: Dark Space
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Dark Space
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 319dafa5c80f29f428dc1e0d03f04177
+    m_Address: DemoScene
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - DemoScene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 465353a5dd57db0409124660239977e2
+    m_Address: Materials Examples
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Materials Examples
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c1053e704c3fae44984c10bc00f9b78e
+    m_Address: Earth Terrain
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Earth Terrain
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d314317167ab95243998560df34c91c7
+    m_Address: Games
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Games
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ded6e091a14e7a6439290499c176ee36
+    m_Address: Bright Space
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Bright Space
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: f4b23ee092856844e99ed24f15e1cf7a, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: b7e70c5ac3d8d7048b4932196c008f75, type: 2}
+    - {fileID: 11400000, guid: 145b3d66c37e43543abd6e9380a7dd82, type: 2}

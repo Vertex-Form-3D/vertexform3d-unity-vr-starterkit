@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7301660476649073643
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Graphs_Waterfall_Material
+  m_Shader: {fileID: -6465566751694194690, guid: f59b7a064344e5c4eba8715c656c4bb6,
+    type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _SampleTexture2D_5bfad9bae8854476a29fa3960e0ffe0f_Texture_1:
+        m_Texture: {fileID: 2800000, guid: a7426966586062a48b553d3f85664ae0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_e85ccb0143be4b7c8991bc714a1a07d6_Texture_1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - Vector1_01339ea4c1b6474f964296aa80cd5808: 0.55
+    - Vector1_03c8afa2c9e34a21a4914f305016714e: 0.3
+    - Vector1_1db546aa63e1444fb58b61b0246e473b: 14
+    - Vector1_1e250e24948e481d93475228af1ce542: 1.8
+    - Vector1_24957d9a1a1a4032827e7c50f0247939: 3
+    - Vector1_6bea09b150814251ab1a36d62b5b8c6d: 0.8
+    - Vector1_94dcfc32c454499d8af1946d3f75e139: 5.26
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    m_Colors:
+    - Color_a389c53ee3ca42da89edeeac013ef05c: {r: 0.07097722, g: 0.16552748, b: 0.2735849,
+        a: 1}
+    - Vector2_4041d5327b7446bc8b5b29c51396a32f: {r: 0, g: 0.38, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
