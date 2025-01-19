@@ -10,15 +10,23 @@
 
 Developers can pull **reliable updates** from the core repository while maintaining control over their app's unique configurations.  
 
----
-## 🔹 Example App on Meta Quest 🥽
+
+## Example App on Meta Quest 
 Here is the link to the example app. Install and explore. Use it as an inspiration for your own apps. We hope you enjoy it and can't wait to see what you will create.  
 
 > [Vertex Form 3D example app on Meta Quest](https://www.meta.com/s/9fkD1uaih)
 
+## Support the Project! 
+
+Who doesn't want motivation and support? Become our **Contributor**, a **Stargazer** and give us a star or become our **Sponsor**. You all are amazing.   
+
+[![Stargazers](https://reporoster.com/stars/dark/Vertex-Form-3D/vertexform3d-unity-vr-starterkit)](https://github.com/Vertex-Form-3D/vertexform3d-unity-vr-starterkit/stargazers)
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/Vertex-Form-3D?style=flat&logo=github)](https://github.com/sponsors/Vertex-Form-3D)  
+🫶 _No sponsors yet! Be the first to support our work._
 
 
----
+
 ## 🔹 Core Components  
 - **Unity Version**: `6000.0.32f1`  
 - **XR Interaction Toolkit 3**  
