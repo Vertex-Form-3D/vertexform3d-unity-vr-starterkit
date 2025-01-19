@@ -1,4 +1,4 @@
-IMPORTANT: MAKE SURE TO INSTALL THE FRAMEWORK ON D:\ DRIVE
+## Important: Install the framework on the D:\ drive or an external hard drive.
 
 # **Vertex Form 3D Open Source VR Unity Starter Kit**  
 
@@ -6,15 +6,19 @@ IMPORTANT: MAKE SURE TO INSTALL THE FRAMEWORK ON D:\ DRIVE
 
 ## Overview  
 
-**Vertex Form 3D** is an **open-source VR multiplayer framework** for building **social applications** in **Unity**.  
-Designed with **3D artists in mind**, this package provides essential tools for creating scalable **VR environments** across **Meta Quest** and other platforms.  
+**Vertex Form 3D** is an **open-source VR multiplayer framework** for building **social applications** in **Unity**. Designed with **3D artists in mind**, this package provides essential tools for creating scalable **VR environments** across **Meta Quest** and other platforms.  
 
 Developers can pull **reliable updates** from the core repository while maintaining control over their app's unique configurations.  
 
 ---
+## 🔹 Example App on Meta Quest 🥽
+Here is the link to the example app. Install and explore. Use it as an inspiration for your own apps. We hope you enjoy it and can't wait to see what you will create.  
+
+> [Vertex Form 3D example app on Meta Quest](https://www.meta.com/s/9fkD1uaih)
 
 
 
+---
 ## 🔹 Core Components  
 - **Unity Version**: `6000.0.32f1`  
 - **XR Interaction Toolkit 3**  
@@ -22,17 +26,13 @@ Developers can pull **reliable updates** from the core repository while maintain
 - **User-Specific UI for Accessing Scenes**  
 - **Scene Switching**  
 - **Simple Avatar Selection**  
-
-
-## 🚀 VR & Multiplayer Functionality  
-- 🕹️ **XR Interaction Examples**  
-- 🗺️ **Geospatial Integration with Cesium**  
-- ✈️ **Fly Mode**  
-- ☁️ **Remote & Local Delivery**  
-- 👥 **Multiplayer Support** (Up to **20 concurrent users**)
-  
-## 🎨 Sample Scenes  
-  - **Campfire**
+- **XR Interaction Examples**  
+- **Geospatial Integration with Cesium**  
+- **Fly Mode**  
+- **Remote & Local Delivery**  
+- **Multiplayer Support** (Up to **20 concurrent users**)
+- **Examples**
+    - **Campfire**
   - **Ocean Villa**  
   -  **Dark Scene**  
   -  **Bright Scene**  
@@ -40,6 +40,11 @@ Developers can pull **reliable updates** from the core repository while maintain
   -  **Earth Terrain**  
   -  **Moon Terrain**  
   - **Games Room**
-  - XRI Interaction Examples 
+    
 
 🔹 *And more...*  
+## Set up
+
+Set up instructions are coming up soon. 
+
+---
