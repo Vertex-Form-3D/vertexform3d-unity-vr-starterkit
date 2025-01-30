@@ -1,8 +1,10 @@
-## Important: Install the framework on the D:\ drive or an external hard drive.
+## Recommended: Install the framework on the D:\ drive or an external hard drive.
 
 # **Vertex Form 3D Open Source VR Unity Starter Kit**  
 
 [![Watch the video](https://github.com/evgeniyasimmons/my-sandbox/raw/main/ShortVF3D.gif)](https://youtu.be/1Xt_7Uxr8T)  
+*This framework is based on [this Udemy course](https://www.udemy.com/course/multiplayer-virtual-reality-vr-development-with-unity/learn/lecture/21025418?start=30#overview). While the framework has been significantly modified, this course—[or a newer one](https://www.udemy.com/course/build-your-multiplayer-vr-game-from-scratch-with-fusion/?referralCode=CD1161498C9135567DC0)—can help you understand the fundamental principles of building a virtual reality application.*
+
 
 ## <h2 align="center"> Overview</h2>
 
@@ -56,6 +58,6 @@ Who doesn't want motivation and support? Become a **Contributor**, a **Stargazer
 🔹 *And more...*  
 ## Set up
 
-Set up instructions are coming up soon. 
+*Visit [this page](https://vertexform3d.com/tutorials/) to get up-to-date installation tutorials.*
 
 ---
