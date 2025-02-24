@@ -2023,6 +2023,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -4889271328348090523, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1631970743}
+    - targetCorrespondingSourceObject: {fileID: -4889271328348090523, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1631970744}
     - targetCorrespondingSourceObject: {fileID: 4876940086014307411, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1631970738}
@@ -2044,12 +2047,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -7029948723529949830, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1816801885}
+    - targetCorrespondingSourceObject: {fileID: -7029948723529949830, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1816801887}
     - targetCorrespondingSourceObject: {fileID: 3692254488790982148, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
       insertIndex: -1
       addedObject: {fileID: 526674373}
     - targetCorrespondingSourceObject: {fileID: 3692254488790982148, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1643127057}
+    - targetCorrespondingSourceObject: {fileID: 3692254488790982148, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1643127058}
     - targetCorrespondingSourceObject: {fileID: 8039765736737727803, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2131511819}
@@ -2649,6 +2658,19 @@ MonoBehaviour:
   m_Teleporting:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1631970744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631970734}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!114 &1643127057
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2730,6 +2752,19 @@ MonoBehaviour:
   m_Teleporting:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1643127058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631970726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!64 &1666540058
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2877,6 +2912,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -462981019419857548, guid: e662c82751cc00640b7d0a033d940f21, type: 3}
+--- !u!114 &1816801887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631970727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!64 &1913674492
 MeshCollider:
   m_ObjectHideFlags: 0

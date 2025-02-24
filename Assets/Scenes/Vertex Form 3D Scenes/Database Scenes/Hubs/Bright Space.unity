@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -196,6 +197,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 110bd84183c8e2b41bb6093804d915e7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 160476403}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 110bd84183c8e2b41bb6093804d915e7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 160476405}
   m_SourcePrefab: {fileID: 100100000, guid: 110bd84183c8e2b41bb6093804d915e7, type: 3}
 --- !u!1 &160476401 stripped
 GameObject:
@@ -310,6 +314,19 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 110bd84183c8e2b41bb6093804d915e7, type: 3}
   m_PrefabInstance: {fileID: 160476400}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &160476405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160476401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!1001 &515063752
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -588,6 +605,7 @@ GameObject:
   - component: {fileID: 1436311973}
   - component: {fileID: 1436311972}
   - component: {fileID: 1436311971}
+  - component: {fileID: 1436311975}
   m_Layer: 0
   m_Name: Terrain
   m_TagString: Untagged
@@ -751,6 +769,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 909040152}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1436311975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436311970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!1 &1720569094
 GameObject:
   m_ObjectHideFlags: 0

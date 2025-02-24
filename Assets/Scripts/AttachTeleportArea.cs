@@ -35,7 +35,7 @@ namespace VertextFormCore
         {
             while (keepChecking)
             {
-                PanelRaycaster[] panelRaycasters = Object.FindObjectsOfType<PanelRaycaster>();
+                PanelRaycaster[] panelRaycasters = FindObjectsByType<PanelRaycaster>(FindObjectsSortMode.InstanceID);
                 foreach (var panelRaycaster in panelRaycasters)
                 {
                     if (panelRaycaster.enabled)

@@ -38,6 +38,7 @@ namespace VertextFormCore
         {
             Debug.Log($"hub clicked {dataBase._placeItemDatas[index].placeName}");
             SceneLoader.Instance.isCesiumScene = true;
+            SceneLoader.Instance.isFlyModeEnabled = dataBase._placeItemDatas[index].flyMode;
             SceneLoader.Instance.cesiumWorldClass = dataBase._placeItemDatas[index].CesiumWorld;
             SceneLoader.Instance.LoadScnene(dataBase._placeItemDatas[index].placeName);
         }

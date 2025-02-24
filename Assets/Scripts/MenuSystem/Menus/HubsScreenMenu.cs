@@ -39,6 +39,7 @@ namespace VertextFormCore
         {
             Debug.Log($"hub clicked {dataBase._hubItemDatas[index].HubName}");
             SceneLoader.Instance.isCesiumScene = false;
+            SceneLoader.Instance.isFlyModeEnabled = dataBase._hubItemDatas[index].flyMode;
             SceneLoader.Instance.LoadScnene(dataBase._hubItemDatas[index].HubName);
         }
 

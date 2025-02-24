@@ -20,7 +20,7 @@ namespace VertextFormCore
 
         public virtual void OnClicked()
         {
-            Debug.LogError("ViewElement OnClicked: " + index);
+            Debug.Log("ViewElement OnClicked: " + index);
             onListItemClikedListener.OnListClicked(index);
         }
     }

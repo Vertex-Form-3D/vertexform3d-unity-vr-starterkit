@@ -41,8 +41,7 @@ public class AddressablesDownloader : MonoBehaviour
 
     private void Start()
     {
-        Application.targetFrameRate = 60;
-
+        Application.targetFrameRate = 75;
         if (ProjectManager.instance.projectDataSO.projectData.onlyLocalBundles)
         {
             Addressables.InitializeAsync();
@@ -57,14 +56,14 @@ public class AddressablesDownloader : MonoBehaviour
 
     public void DownloadCatalogFile()
     {
-        Debug.LogError("DownloadCatalogFile");
+        Debug.Log("DownloadCatalogFile");
         if (!isDownloading)
         {
             isDownloading = true;
 #if UNITY_EDITOR
             string catalogFilePath = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.profileSettings.GetValueByName(UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.activeProfileId, "Remote.LoadPath");
             catalogFilePath = catalogFilePath.Replace("[BuildTarget]", UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString());
-            catalogFilePath = catalogFilePath + "/VertexForm3DAddressablesCatalog.json";
+            catalogFilePath = catalogFilePath + "/" + ProjectManager.instance.projectDataSO.projectData.catelogFileName + ".json";
             AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
             DownloadingCatalog.Completed += OnCatalogDownload;
 #else

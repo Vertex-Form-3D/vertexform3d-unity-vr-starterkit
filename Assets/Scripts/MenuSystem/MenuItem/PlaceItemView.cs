@@ -99,6 +99,7 @@ namespace VertextFormCore
         public SceneProvider sceneProvider;
         public string placeName;
         public Sprite placeImage;
+        public bool flyMode = true;
         public int maxPlaceRoomCount;
         public CesiumWorldClass CesiumWorld;
     }

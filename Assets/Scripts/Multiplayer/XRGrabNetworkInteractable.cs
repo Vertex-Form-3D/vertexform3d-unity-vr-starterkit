@@ -1,17 +1,20 @@
-using Oculus.Interaction;
+
 using Photon.Pun;
-using Photon.Realtime;
 using System.Collections;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
 namespace VertextFormCore
 {
     [RequireComponent(typeof(PhotonView))]
     [RequireComponent(typeof(PhotonTransformView))]
+    [RequireComponent(typeof(XRGrabInteractable))]
+    [RequireComponent(typeof(Collider))]
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(XRGeneralGrabTransformer))]
 
     public class XRGrabNetworkInteractable : MonoBehaviour
     {
@@ -27,7 +30,6 @@ namespace VertextFormCore
         public UnityEvent onSelectExitEvent;
         private void Awake()
         {
-
             grabInteractable = GetComponent<XRGrabInteractable>();
             rb = GetComponent<Rigidbody>();
             initialGravityStatus = rb.useGravity;
@@ -37,6 +39,11 @@ namespace VertextFormCore
             grabInteractable.selectExited.AddListener(selectExited);
         }
 
+
+        public XRGrabInteractable GetXRGrabInteractable()
+        {
+            return grabInteractable;
+        }
         private void selectEntered(SelectEnterEventArgs arg0)
         {
             if (!photonView.IsMine)

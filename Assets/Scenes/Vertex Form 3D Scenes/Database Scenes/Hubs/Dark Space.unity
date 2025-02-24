@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -635,6 +636,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -910168554888888556, guid: a7cccbcdb6f687a42a1d834c0ca908ac, type: 3}
       insertIndex: -1
       addedObject: {fileID: 924861332}
+    - targetCorrespondingSourceObject: {fileID: -910168554888888556, guid: a7cccbcdb6f687a42a1d834c0ca908ac, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 924861334}
     - targetCorrespondingSourceObject: {fileID: -7800618758179805240, guid: a7cccbcdb6f687a42a1d834c0ca908ac, type: 3}
       insertIndex: -1
       addedObject: {fileID: 924861331}
@@ -814,6 +818,19 @@ MonoBehaviour:
   m_Teleporting:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &924861334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 924861329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!1 &1495657328
 GameObject:
   m_ObjectHideFlags: 0
@@ -1107,8 +1124,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7585907350915979965, guid: fea11ff90ea153945aaeb04f20862321, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1893317586731312688}
   m_SourcePrefab: {fileID: 100100000, guid: fea11ff90ea153945aaeb04f20862321, type: 3}
+--- !u!1 &1893317586731312687 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7585907350915979965, guid: fea11ff90ea153945aaeb04f20862321, type: 3}
+  m_PrefabInstance: {fileID: 1893317586731312686}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1893317586731312688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893317586731312687}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!4 &1961357302830871103 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 396028795208825622, guid: 2131744f5f6eaca4d82028d8a6c2712e, type: 3}
