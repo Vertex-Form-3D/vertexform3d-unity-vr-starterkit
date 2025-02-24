@@ -3,6 +3,20 @@ PUN 2 - Changelog
 www.photonengine.com  -  Join the community Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+v2.49 (09. January 2025)
+Fixed: Setting the LocalPlayer.UserId in Realtime.
+Note: No update of the .chm file (API reference did not change).
+Updated: Library, Realtime and Chat API to 4.1.8.13. More details in the change logs.
+
+v2.48 (06. January 2025)
+Fixed: Usage of Unity APIs which became obsolete in Unity 6 (by wrapping them in compile defines). On import you must agree to the automatic upgrades the Editor offers for PUN or there will still be some outdated API usage (PUN relies on the automatic upgrades).
+Added: Support for Discord Activities. https://doc.photonengine.com/pun/current/connection-and-authentication/discord-activities
+Updated: Library, Realtime and Chat API to 4.1.8.12. More details in the change logs.
+
+v2.47 (02. September 2024)
+Fixed: PhotonNetwork.PunVersion to "2.47". Accidentally v2.46 used "2.45" as well.
+Updated: Library, Realtime and Chat API to 4.1.8.9. More details in the change logs.
+
 v2.46 (26. April 2024)
 Changed: PhotonStream serialization: Char values are cast to short before being sent (receivers will simply get a short but can cast accordingly).
 Added: PhotonStream.Serialize(ref byte value).

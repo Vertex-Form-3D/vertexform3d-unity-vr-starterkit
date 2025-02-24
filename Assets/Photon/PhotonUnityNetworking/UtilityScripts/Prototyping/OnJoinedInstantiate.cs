@@ -135,7 +135,12 @@ namespace Photon.Pun.UtilityScripts
 					return unvalidated;
 
 				var prefabStatus = PrefabUtility.GetPrefabInstanceStatus(unvalidated);
+
+                #if UNITY_6000_0_OR_NEWER
+                var isValidPrefab = prefabStatus != PrefabInstanceStatus.NotAPrefab;
+                #else
 				var isValidPrefab = prefabStatus == PrefabInstanceStatus.Connected || prefabStatus == PrefabInstanceStatus.Disconnected;
+                #endif
 
 				if (isValidPrefab)
 					validated = PrefabUtility.GetCorrespondingObjectFromSource(unvalidated) as GameObject;

@@ -62,7 +62,11 @@ public class ChatEditor : EditorWindow
     {
         if (this.cGui == null)
         {
+            #if UNITY_6000_0_OR_NEWER
+            cGui = FindFirstObjectByType<ChatGui>();
+            #else
             cGui = FindObjectOfType<ChatGui>();
+            #endif
         }
 
         GUI.skin.label.wordWrap = true;

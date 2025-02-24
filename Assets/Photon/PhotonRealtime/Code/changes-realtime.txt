@@ -3,8 +3,51 @@ Photon Realtime C# Client - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 4.1.8.13 (09. January 2025 - rev7815)
+    Changed: RealtimeFallback() will no longer call client.Disconnect if the client is disconnecting already.
+    Changed: ChangeLocalID() to not change the LocalPlayer.UserId, unless it is null or empty. This improves a change in v4.1.8.9, which could set the LocalPlayer.UserId to null.
+    Added: LoadBalancingClient.ConnectCount as count of connections made to any server (in one "session"). Purely statistical.
+    Added: LoadBalancingClient.DisconnectMessage (for debugging / logging). Set when the client receives a disconnect info message with a debug string.
+    Added: PHOTON_LOCATION and PHOTON_TELEMETRY for upcoming features (not included in this release).
 
-Version 4.1.8.4 (26. April 2024 - rev7529)
+Version 4.1.8.12 (16. December 2024 - rev7801)
+    Added: ParameterCode.ReportQos. Preparation for upcoming connection quality reports.
+    Added: Timestamp logging to SupportLogger basics log. So far, it was only logging the timespan for the connection.
+    Changed: Operations that contain any UserId will be sent encrypted if they do. This improves security on the network layer. Affected: OpCreateRoom, OpJoinRoom, OpJoinRandomRoom, OpJoinRandomOrCreateRoom and OpFindFriends.
+
+Version 4.1.8.11 (17. October 2024 - rev7735)
+    Fixed: Issue with "Discord Activities" addresses in the Photon dll. See changes-library.txt.
+
+Version 4.1.8.10 (14. October 2024 - rev7732)
+    Added: Support for Discord Activities.
+    Added: LoadBalancingClient.AddressRewriter function. Useful to rewrite addresses, when some relay must be used (e.g. in case of Discord Activities). Used when setting server addresses.
+    Internal: Added optional parameter to SetRegions to pass LoadBalancingClient. If AddressRewriter is set, this calls it. Also used to log.
+    Added: ToProtocolAddress to format addresses correctly for the given protocol. This includes scheme where needed, port and path. Calls AddressRewriter if set.
+    Internal: GetNameServerAddress now uses ToProtocolAddress.
+    Changed: The Authenticate response on the Name Server will first apply the expected protocol for the Master Server connection. Then read the address and maybe rewrite it.
+    Removed: Unity special cases of using SocketUdpAsync / SocketTcpAsync for .Net 4.x for Mono specifically. Recent Unity versions (2019 tested) no longer run into issues with receiving data in blocking mode.
+
+Version 4.1.8.9 (02. September 2024 - rev7660)
+    Changed: EnableProtocolFallback will only ever work for UDP, TCP or WS connections. If WSS should be used on the Name Server, this is likely for the encryption. A switch from WSS to others will lower the security level unexpectedly.
+    Removed: Special handling of AuthOnceWss, which allowed clients to try another transport protocol on the Name Server, if WSS failed to connect.
+    Note: The idea was to not accidentally block users when our special WSS port 19093 was being blocked. We will now use 443 as WSS port, which is rarely to never blocked.
+    Changed: Disconnect() is now separate from the internally used Disconnect(DisconnectCause cause). Simplifies the public API.
+    Changed: ChangeLocalID with optional paramater applyUserId = false. This allows PUN to set a UserId when "entering" offline rooms.
+
+Version 4.1.8.8 (02. August 2024 - rev7638)
+    Changed: Handling of server paths and ports. If the AppSettings contain a path for the initial server to connect to, it is preserved. This is handled with the URI class in ToProtocolAddress().
+
+Version 4.1.8.7 (05. July 2024 - rev7622)
+    Changed: ConnectionHandler.StartFallbackSendAckThread() to use a Thread.Timer instead of a separate thread to reduce used resources. This avoids an issue with thread limits on console. WebGL exports use InvokeRepeating() instead (which is dependent on the main loop but WebGL is single threaded anyways).
+    Changed: Player.UpdateNickNameOnJoined() avoids sending the NickName if it is empty and not found in the props.
+
+Version 4.1.8.6 (25. May 2024 - rev7571)
+    Fixed: Non-Unity projects use the System.Hashtable which does not provide TryGetValue. TryGetValue use (recently added) has been replaced using ContainsKey.
+
+Version 4.1.8.5 (13. May 2024 - rev7556)
+    No notable changes (except in library).
+
+Version 4.1.8.4 (26. April 2024 - rev7530)
     No notable changes (except in library).
 
 Version 4.1.8.3 (24. April 2024 - rev7519)

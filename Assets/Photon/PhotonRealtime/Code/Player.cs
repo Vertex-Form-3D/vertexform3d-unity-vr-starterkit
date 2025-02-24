@@ -10,6 +10,7 @@
 // <author>developer@photonengine.com</author>
 // ----------------------------------------------------------------------------
 
+
 #if UNITY_4_7 || UNITY_5 || UNITY_5_3_OR_NEWER
 #define SUPPORTED_UNITY
 #endif
@@ -430,9 +431,8 @@ namespace Photon.Realtime
                 return false;
             }
 
-            object nameObj = null;
-            this.RoomReference.CustomProperties.TryGetValue(ActorProperties.PlayerName, out nameObj);
-            string nickFromProps = nameObj as string;
+            bool found = this.RoomReference.CustomProperties.ContainsKey(ActorProperties.PlayerName);
+            string nickFromProps = found ? this.RoomReference.CustomProperties[ActorProperties.PlayerName] as string : string.Empty;
 
             if (!string.Equals(this.NickName, nickFromProps))
             {
