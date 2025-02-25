@@ -63,7 +63,7 @@ public class AddressablesDownloader : MonoBehaviour
 #if UNITY_EDITOR
             string catalogFilePath = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.profileSettings.GetValueByName(UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.activeProfileId, "Remote.LoadPath");
             catalogFilePath = catalogFilePath.Replace("[BuildTarget]", UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString());
-            catalogFilePath = catalogFilePath + "/" + ProjectManager.instance.projectDataSO.projectData.catelogFileName + ".json";
+            catalogFilePath = catalogFilePath + "/" + ProjectManager.instance.projectDataSO.projectData.catalogFileName + ".json";
             AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
             DownloadingCatalog.Completed += OnCatalogDownload;
 #else

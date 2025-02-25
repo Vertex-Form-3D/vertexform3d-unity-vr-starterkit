@@ -13,5 +13,5 @@ public class ProjectData
     public bool onlyLocalBundles;
     public bool DebugEnabled;
     public string GameVersion;
-    public string catelogFileName;
+    public string catalogFileName;
 }

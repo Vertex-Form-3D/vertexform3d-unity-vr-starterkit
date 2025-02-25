@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 211468354}
   - component: {fileID: 211468353}
   - component: {fileID: 211468356}
-  - component: {fileID: 211468355}
   - component: {fileID: 211468357}
   m_Layer: 0
   m_Name: Cesium World Terrain
@@ -148,8 +147,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 211468351}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.00008709664, y: 0.00000045859827, z: 0.000058884845, w: 1}
-  m_LocalPosition: {x: -38.77382, y: 697.80853, z: -825.9395}
+  m_LocalRotation: {x: 0.00015183713, y: -0.0000004183675, z: 0.00005585063, w: 1}
+  m_LocalPosition: {x: -0.00035632425, y: 5, z: 0.00045531755}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -217,19 +216,6 @@ MonoBehaviour:
   _updateInEditor: 1
   _logSelectionStats: 0
   _createPhysicsMeshes: 1
---- !u!114 &211468355
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 211468351}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bef32f31a547984f88be1ab98b65f04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _distance: 0
 --- !u!114 &211468356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -246,24 +232,24 @@ MonoBehaviour:
   _detectTransformChanges: 1
   _localToGlobeFixedMatrix:
     c0:
-      x: 0.9262422853646038
-      y: -0.37692867243034567
-      z: 0.00006857443606214613
+      x: 0.9262445254123907
+      y: -0.3769231682068636
+      z: 0.00006642646889572664
       w: 0
     c1:
-      x: -0.30474409861123963
-      y: -0.7487530802834097
-      z: 0.5886423864518553
+      x: -0.3047098296120253
+      y: -0.7486849494834104
+      z: 0.5887467759188466
       w: 0
     c2:
-      x: 0.22182484794129725
-      y: 0.5452463669443467
-      z: 0.8083935527760091
+      x: 0.2218625675533976
+      y: 0.5453437188470461
+      z: 0.808317530078799
       w: 0
     c3:
-      x: -1946786.6886
-      y: -4785128.2051
-      z: 3734115.7329
+      x: -1946148.0746154077
+      y: -4783661.373332412
+      z: 3733973.1484982315
       w: 1
   _localToGlobeFixedMatrixIsValid: 1
 --- !u!114 &211468357
@@ -650,13 +636,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _ellipsoidOverride: {fileID: 0}
   _originPlacement: 1
-  _originAuthority: 1
+  _originAuthority: 0
   _latitude: 36.05066677585058
   _longitude: -112.13808080604682
-  _height: 2777.1706577547347
-  _ecefX: -1946355
-  _ecefY: -4784170
-  _ecefZ: 3734372.8403552715
+  _height: 2093
+  _ecefX: -1946146.5510177028
+  _ecefY: -4783657.629251789
+  _ecefZ: 3733970.205623672
   _scale: 1
 --- !u!4 &2129857113
 Transform:
