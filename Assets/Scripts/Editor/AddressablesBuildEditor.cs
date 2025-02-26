@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class AddressablesBuildEditor : EditorWindow
 {
-    [MenuItem("VertexForm3DTools/Build Addressables and Rename Catalog")]
+    [MenuItem("VertexForm3D SDK/Build Addressables and Rename Catalog")]
     public static void BuildAddressablesAndRenameRemoteCatalog()
     {
         // Get remote catalog build path from Addressables settings

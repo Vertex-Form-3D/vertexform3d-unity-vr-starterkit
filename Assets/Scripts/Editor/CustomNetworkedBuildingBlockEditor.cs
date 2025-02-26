@@ -8,17 +8,17 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 [CustomEditor(typeof(GameObject))]
 public class CustomNetworkedBuildingBlockEditor : EditorWindow
 {
-    [MenuItem("VertexForm3DTools/CustomNetworkedBuildingBlockEditor")]
+    [MenuItem("VertexForm3D SDK/Custom Building Blocks")]
     public static void ShowWindow()
     {
-        GetWindow<CustomNetworkedBuildingBlockEditor>("CustomNetworked Building Block Window");
+        GetWindow<CustomNetworkedBuildingBlockEditor>("Custom Building Blocks");
     }
 
     private void OnGUI()
     {
-        GUILayout.Label("make this a teleportation area", EditorStyles.boldLabel);
+        GUILayout.Label("Make this a teleportation area", EditorStyles.boldLabel);
 
-        if (GUILayout.Button("make this a teleportation area"))
+        if (GUILayout.Button("Make this a teleportation area"))
         {
             AttachTeleportationAreaNetworked();
         }
@@ -38,14 +38,14 @@ public class CustomNetworkedBuildingBlockEditor : EditorWindow
 
         GUILayout.Label("Create example Cube with Grab and Respawn functionality", EditorStyles.boldLabel);
 
-        if (GUILayout.Button("create Grab and respawn"))
+        if (GUILayout.Button("Create Grab and respawn"))
         {
             CreateRespawnableGrabNetworkedObject();
         }
 
         GUILayout.Label("Create example Cube with Grab and No Respawn functionality", EditorStyles.boldLabel);
 
-        if (GUILayout.Button("create Grab and not respawn"))
+        if (GUILayout.Button("Create Grab and not respawn"))
         {
             CreateGrabNetworkedObject();
         }
@@ -72,60 +72,79 @@ public class CustomNetworkedBuildingBlockEditor : EditorWindow
     {
         GameObject[] selectedObject = Selection.gameObjects;
 
-        foreach (GameObject obj in Selection.gameObjects)
+        if (selectedObject.Length > 0)
         {
-            if (obj != null)
+            foreach (GameObject obj in Selection.gameObjects)
             {
-                if (obj.GetComponent<TeleportationAreaNetworked>() == null)
+                if (obj != null)
                 {
-                    obj.AddComponent<TeleportationAreaNetworked>();
-                    Debug.Log("TeleportationAreaNetworked script attached to " + obj.name);
-                }
-                else
-                {
-                    Debug.LogWarning("TeleportationAreaNetworked is already attached.");
+                    if (obj.GetComponent<TeleportationAreaNetworked>() == null)
+                    {
+                        obj.AddComponent<TeleportationAreaNetworked>();
+                        Debug.Log("TeleportationAreaNetworked script attached to " + obj.name);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("TeleportationAreaNetworked is already attached.");
+                    }
                 }
             }
-            else
-            {
-                Debug.LogWarning("No object selected. Please select a GameObject from the hierarchy.");
-            }
+        }
+        else
+        {
+            Debug.LogWarning("No object selected. Please select a GameObject from the hierarchy.");
         }
     }
     private void AttachGrabNetworkedNotRespawnableObject()
     {
         GameObject[] selectedObject = Selection.gameObjects;
-
-        foreach (GameObject obj in Selection.gameObjects)
+        if (selectedObject.Length > 0)
         {
-            AttachGrabNetworkedObject(obj);
-            GameObject g = obj;
-            g.GetComponent<XRGrabNetworkInteractable>().shouldReset = false;
+            foreach (GameObject obj in Selection.gameObjects)
+            {
+                AttachGrabNetworkedObject(obj);
+                GameObject g = obj;
+                g.GetComponent<XRGrabNetworkInteractable>().shouldReset = false;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No object selected. Please select a GameObject from the hierarchy.");
         }
     }
     private void AttachGrabNetworkedRespawnableObject()
     {
         GameObject[] selectedObject = Selection.gameObjects;
 
-        foreach (GameObject obj in Selection.gameObjects)
+        if (selectedObject.Length > 0)
         {
-            AttachGrabNetworkedObject(obj);
-            GameObject g = obj;
-            g.GetComponent<XRGrabNetworkInteractable>().shouldReset = true;
-            g.GetComponent<XRGrabNetworkInteractable>().SetInitialPosition();
-            g.GetComponent<XRGrabNetworkInteractable>().SetInitialRotation();
+            foreach (GameObject obj in Selection.gameObjects)
+            {
+                AttachGrabNetworkedObject(obj);
+                GameObject g = obj;
+                g.GetComponent<XRGrabNetworkInteractable>().shouldReset = true;
+                g.GetComponent<XRGrabNetworkInteractable>().SetInitialPosition();
+                g.GetComponent<XRGrabNetworkInteractable>().SetInitialRotation();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No object selected. Please select a GameObject from the hierarchy.");
         }
     }
 
     private void NetworkedScene()
     {
         XRGrabNetworkInteractable[] XGNIs = FindObjectsByType<XRGrabNetworkInteractable>(FindObjectsSortMode.InstanceID);
-        foreach (XRGrabNetworkInteractable item in XGNIs)
+        if (XGNIs.Length > 0)
         {
-            if (item.shouldReset)
+            foreach (XRGrabNetworkInteractable item in XGNIs)
             {
-                item.SetInitialPosition();
-                item.SetInitialRotation();
+                if (item.shouldReset)
+                {
+                    item.SetInitialPosition();
+                    item.SetInitialRotation();
+                }
             }
         }
     }
@@ -187,23 +206,25 @@ public class CustomNetworkedBuildingBlockEditor : EditorWindow
                 Debug.LogWarning("XRGrabNetworkInteractable is already attached.");
             }
         }
-        else
-        {
-            Debug.LogWarning("No object selected. Please select a GameObject from the hierarchy.");
-        }
     }
     private void HandleGravity(bool gravity)
     {
-        GameObject selectedObject = Selection.activeGameObject;
+        GameObject[] selectedObject = Selection.gameObjects;
 
-        if (selectedObject != null)
+        if (selectedObject.Length > 0)
         {
-            if (selectedObject.GetComponent<Rigidbody>() == null)
+            foreach (GameObject obj in Selection.gameObjects)
             {
-                selectedObject.AddComponent<Rigidbody>();
-                Debug.Log("Rigidbody attached to " + selectedObject.name);
+                if (obj != null)
+                {
+                    if (obj.GetComponent<Rigidbody>() == null)
+                    {
+                        obj.AddComponent<Rigidbody>();
+                        Debug.Log("Rigidbody attached to " + obj.name);
+                    }
+                    obj.GetComponent<Rigidbody>().useGravity = gravity;
+                }
             }
-            selectedObject.GetComponent<Rigidbody>().useGravity = gravity;
         }
         else
         {
