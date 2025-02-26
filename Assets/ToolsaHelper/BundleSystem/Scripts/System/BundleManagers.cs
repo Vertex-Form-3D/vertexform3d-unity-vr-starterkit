@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.AddressableAssets.ResourceLocators;
 /// <summary>
 /// manage bundle workflow
 /// </summary>
@@ -85,10 +83,7 @@ public class BundleManagers : MonoBehaviour
 
     }
 #endif
-
-
 }
-
 
 public interface IBundleDownloadCallBack
 {

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using VertextFormCore;
-using System.Linq;
 using Photon.Pun;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -9,7 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 [CustomEditor(typeof(GameObject))]
 public class CustomNetworkedBuildingBlockEditor : EditorWindow
 {
-    [MenuItem("Tools/CustomNetworkedBuildingBlockEditor")]
+    [MenuItem("VertexForm3DTools/CustomNetworkedBuildingBlockEditor")]
     public static void ShowWindow()
     {
         GetWindow<CustomNetworkedBuildingBlockEditor>("CustomNetworked Building Block Window");
@@ -100,6 +99,8 @@ public class CustomNetworkedBuildingBlockEditor : EditorWindow
         foreach (GameObject obj in Selection.gameObjects)
         {
             AttachGrabNetworkedObject(obj);
+            GameObject g = obj;
+            g.GetComponent<XRGrabNetworkInteractable>().shouldReset = false;
         }
     }
     private void AttachGrabNetworkedRespawnableObject()
