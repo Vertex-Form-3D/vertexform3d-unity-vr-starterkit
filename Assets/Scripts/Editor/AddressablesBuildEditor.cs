@@ -6,7 +6,86 @@ using UnityEngine;
 
 public class AddressablesBuildEditor : EditorWindow
 {
-    [MenuItem("VertexForm3D SDK/Build Addressables and Rename Catalog")]
+    private Texture2D bannerTexture;
+
+    [MenuItem("VertexForm3D SDK/Build Addressables")]
+    public static void ShowWindow()
+    {
+        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>("Build Addressables");
+        window.minSize = new Vector2(450, 400); // Adjusted to fit UI elements
+        window.Show();
+    }
+
+    private void OnEnable()
+    {
+        // Load the banner from Resources folder
+        bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.Space(5);
+
+        // Display Banner Image
+        if (bannerTexture != null)
+        {
+            float bannerWidth = Mathf.Min(bannerTexture.width, position.width - 10); // Fit within the window width
+            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height; // Maintain aspect ratio
+            GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("Banner image not found. Make sure 'VF3DBannerEditor' is inside the Resources folder.", MessageType.Warning);
+        }
+
+        GUILayout.Space(10);
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+        // Local Delivery Section
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.LabelField("Local Delivery", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField(
+            "By default, the framework is set up for Local Delivery, meaning all scenes are built directly into the final .apk file. " +
+            "When you press 'Build Scenes,' your scenes will be compiled and loaded from the local path.",
+            EditorStyles.wordWrappedLabel);
+        if (GUILayout.Button("Visit Tutorials", GUILayout.Height(25)))
+        {
+            Application.OpenURL("https://vertexform3d.com/tutorials/");
+        }
+        EditorGUILayout.EndVertical();
+
+        GUILayout.Space(10);
+
+        // Remote Delivery Section
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.LabelField("Remote Delivery", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField(
+            "As your app grows, switching to Remote Delivery is recommended to offload large environments to the cloud, " +
+            "keeping the local app size small.\n\n" +
+            "To enable Remote Delivery, update the settings in both the Addressable Groups and the Database. Once configured, " +
+            "clicking 'Publish' will build your scenes and store them in the 'Built' folder. You can then upload these files " +
+            "to the cloud provider of your choice.",
+            EditorStyles.wordWrappedLabel);
+        if (GUILayout.Button("Visit Tutorials", GUILayout.Height(25), GUILayout.ExpandWidth(true)))
+        {
+            Application.OpenURL("https://vertexform3d.com/tutorials/");
+        }
+        EditorGUILayout.EndVertical();
+
+        GUILayout.Space(15);
+
+        // Centered Build Scenes Button
+        GUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("Build Addressables", GUILayout.Width(150), GUILayout.Height(30), GUILayout.ExpandWidth(true)))
+        {
+            Debug.Log("Building scenes...");
+            BuildAddressablesAndRenameRemoteCatalog();
+            // Add your build logic here
+        }
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
+    }
     public static void BuildAddressablesAndRenameRemoteCatalog()
     {
         // Get remote catalog build path from Addressables settings

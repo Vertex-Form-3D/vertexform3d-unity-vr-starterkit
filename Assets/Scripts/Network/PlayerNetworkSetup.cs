@@ -164,6 +164,8 @@ namespace VertextFormCore
             {
                 PlayerName_Text.text = photonView.Owner.NickName;
             }
+
+            InvokeRepeating(nameof(CheckPosition), 5, 5);
         }
 
         private void OnDestroy()
@@ -186,6 +188,14 @@ namespace VertextFormCore
                         item.teleportationProvider = tp;
                     }
                 }
+            }
+        }
+
+        public void CheckPosition()
+        {
+            if (transform.position.x>10000f|| transform.position.y > 10000f || transform.position.z > 10000f)
+            {
+                ResetPosition();
             }
         }
 

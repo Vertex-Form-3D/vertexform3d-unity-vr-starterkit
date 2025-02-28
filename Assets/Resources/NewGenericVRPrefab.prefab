@@ -1469,8 +1469,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   flydirection: {x: 0, y: 0, z: 0}
   leftHand: {fileID: 366349417886633172}
-  flyingSpeed: 1
-  flyingSensitivity: 2
+  flyingSpeed: 0.1
+  flyingSensitivity: 0.1
+  normalSpeed: 0.1
+  normalSensitivity: 0.1
   intensity: 0.3
   isFlying: 0
   testingInEditor: 0
