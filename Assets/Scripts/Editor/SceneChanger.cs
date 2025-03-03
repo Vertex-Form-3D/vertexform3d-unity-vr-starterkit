@@ -67,10 +67,6 @@ namespace VertextFormCore
                 EditorGUILayout.EndHorizontal();
             }
 
-            GUILayout.Space(10f);
-            GUILayout.Label("Selection Controls");
-            GUILayout.Space(10f);
-
             // Adding Space in between two seperate functionalities
             GUILayout.Space(10f);
             GUILayout.Label("Save Data Controls");

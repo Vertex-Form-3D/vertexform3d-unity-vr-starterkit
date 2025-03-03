@@ -2122,6 +2122,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &162304409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 162304400}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &171351707 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6265840205589032236, guid: 6f9a3398f45c39b47a75eba882b98181, type: 3}
@@ -3132,6 +3155,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 258467455}
+    - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 258467457}
   m_SourcePrefab: {fileID: 100100000, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
 --- !u!4 &258467445 stripped
 Transform:
@@ -3225,6 +3251,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &258467457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 258467446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &262803545
 GameObject:
   m_ObjectHideFlags: 0
@@ -8720,6 +8769,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 669627772}
+    - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 669627774}
   m_SourcePrefab: {fileID: 100100000, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
 --- !u!1 &627049871
 GameObject:
@@ -9678,6 +9730,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 649429185}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 649429186}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!4 &649429179 stripped
 Transform:
@@ -9785,6 +9840,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &649429186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 649429180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &651545058
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10504,6 +10582,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &669627774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 669627765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &672907463
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13491,6 +13592,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 954011865}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 954011866}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!54 &954011858 stripped
 Rigidbody:
@@ -13603,6 +13707,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &954011866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 954011859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &960103813
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15751,6 +15878,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6957000769822834733, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1100203656}
+    - targetCorrespondingSourceObject: {fileID: 6957000769822834733, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1100203657}
   m_SourcePrefab: {fileID: 100100000, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
 --- !u!4 &1100203651 stripped
 Transform:
@@ -15833,6 +15963,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1100203657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100203653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &1108613572
 GameObject:
   m_ObjectHideFlags: 0
@@ -16103,6 +16256,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1121475629}
+    - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1121475630}
   m_SourcePrefab: {fileID: 100100000, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
 --- !u!4 &1121475623 stripped
 Transform:
@@ -16198,15 +16354,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: -0.156, y: 0.022, z: -0.661}
+  initialRotation: {x: 359.86417, y: 266.86166, z: 0.2754216}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1121475630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1121475624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!4 &1128389887 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2925957492872612194, guid: 796d4ee7f4cf3ec46877a335d40d6296, type: 3}
@@ -16706,6 +16885,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1148199414}
+    - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1148199415}
   m_SourcePrefab: {fileID: 100100000, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
 --- !u!4 &1148199408 stripped
 Transform:
@@ -16801,15 +16983,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: -0.20488691, y: 0.022000074, z: -0.46306503}
+  initialRotation: {x: -0, y: 233.1944, z: 0}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1148199415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1148199409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: -1
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &1148264533
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17625,6 +17830,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1163028390}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1163028391}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!54 &1163028383 stripped
 Rigidbody:
@@ -17737,6 +17945,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1163028391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1163028384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &1166548519
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18744,6 +18975,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1236172479}
+    - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1236172480}
   m_SourcePrefab: {fileID: 100100000, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
 --- !u!4 &1236172473 stripped
 Transform:
@@ -18839,15 +19073,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: 0.034913063, y: 0.021000147, z: -0.4339651}
+  initialRotation: {x: 359.75034, y: 294.9958, z: 0.17883115}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1236172480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1236172474}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: -1
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &1243242693
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18932,6 +19189,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1243242700}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1243242701}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!4 &1243242694 stripped
 Transform:
@@ -19053,6 +19313,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1243242701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243242695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &1275747071
 GameObject:
   m_ObjectHideFlags: 0
@@ -19549,6 +19832,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 162304407}
+    - targetCorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 162304409}
   m_SourcePrefab: {fileID: 100100000, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
 --- !u!1001 &1313722628
 PrefabInstance:
@@ -19991,6 +20277,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1343286192}
   - component: {fileID: 1343286193}
+  - component: {fileID: 1343286194}
   m_Layer: 0
   m_Name: Teleport Area
   m_TagString: Untagged
@@ -20096,6 +20383,19 @@ MonoBehaviour:
   m_Teleporting:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1343286194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1343286191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!114 &1348147447 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5283898765928290151, guid: 11d9c2d4a31153d48871dba786324550, type: 3}
@@ -21690,6 +21990,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6957000769822834733, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1421164304}
+    - targetCorrespondingSourceObject: {fileID: 6957000769822834733, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1421164305}
   m_SourcePrefab: {fileID: 100100000, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
 --- !u!4 &1421164299 stripped
 Transform:
@@ -21772,6 +22075,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1421164305
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421164301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &1427731825
 GameObject:
   m_ObjectHideFlags: 0
@@ -23514,6 +23840,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2164896394254855418, guid: eb062ec49f40b17408a5dc25961a60ef, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2142055061}
+    - targetCorrespondingSourceObject: {fileID: 7031269891304819430, guid: eb062ec49f40b17408a5dc25961a60ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1642336596}
   m_SourcePrefab: {fileID: 100100000, guid: eb062ec49f40b17408a5dc25961a60ef, type: 3}
 --- !u!1 &1519669026 stripped
 GameObject:
@@ -26383,6 +26712,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6957000769822834733, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1633834944}
+    - targetCorrespondingSourceObject: {fileID: 6957000769822834733, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1633834945}
   m_SourcePrefab: {fileID: 100100000, guid: 3ff9f50d1b0d1fa4f96b849e64c9c84a, type: 3}
 --- !u!4 &1633834939 stripped
 Transform:
@@ -26465,6 +26797,47 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1633834945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633834941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
+--- !u!1 &1642336595 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7031269891304819430, guid: eb062ec49f40b17408a5dc25961a60ef, type: 3}
+  m_PrefabInstance: {fileID: 1519669025}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1642336596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1642336595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 104784a6fc9241c4c86cc43605921dbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  teleportationArea: {fileID: 0}
 --- !u!114 &1647934470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32348,6 +32721,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7517549319329480230, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2006449394}
+    - targetCorrespondingSourceObject: {fileID: 7517549319329480230, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2006449395}
   m_SourcePrefab: {fileID: 100100000, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
 --- !u!4 &2006449383 stripped
 Transform:
@@ -32401,6 +32777,7 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 2006449393}
+  - {fileID: 2006449394}
   sceneViewId: 3
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -32416,9 +32793,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: 0.006, y: 0.038000107, z: 0.15515399}
+  initialRotation: {x: 78.45629, y: 316.8712, z: 288.56647}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -32457,6 +32834,29 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &2006449395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2006449384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: -1
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &2021173548
 GameObject:
   m_ObjectHideFlags: 0
@@ -32817,6 +33217,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2025200330}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2025200331}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!4 &2025200325 stripped
 Transform:
@@ -32890,15 +33293,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: -0.07694721, y: 0.10500002, z: 0.4629004}
+  initialRotation: {x: -0, y: 302.94025, z: 0}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2025200331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2025200327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: -1
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &2031060698
 GameObject:
   m_ObjectHideFlags: 0
@@ -33102,6 +33528,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7517549319329480230, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2033699635}
+    - targetCorrespondingSourceObject: {fileID: 7517549319329480230, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2033699636}
   m_SourcePrefab: {fileID: 100100000, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
 --- !u!4 &2033699624 stripped
 Transform:
@@ -33170,9 +33599,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: -0.059, y: 0.074, z: -0.085}
+  initialRotation: {x: 68.77887, y: 61.22699, z: 251.49721}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -33211,6 +33640,29 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &2033699636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033699625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &2036796630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33665,6 +34117,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2060333761}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2060333762}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!4 &2060333756 stripped
 Transform:
@@ -33738,15 +34193,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: 0.06579304, y: 0.092, z: 0.6659163}
+  initialRotation: {x: -0, y: 182.37585, z: 0}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2060333762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060333758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1 &2070059959
 GameObject:
   m_ObjectHideFlags: 0
@@ -34601,6 +35079,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7517549319329480230, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2102632366}
+    - targetCorrespondingSourceObject: {fileID: 7517549319329480230, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2102632367}
   m_SourcePrefab: {fileID: 100100000, guid: 10297a1bb8a48324da4743a14b7528ef, type: 3}
 --- !u!4 &2102632355 stripped
 Transform:
@@ -34654,6 +35135,7 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 2102632365}
+  - {fileID: 2102632366}
   sceneViewId: 1
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -34669,9 +35151,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: -0.17561245, y: 0.022628665, z: 0.06436181}
+  initialRotation: {x: 85.03012, y: 280.3534, z: 243.84952}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -34710,6 +35192,29 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &2102632367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2102632356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: -1
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!1001 &2110687715
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35449,6 +35954,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2138056398}
+    - targetCorrespondingSourceObject: {fileID: 4257412417454173071, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2138056399}
   m_SourcePrefab: {fileID: 100100000, guid: ed79eaa9dbed71a46b42588537c577a7, type: 3}
 --- !u!4 &2138056393 stripped
 Transform:
@@ -35522,15 +36030,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0, y: 0, z: 0}
-  initialRotation: {x: 0, y: 0, z: 0}
-  shouldReset: 0
+  initialPosition: {x: -0.16529965, y: 0.102, z: 0.67339766}
+  initialRotation: {x: -0, y: 238.0722, z: 0}
+  shouldReset: 1
   onSelectEnterEvent:
     m_PersistentCalls:
       m_Calls: []
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2138056399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2138056395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!114 &2142055061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40377,6 +40908,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5334022573883613884, guid: c00169bba4200754483e7c624531d00b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6292147533412352674}
+    - targetCorrespondingSourceObject: {fileID: 5334022573883613884, guid: c00169bba4200754483e7c624531d00b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6292147533412352675}
   m_SourcePrefab: {fileID: 100100000, guid: c00169bba4200754483e7c624531d00b, type: 3}
 --- !u!1 &6292147533412352671 stripped
 GameObject:
@@ -40443,6 +40977,29 @@ MonoBehaviour:
   onSelectExitEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6292147533412352675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6292147533412352671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0a1302d0d134fa8a2a5b3bf4aec3c20, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PermittedDisplacementAxes: 7
+  m_ConstrainedAxisDisplacementMode: 1
+  m_TwoHandedRotationMode: 1
+  m_AllowOneHandedScaling: 1
+  m_AllowTwoHandedScaling: 0
+  m_OneHandedScaleSpeed: 0.5
+  m_ThresholdMoveRatioForScale: 0.05
+  m_ClampScaling: 1
+  m_MinimumScaleRatio: 0.25
+  m_MaximumScaleRatio: 2
+  m_ScaleMultiplier: 0.25
 --- !u!65 &6304921300179041124
 BoxCollider:
   m_ObjectHideFlags: 0

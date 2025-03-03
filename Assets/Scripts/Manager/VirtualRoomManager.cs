@@ -57,7 +57,7 @@ namespace VertextFormCore
         public override void OnDisconnected(DisconnectCause cause)
         {
             Debug.Log("2-> disconnected");
-            PhotonNetwork.LoadLevel("0_LandingLobby_LoggedIn_VertexForm3D");
+            PhotonNetwork.LoadLevel("HomeScene");
         }
         #endregion!
     }

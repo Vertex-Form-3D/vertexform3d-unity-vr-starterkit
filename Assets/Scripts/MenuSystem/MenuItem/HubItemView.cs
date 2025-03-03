@@ -100,6 +100,7 @@ namespace VertextFormCore
     {
         public string HubName;
         public Sprite HubImage;
+        public bool flyMode;
         public int HubMaxRoomCount;
         public SceneProvider sceneProvider;
     }

@@ -13,6 +13,8 @@ public class FlyingModeScript : MonoBehaviour
     [SerializeField] Transform leftHand;
     public float flyingSpeed = 1;
     public float flyingSensitivity = 2;
+    public float normalSpeed = 2;
+    public float normalSensitivity = 2;
     public float intensity = .3f;
     public bool isFlying;
 
@@ -27,24 +29,25 @@ public class FlyingModeScript : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         _inputData = GetComponent<InputData>();
+
     }
 
     void Update()
     {
-        if (_inputData._leftController.TryGetFeatureValue(CommonUsages.gripButton, out bool leftGripBtn))
+        if (_inputData._leftController.TryGetFeatureValue(CommonUsages.trigger, out float leftTrigger))
         {
-            isFlying = leftGripBtn;
-            if (_inputData._leftController.TryGetFeatureValue(CommonUsages.trigger, out float leftTrigger))
+            isFlying = leftTrigger == 1;
+            if (isFlying && _inputData._leftController.TryGetFeatureValue(CommonUsages.gripButton, out bool leftGripBtn))
             {
-                if (leftTrigger == 0)
-                {
-                    flyingSpeed = 2;
-                    flyingSensitivity = 2;
-                }
-                else
+                if (leftGripBtn)
                 {
                     flyingSensitivity += intensity * Time.deltaTime;
                     flyingSpeed = flyingSensitivity * leftTrigger;
+                }
+                else
+                {
+                    flyingSpeed = normalSpeed;
+                    flyingSensitivity = normalSensitivity;
                 }
             }
         }
@@ -59,7 +62,7 @@ public class FlyingModeScript : MonoBehaviour
         }
         else
         {
-            flyingSensitivity = 1;
+            flyingSensitivity = normalSensitivity;
         }
     }
 

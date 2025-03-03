@@ -35,7 +35,11 @@ namespace Photon.Pun
             {
                 if (instance == null)
                 {
+                    #if UNITY_6000_0_OR_NEWER
+                    instance = FindFirstObjectByType<PhotonHandler>();
+                    #else
                     instance = FindObjectOfType<PhotonHandler>();
+                    #endif
                     if (instance == null)
                     {
                         GameObject obj = new GameObject();

@@ -11,6 +11,7 @@ namespace VertextFormCore
     public class SceneLoader : MonoBehaviour
     {
         public static SceneLoader Instance;
+        public bool isFlyModeEnabled;
         public float completePerchantage;
         public bool isCesiumScene;
         public CesiumWorldClass cesiumWorldClass = new CesiumWorldClass();

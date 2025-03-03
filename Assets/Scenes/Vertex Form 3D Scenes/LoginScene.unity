@@ -657,6 +657,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b02cbe96f29e6fd45804db40c307e2b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isFlyModeEnabled: 0
   completePerchantage: 0
   isCesiumScene: 0
   cesiumWorldClass:
@@ -6913,7 +6914,9 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 8599732664384479577, guid: 88e3e66a5eca6fd4e9197f40c99057ce, type: 3}
+    - {fileID: 2136730019649674711, guid: 88e3e66a5eca6fd4e9197f40c99057ce, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 88e3e66a5eca6fd4e9197f40c99057ce, type: 3}
@@ -6956,9 +6959,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55be3900966eeb5479b6552fe4796ea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneNames:
-  - 000_LandingLobby
-  - 00_LandingLobby_LoggedIn
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

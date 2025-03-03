@@ -10,7 +10,6 @@ using UnityEngine.XR.Content.Interaction;
 using Unity.XR.CoreUtils;
 using Photon.Voice.PUN;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
-using Oculus.Interaction;
 using Photon.Voice.Unity;
 
 namespace VertextFormCore
@@ -121,18 +120,10 @@ namespace VertextFormCore
                 SetLayerRecursively(AvatarHeadGameobject, 6);
                 SetLayerRecursively(AvatarBodyGameobject, 7);
 
-                var teleportationAreas = FindObjectsOfType<TeleportationArea>();
-                if (teleportationAreas.Length > 0)
-                {
-                    foreach (var item in teleportationAreas)
-                    {
-                        item.teleportationProvider = tp;
-                    }
-                }
 
-                if (SceneLoader.Instance.isCesiumScene)
+                if (SceneLoader.Instance.isFlyModeEnabled)
                 {
-                    InvokeRepeating(nameof(SetTeleportation), 2, 2);
+                    
                 }
                 else
                 {
@@ -255,7 +246,7 @@ namespace VertextFormCore
 
         public void MegaphoneHandler(bool active)
         {
-            photonView.RPC(nameof(MegaPhoneRPCHandle), RpcTarget.AllBuffered, photonView.ViewID);
+            photonView.RPC(nameof(MegaPhoneRPCHandle), RpcTarget.AllBuffered,active, photonView.ViewID);
         }
         [PunRPC]
         public void MegaPhoneRPCHandle(bool on, int viewid)
