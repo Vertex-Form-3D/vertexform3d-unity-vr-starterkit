@@ -22,6 +22,7 @@ namespace Photon.Realtime
     using System.Text;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Globalization;
 
     using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -274,6 +275,7 @@ namespace Photon.Realtime
                 sb.AppendFormat("State: {0} ", this.client.State);
                 sb.AppendFormat("PeerID: {0} ", this.client.LoadBalancingPeer.PeerID);
                 sb.AppendFormat("NameServer: {0} Current Server: {1} IP: {2} Region: {3} ", this.client.NameServerHost, this.client.CurrentServerAddress, this.client.LoadBalancingPeer.ServerIpAddress, this.client.CloudRegion);
+                sb.AppendFormat("{0} UTC", DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
 
                 Debug.LogWarning(sb.ToString());
             }

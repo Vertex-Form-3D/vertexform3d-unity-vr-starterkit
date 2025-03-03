@@ -15,9 +15,9 @@ UnityScript / JavaScript
 
 Help and Documentation
     Please read the included chm (or pdf).
-    Exit Games Forum:       https://forum.photonengine.com/categories/unity-networking-plugin-pun
     Online documentation:   https://doc.photonengine.com/en-us/pun/v2
-    Unity Forum Thread:     https://forum.unity3d.com/threads/photon-unity-networking.101734/
+    Join our Discord:       https://dashboard.photonengine.com/account/profile
+    Unity Discussions:      https://discussions.unity.com/t/photon-unity-networking/453757
 
 
 Integration

@@ -34,7 +34,14 @@ namespace Photon.Pun.UtilityScripts
             cullArea = (CullArea)target;
 
             // Destroying the newly created cull area if there is already one existing
-            if (FindObjectsOfType<CullArea>().Length > 1)
+            int cullAreaCount = 0;
+            #if UNITY_6000_0_OR_NEWER
+            cullAreaCount = FindObjectsByType<CullArea>(FindObjectsSortMode.None).Length;
+            #else
+            cullAreaCount = FindObjectsOfType<CullArea>().Length;
+            #endif
+
+            if (cullAreaCount > 1)
             {
                 Debug.LogWarning("Destroying newly created cull area because there is already one existing in the scene.");
 
@@ -166,15 +173,11 @@ namespace Photon.Pun.UtilityScripts
             showHelpEntries = EditorGUILayout.Foldout(showHelpEntries, "Need help with this component?");
             if (showHelpEntries)
             {
-                EditorGUILayout.HelpBox("To find help you can either follow the tutorial or have a look at the forums by clicking on the buttons below.", MessageType.Info);
+                EditorGUILayout.HelpBox("To find help you can either follow the tutorial or join our Discord server.", MessageType.Info);
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button("Open the tutorial"))
                 {
                     Application.OpenURL("https://doc.photonengine.com/en-us/pun/v2/demos-and-tutorials/package-demos/culling-demo");
-                }
-                if (GUILayout.Button("Take me to the forums"))
-                {
-                    Application.OpenURL("https://forum.photonengine.com/categories/unity-networking-plugin-pun");
                 }
                 EditorGUILayout.EndHorizontal();
             }

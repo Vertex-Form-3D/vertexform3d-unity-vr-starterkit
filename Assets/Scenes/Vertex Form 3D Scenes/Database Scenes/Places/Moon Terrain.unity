@@ -42,7 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -118,72 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &370499876
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1242848023}
-    m_Modifications:
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_RootOrder
-      value: -1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.20904231
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 2.1120172
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -1.5602034
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4323074770122723260, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-      propertyPath: m_Name
-      value: EventSystem
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
---- !u!4 &370499877 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3632056343611402470, guid: 7ee68a992717b3a40a820c1abb7953fa, type: 3}
-  m_PrefabInstance: {fileID: 370499876}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1242848021
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1242848023}
   - component: {fileID: 1242848022}
+  - component: {fileID: 1242848024}
   m_Layer: 0
   m_Name: CesiumGeoreference
   m_TagString: Untagged
@@ -214,6 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _ellipsoidOverride: {fileID: 11400000, guid: 8d6c66654ad6f6b4898232c22dbc48ab, type: 2}
+  _originPlacement: 1
   _originAuthority: 0
   _latitude: 36.05067
   _longitude: -112.13808251182235
@@ -236,9 +173,23 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1462552152}
-  - {fileID: 370499877}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1242848024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242848021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be1fb41cdd01d7649a082f1a8f2bd114, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _useMainCamera: 1
+  _useSceneViewCameraInEditor: 1
+  _additionalCameras: []
 --- !u!1 &1462552151
 GameObject:
   m_ObjectHideFlags: 0

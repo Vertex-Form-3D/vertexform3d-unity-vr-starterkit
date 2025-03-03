@@ -503,11 +503,11 @@
         </member>
         <member name="M:ExitGames.Client.Photon.IPhotonSocket.TryParseAddress(System.String,System.String@,System.UInt16@,System.String@,System.String@)">
              <summary>
-             Separates the given address into address (host name or IP) and port. Port must be included after colon!
+             Separates the given address into host (name or IP), port, scheme and path. This is more about splitting the parts, than detecting invalid cases.
              </summary>
              <remarks>
-             This method expects any address to include a port. The final ':' in addressAndPort has to separate it.
-             IPv6 addresses have multiple colons and <b>must use brackets</b> to separate address from port.
+             The out scheme may be empty for IP addresses (UDP and TCP). For these protocols, the url should include a port.
+             IPv6 addresses <b>must use brackets</b> to separate address from port.
             
              Examples:
                  ns.exitgames.com:5058
@@ -1161,7 +1161,7 @@
             <summary>Can be used to remove/hide the AppId from websocket connect paths.</summary>
         </member>
         <member name="F:ExitGames.Client.Photon.PhotonPeer.ClientSdkId">
-            <summary>A simplified identifier for client SDKs. Photon's APIs might modify this (as a dll can be used in more than one product). Helps debugging.</summary>
+            <summary>A simplified identifier for client SDKs. Helps debugging. Only Photon APIs should set this.</summary>
         </member>
         <member name="P:ExitGames.Client.Photon.PhotonPeer.ClientSdkIdShifted">
             <summary>For the Init-request, we shift the ClientId by one and the last bit signals a "debug" (0) or "release" build (1).</summary>
@@ -1614,15 +1614,15 @@
             <summary>
             Defines the initial size of an internally used StreamBuffer for Tcp.
             The StreamBuffer is used to aggregate operation into (less) send calls,
-            which uses less resoures.
+            which uses less resources.
             </summary>
             <remarks>
-            The size is not restricing the buffer and does not affect when outgoing data is actually sent.
+            The size is not restricting the buffer and does not affect when outgoing data is actually sent.
             </remarks>
         </member>
         <member name="P:ExitGames.Client.Photon.PhotonPeer.MaximumTransferUnit">
             <summary>
-            The Maximum Trasfer Unit (MTU) defines the (network-level) packet-content size that is
+            The Maximum Transfer Unit (MTU) defines the (network-level) packet-content size that is
             guaranteed to arrive at the server in one piece. The Photon Protocol uses this
             size to split larger data into packets and for receive-buffers of packets.
             </summary>
@@ -2655,9 +2655,27 @@
         <member name="F:ExitGames.Client.Photon.TPeer.ALL_HEADER_BYTES">
             <summary>TCP header combined: 9 bytes</summary>
         </member>
+        <member name="F:ExitGames.Client.Photon.TPeer.lastPingActivity">
+            <summary>Timestamp of last ping activity (updated when sending to avoid sending again immediately).</summary>
+        </member>
+        <member name="F:ExitGames.Client.Photon.TPeer.pingRequest">
+            <summary>Re-used binary message used in the TCP protocol (WSS uses a Ping Operation due to lack of framing).</summary>
+        </member>
+        <member name="F:ExitGames.Client.Photon.TPeer.pingParamDict">
+            <summary>Re-used ping-Operation parameter-dict used in the WS/WSS protocol (TCP uses pingRequest).</summary>
+        </member>
         <member name="F:ExitGames.Client.Photon.TPeer.DoFraming">
             <summary>Defines if the (TCP) socket implementation needs to do "framing".</summary>
             <remarks>The WebSocket protocol (e.g.) includes framing, so when that is used, we set DoFraming to false.</remarks>
+        </member>
+        <member name="F:ExitGames.Client.Photon.TPeer.waitForInitResponse">
+            <summary>
+            Helper value to track if this TPeer sends an init request and has to wait for the response. Defaults to true.
+            </summary>
+            <remarks>
+            For WebSockets, the init request is usually skipped (unless there is an init-token)
+            Setting this false allows WS/WSS to send pings even before the init-response is back. this fixes a bug in some platforms which do not provide the init-response message (for unknown reasons)
+            </remarks>
         </member>
         <member name="M:ExitGames.Client.Photon.TPeer.DispatchIncomingCommands">
             <summary>
@@ -2678,7 +2696,7 @@
             <summary>enqueues serialized operations to be sent as tcp stream / package</summary>
         </member>
         <member name="M:ExitGames.Client.Photon.TPeer.SendPing">
-            <summary>Sends a ping and modifies this.lastPingResult to avoid another ping for a while.</summary>
+            <summary>Checks conditions. Immediately sends a ping as operation or "message". Updates this.lastPingActivity to avoid another ping for a while.</summary>
         </member>
         <member name="M:ExitGames.Client.Photon.TPeer.ReceiveIncomingCommands(System.Byte[],System.Int32)">
             <summary>reads incoming tcp-packages to create and queue incoming commands*</summary>

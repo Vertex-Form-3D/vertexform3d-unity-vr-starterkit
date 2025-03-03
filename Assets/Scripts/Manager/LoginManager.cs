@@ -20,7 +20,7 @@ namespace VertextFormCore
             if (PlayerName_InputName != null)
             {
                 PhotonNetwork.LocalPlayer.NickName = !string.IsNullOrEmpty(PlayerName_InputName.text) ? PlayerName_InputName.text : "Mystery Guest_" + Random.Range(1111, 9999);
-                SceneManager.LoadScene("0_LandingLobby_LoggedIn_VertexForm3D");
+                SceneManager.LoadScene("HomeScene");
             }
         }
     }
