@@ -36,12 +36,14 @@ Who doesn't want motivation and support? Become a **Contributor**, a **Stargazer
 - **Unity Version**: `6000.0.32f1`  
 - **XR Interaction Toolkit 3**  
 - **Login Panel**  
-- **User-Specific UI for Accessing Scenes**  
+- **User-Specific UI for Accessing Scenes**
+- **Settings UI featuring audio controls, accessibility options, and sit/stand adjustments**
+- **Add object interactivity with the Vertex Form 3D SDK: apply gravity, respawn functionality, teleportation, and more**
+- **Toggle fly mode on or off in any scene**
 - **Scene Switching**  
 - **Simple Avatar Selection**  
 - **XR Interaction Examples**  
 - **Geospatial Integration with Cesium**  
-- **Fly Mode**  
 - **Remote & Local Delivery**  
 - **Multiplayer Support** (Up to **20 concurrent users**)
 - **Examples**
