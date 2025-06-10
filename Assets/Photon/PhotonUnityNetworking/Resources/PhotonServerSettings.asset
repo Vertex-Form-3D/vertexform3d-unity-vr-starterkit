@@ -19,7 +19,7 @@ MonoBehaviour:
     AppIdVoice: 
     AppVersion: 0.1
     UseNameServer: 1
-    FixedRegion: 
+    FixedRegion: eu
     Server: 
     Port: 0
     ProxyServer: 
@@ -55,6 +55,12 @@ MonoBehaviour:
   - SetSittingHeight
   - SetStandingHeight
   - MegaPhoneRPCHandle
+  - EnableHandControllerRPC
+  - EnableHandRPC
+  - NextSlide
+  - PreviousSlide
+  - ShowEmoji
+  - HandleSlide
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

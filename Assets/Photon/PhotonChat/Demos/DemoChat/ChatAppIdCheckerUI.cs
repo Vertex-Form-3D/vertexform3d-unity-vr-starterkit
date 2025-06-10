@@ -6,8 +6,6 @@
 
 
 using UnityEngine;
-
-
 using UnityEngine.UI;
 #if PHOTON_UNITY_NETWORKING
 using Photon.Pun;

@@ -3,6 +3,13 @@ Photon C# Client Library - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 4.1.8.14 (11. March 2025 - rev7866)
+    Changed: WebSocket implementation for Unity WebGL/JS exports and WebSocket-sharp based implementation (in PhotonLibs\WebSocket\).
+    Note: The goal is to process incoming messages in WebGL (and with WebSocket-sharp) more directly. This specifically helps the Voice SDK on WebGL to process the stream while in background.
+    Changed: WebSocketTcp and WebSocket to receive incoming messages via callbacks. At the same time our WebSocket code now also implements all typical callbacks for WS/WSS.
+    Changed: WebSocket.jslib replicates "standard" JS websocket methods and callbacks in its interface instead of caching messages for polling.
+    Changed: PreserveAttribute in SupportClass.cs is now public, so it can be used in WebSocket code as needs be.
+
 Version 4.1.8.13 (09. January 2025 - rev7815)
     No notable changes.
 
@@ -13,7 +20,7 @@ Version 4.1.8.12 (16. December 2024 - rev7801)
 
 Version 4.1.8.11 (17. October 2024 - rev7735)
     Changed: Internal TryParseAddress method, which failed for URLs without a port. This did not work well with the Realtime API's AddressRewriter and URLs for Discord Activities (which typically use a scheme but not a port).
-    
+
 Version 4.1.8.10 (14. October 2024 - rev7732)
     Internal: Preparation to support .Net Standard 2.1 builds.
     Updated: WebSocket for WebGL exports (WebSocket\WebSocket.jslib) to support Unity's (experimental) option to "Enable Native C/C++ Multithreading".

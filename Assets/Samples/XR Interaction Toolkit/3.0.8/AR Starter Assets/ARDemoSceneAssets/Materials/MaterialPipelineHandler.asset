@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7883133e628dff4a86f50c082f77055, type: 3}
+  m_Name: MaterialPipelineHandler
+  m_EditorClassIdentifier: 
+  m_ShaderContainers:
+  - material: {fileID: 2100000, guid: 405529b091e884f32ad1cdb05c634ebe, type: 2}
+    useSRPShaderName: 1
+    scriptableRenderPipelineShaderName: Universal Render Pipeline/Lit
+    scriptableRenderPipelineShader: {fileID: 0}
+    useBuiltinShaderName: 1
+    builtInPipelineShaderName: Standard
+    builtInPipelineShader: {fileID: 0}
+  m_AutoRefreshShaders: 1

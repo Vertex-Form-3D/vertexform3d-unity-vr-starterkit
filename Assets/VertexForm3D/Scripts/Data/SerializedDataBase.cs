@@ -1,0 +1,65 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace VertexFormCore
+{
+
+    [CreateAssetMenu(menuName = "Data", fileName = "DataBase", order = 1)]
+    public class SerializedDataBase : ScriptableObject
+    {
+        [SerializeField] public List<Category> worldCategories;
+    }
+}
+
+[System.Serializable]
+public class Category
+{
+    public string categoryName;
+    public List<WorldData> environments = new List<WorldData>();
+    public Category Clone()
+    {
+        Category clone = new Category
+        {
+            categoryName = this.categoryName, // String is immutable, safe to copy
+            environments = new List<WorldData>()
+        };
+
+        foreach (var world in this.environments)
+        {
+            clone.environments.Add(world.Clone()); // Deep copy each WorldData
+        }
+
+        return clone;
+    }
+}
+[System.Serializable]
+public class WorldData
+{
+    public string worldName;
+    public string worldKey;
+    public string worldImagePath;
+    [TextArea(3,10)]
+    public string worldDescription;
+    public SceneProvider sceneProvider;
+    public Sprite worldImage;
+    public bool flyMode = true;
+    // Creates a deep copy to ensure no shared references
+    public WorldData Clone()
+    {
+        return new WorldData
+        {
+            worldName = this.worldName, // String is immutable
+            worldKey = this.worldKey, // String is immutable
+            worldImagePath = this.worldImagePath, // String is immutable
+            worldDescription = this.worldDescription, // String is immutable
+            sceneProvider = this.sceneProvider, // Enum is value type
+            worldImage = this.worldImage, // Sprite is reference type; assuming read-only usage
+            flyMode = this.flyMode // Bool is value type
+        };
+    }
+}
+public enum SceneProvider
+{
+    Local, Remote
+}
