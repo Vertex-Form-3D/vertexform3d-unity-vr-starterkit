@@ -6,17 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Vertex Form 3D Scenes/LoginScene.unity
+    path: Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/LoginScene.unity
     guid: bc8cf5ed5969c2744923c32ada8e653f
   - enabled: 1
-    path: Assets/Scenes/Vertex Form 3D Scenes/HomeScene.unity
+    path: Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/HomeScene.unity
     guid: 36c358334a132a34fa1fc62295726119
   - enabled: 1
-    path: Assets/Scenes/Vertex Form 3D Scenes/addressableScene.unity
+    path: Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/addressableScene.unity
     guid: c575b9b71b9d13e478b51fbd704690c5
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 300e300344476314daa248b0ee67cab5, type: 2}
     com.unity.addressableassets: {fileID: 11400000, guid: 53073ff5d12ce6848b9229342f93f110, type: 2}
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 7d6158f0d138d1b4294823be665b00c5, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: fba6072275013e6448e381f83d131b7f, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: e60ad326389e9b14e9f7ae2c33703862, type: 2}
   m_UseUCBPForAssetBundles: 0

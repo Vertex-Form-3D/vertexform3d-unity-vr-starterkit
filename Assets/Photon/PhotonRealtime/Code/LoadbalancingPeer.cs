@@ -560,7 +560,7 @@ namespace Photon.Realtime
         /// </summary>
         /// <param name="becomeInactive">Async games can be re-joined (loaded) later on. Set to false, if you want to abandon a game entirely.</param>
         /// <param name="sendAuthCookie">WebFlag: Securely transmit the encrypted object AuthCookie to the web service in PathLeave webhook when available</param>
-        /// <returns>If the opteration can be send currently.</returns>
+        /// <returns>If the operation can be sent currently.</returns>
         public virtual bool OpLeaveRoom(bool becomeInactive, bool sendAuthCookie = false)
         {
             Dictionary<byte, object> opParameters = new Dictionary<byte, object>();

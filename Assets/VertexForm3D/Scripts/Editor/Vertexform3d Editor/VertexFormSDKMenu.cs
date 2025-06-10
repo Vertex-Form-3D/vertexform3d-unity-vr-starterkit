@@ -1,0 +1,105 @@
+using UnityEngine;
+using UnityEditor;
+
+namespace VertexFormCore.Editor
+{
+    public static class VertexFormSDKMenu
+    {
+        [MenuItem("VertexForm3D SDK/Project Setup", false, 1)]
+        public static void OpenProjectSetup()
+        {
+            ProjectSetUpEditor window = EditorWindow.GetWindow<ProjectSetUpEditor>("Project SetUp");
+            window.minSize = new Vector2(450, 400); // Adjusted to fit UI elements
+            window.Show();
+        }
+
+
+        [MenuItem("VertexForm3D SDK/Scene Database", false, 2)]
+        public static void OpenSceneDatabase()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:SerializedDataBase");
+            if (guids.Length == 0)
+            {
+                Debug.LogError("Database asset not found in the project!");
+                return;
+            }
+
+            // Convert the GUID to an asset path and load the asset
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            SerializedDataBase database = AssetDatabase.LoadAssetAtPath<SerializedDataBase>(path);
+
+            // Select the asset in the Project window
+            Selection.activeObject = database;
+            EditorUtility.FocusProjectWindow(); // Focus the Project window
+
+            // Open it in the Inspector
+            EditorUtility.OpenPropertyEditor(database);
+            Debug.Log("Opened Database: " + path);
+        }
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Favorites", false, 4)]
+        public static void OpenFavorites()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("FAVORITES");
+        }
+
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/XR Game Objects", false, 5)]
+        public static void OpenXRGameObjectsTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("XR GAME OBJECTS");
+        }
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Scene Switching", false, 6)]
+        public static void OpenSceneSwitchingTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("SCENE SWITCHING");
+        }
+
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Player Position", false, 7)]
+        public static void OpenPlayerPositionTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("PLAYER POSITION");
+        }
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/UI Elements", false, 8)]
+        public static void OpenUIElementsTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("UI ELEMENTS");
+        }
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Presentation Tools", false, 9)]
+        public static void OpenPresentationToolsTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("PRESENTATION TOOLS");
+        }
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Dev Tools", false, 10)]
+        public static void OpenDevToolsTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("DEV TOOLS");
+        }
+
+        [MenuItem("VertexForm3D SDK/Build Addressables", false, 11)]
+        public static void OpenBuildAddressablesWindow()
+        {
+            AddressablesBuildEditor window = EditorWindow.GetWindow<AddressablesBuildEditor>("Build Addressables");
+            window.minSize = new Vector2(450, 400); // Adjusted to fit UI elements
+            window.Show();
+        }
+
+        [MenuItem("VertexForm3D SDK/Help", false, 12)]
+        public static void OpenHelp()
+        {
+            VertexForm3DHelp.ShowWindow();
+        }
+    }
+}

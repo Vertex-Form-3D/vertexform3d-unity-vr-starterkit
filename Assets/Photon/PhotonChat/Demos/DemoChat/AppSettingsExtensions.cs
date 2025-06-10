@@ -7,7 +7,6 @@
 
 using Photon.Realtime;
 
-
 namespace Photon.Chat.Demo
 {
     public static class AppSettingsExtensions

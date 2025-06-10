@@ -3,6 +3,15 @@ Photon Realtime C# Client - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 4.1.8.14 (11. March 2025 - rev7866)
+    Moved: DNS resolution for Best Region detection from RegionPinger.Start() to RegionPingThreaded() / RegionPingCoroutine(). This is off the main thread, where possible.
+	Added: Log.Info() in case the DNS resolution (for Best Region selection) took longer than 100ms to finish for any given address.
+	Changed: ReconnectAndRejoin() will clear any Matchmaking Ticket before doing a reconnect and rejoin. The expectation is that the room still has this user as inactive and allows re-join.
+	Changed: OpLeaveRoom() to change local state only if the client is in a room and can send (queue) the operation successfully.
+	Changed: WebSocket implementation to receive incoming messages via callbacks. One benefit is that this avoids using a Coroutine in Unity WebGL to receive messages. At the same time our WebSocket code now also implements all typical callbacks for WS/WSS.
+	Note: The goal is to process incoming messages in WebGL (and with WebSocket-sharp) more directly. This specifically helps the Voice SDK on WebGL to process the stream while in background.
+	Changed: WebSocket.jslib replicates standard js websocket methods and callbacks in its interface instead of caching messages for polling.
+
 Version 4.1.8.13 (09. January 2025 - rev7815)
     Changed: RealtimeFallback() will no longer call client.Disconnect if the client is disconnecting already.
     Changed: ChangeLocalID() to not change the LocalPlayer.UserId, unless it is null or empty. This improves a change in v4.1.8.9, which could set the LocalPlayer.UserId to null.
