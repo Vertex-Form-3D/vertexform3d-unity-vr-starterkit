@@ -33,8 +33,11 @@ Who doesn't want motivation and support? Become a **Contributor**, a **Stargazer
 
 
 ## 🔹 Core Components  
-- **Unity Version**: `6000.0.32f1`  
-- **XR Interaction Toolkit 3**  
+- **Unity Version**: `6000.1.3f1`  
+- **XR Interaction Toolkit 3**
+- **OpenXR**
+- **Mixed Reality example**
+- **Hand Tracking**
 - **Login Panel**  
 - **User-Specific UI for Accessing Scenes**
 - **Settings UI featuring audio controls, accessibility options, and sit/stand adjustments**
