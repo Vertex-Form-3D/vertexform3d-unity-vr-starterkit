@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
+using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -9,191 +10,217 @@ using System.Diagnostics;
 public class AddressablesBuildEditor : EditorWindow
 {
     private Texture2D bannerTexture;
-    private string addressableCatalogFilePath = ""; // Field to store catalog file path input
-    private string catalogFileName = "VertexForm3DAddressablesCatalog"; // Field to store catalog file name input
-    private bool useOnlyLocalBundles = true; // Boolean to toggle local/remote bundles
-    private Vector2 scrollPosition; // Scroll position for scrollable view
+    private string addressableCatalogFilePath = "";
+    private string catalogFileName = "VertexForm3DAddressablesCatalog";
+    private bool useOnlyLocalBundles = true;
+    private Vector2 scrollPosition;
     private const string DEFAULT_CATALOG_PATH = "https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json";
 
-    /*[MenuItem("VertexForm3D SDK/Build Addressables")]
     public static void ShowWindow()
     {
-        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>("Build Addressables");
-        window.minSize = new Vector2(450, 400); // Adjusted to fit UI elements
+        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>("VertexForm3D Addressables");
+        window.minSize = new Vector2(500, 600);
         window.Show();
-    }*/
+    }
 
     private void OnEnable()
     {
-        // Load the banner from Resources folder
         bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
-
-        // Load the catalog path and name from AddressableBuildScriptableObject
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso != null)
         {
             addressableCatalogFilePath = string.IsNullOrEmpty(pso.projectData.addressableCatalogFilePath) ? DEFAULT_CATALOG_PATH : pso.projectData.addressableCatalogFilePath;
             catalogFileName = string.IsNullOrEmpty(pso.projectData.catalogFileName) ? "VertexForm3DAddressablesCatalog" : pso.projectData.catalogFileName;
+            useOnlyLocalBundles = pso.projectData.onlyLocalBundles;
         }
         else
         {
-            UnityEngine.Debug.LogWarning("AddressableBuildScriptableObject not found at 'Project Data SO'. Using default catalog path and name.");
+            UnityEngine.Debug.LogWarning("ProjectDataScriptableObject not found at 'Project Data SO'. Using defaults.");
             addressableCatalogFilePath = DEFAULT_CATALOG_PATH;
             catalogFileName = "VertexForm3DAddressablesCatalog";
-        }
-
-        // Load the onlyLocalBundles setting from ProjectDataScriptableObject
-        ProjectDataScriptableObject PSO = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
-        if (PSO != null)
-        {
-            useOnlyLocalBundles = PSO.projectData.onlyLocalBundles;
-        }
-        else
-        {
-            UnityEngine.Debug.LogWarning("ProjectDataScriptableObject not found at 'Project Data SO'. Defaulting to remote delivery.");
-            useOnlyLocalBundles = false;
+            useOnlyLocalBundles = true;
         }
     }
 
     private void OnGUI()
     {
-        // Begin scrollable view
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
 
-        GUILayout.Space(5);
+        // Styles
+        GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20, alignment = TextAnchor.MiddleCenter, margin = new RectOffset(0, 0, 10, 10) };
+        GUIStyle sectionStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 14, margin = new RectOffset(10, 10, 5, 5) };
+        GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 12, padding = new RectOffset(10, 10, 5, 5), margin = new RectOffset(10, 10, 5, 5) };
 
-        // Display Banner Image
+        // Banner
         if (bannerTexture != null)
         {
-            float bannerWidth = Mathf.Min(bannerTexture.width, position.width - 10); // Fit within the window width
-            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height; // Maintain aspect ratio
+            float bannerWidth = Mathf.Min(bannerTexture.width * 0.8f, position.width - 20);
+            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height;
+            bannerWidth /= 1.2f;
+            bannerHeight /= 1.2f;
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
             GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
         }
         else
         {
-            EditorGUILayout.HelpBox("Banner image not found. Make sure 'VF3DBannerEditor' is inside the Resources folder.", MessageType.Warning);
+            EditorGUILayout.HelpBox("Banner image not found. Place 'VF3DBannerEditor' in the Resources folder.", MessageType.Warning);
         }
 
-        GUILayout.Space(10);
+        // Title
+        GUILayout.Label("Addressables Management", titleStyle);
+        EditorGUILayout.HelpBox("This window manages the Addressables system for your project, allowing you to configure, build, and manage local and remote asset bundles.", MessageType.Info, true);
 
-        GUIStyle boldStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
-        GUILayout.Label("ADDRESSABLE SYSTEM", boldStyle);
+        // Build Button
+        GUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button(new GUIContent("Build Addressables", "Build Addressable assets and rename remote catalog files if applicable"), buttonStyle, GUILayout.Width(400), GUILayout.Height(40)))
+        {
+            UnityEngine.Debug.Log("Building addressables...");
+            BuildAddressablesAndRenameRemoteCatalog();
+        }
+        GUILayout.FlexibleSpace();
+        GUILayout.EndHorizontal();
+        EditorGUILayout.Space(10);
 
-        GUILayout.Space(10);
+        // Tutorials Button
+        if (GUILayout.Button(new GUIContent("View Tutorials", "Visit VertexForm3D tutorials for detailed guides on Addressables setup"), buttonStyle, GUILayout.Height(30)))
+        {
+            Application.OpenURL("https://vertexform3d.com/tutorials/");
+        }
 
-        // Local/Remote Bundle Toggle
-        EditorGUILayout.BeginVertical("box");
-        EditorGUILayout.LabelField("Bundle Delivery Mode", EditorStyles.boldLabel);
-        bool newUseOnlyLocalBundles = EditorGUILayout.Toggle("Use Only Local Bundles", useOnlyLocalBundles);
+        // Addressables Management Buttons
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button(new GUIContent("Addressables Groups", "Open Addressables Groups window"), buttonStyle, GUILayout.Height(30)))
+        {
+            EditorApplication.ExecuteMenuItem("Window/Asset Management/Addressables/Groups");
+        }
+        if (GUILayout.Button(new GUIContent("Addressables Profiles", "Open Addressables Profiles window"), buttonStyle, GUILayout.Height(30)))
+        {
+            EditorApplication.ExecuteMenuItem("Window/Asset Management/Addressables/Profiles");
+        }
+        if (GUILayout.Button(new GUIContent("Open Catalog Folder", "Open the catalog folder"), buttonStyle, GUILayout.Height(30)))
+        {
+            OpenCatalogFolder();
+        }
+        GUILayout.EndHorizontal();
+        EditorGUILayout.Space(10);
+
+        // Delivery Mode Section
+        EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
+        GUILayout.Label("Bundle Delivery Mode", sectionStyle);
+        EditorGUILayout.HelpBox("Choose whether to use local bundles (included in the .apk) or remote bundles (hosted on a cloud server). Changing this setting requires clearing the build cache to avoid issues.", MessageType.Info);
+        bool newUseOnlyLocalBundles = EditorGUILayout.Toggle(new GUIContent("Use Local Bundles Only", "Enable to include all assets in the .apk. Disable to use cloud-hosted remote bundles."), useOnlyLocalBundles);
         if (newUseOnlyLocalBundles != useOnlyLocalBundles)
         {
             useOnlyLocalBundles = newUseOnlyLocalBundles;
             SaveBundleDeliveryMode();
         }
-        GUILayout.Space(10);
-        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        EditorGUILayout.Space(10);
+        EditorGUILayout.EndVertical();
 
         // Local Delivery Section
-        EditorGUILayout.BeginVertical("box");
-        EditorGUILayout.LabelField("Local Delivery", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField(
-            "Whenever you change the groups from Remote to local or local to remote then make sure to do clear build cache.Go to addressables group> build> clear build cache> and press All and Build pipeline cache button.Otherwise you might be et issue in addressables." +
-            EditorStyles.wordWrappedLabel);
-        EditorGUILayout.LabelField(
-            "By default, the framework is set up for Local Delivery, meaning all scenes are built directly into the final .apk file. " +
-            "When you press 'Build Addressables,' your scenes will be compiled and loaded from the local path.",
-            EditorStyles.wordWrappedLabel);
-        if (GUILayout.Button("Visit Tutorials", GUILayout.Height(25)))
-        {
-            Application.OpenURL("https://vertexform3d.com/tutorials/");
-        }
-
-        EditorGUILayout.EndVertical();
-
-        GUILayout.Space(10);
-
-        // Remote Delivery Section
-        EditorGUILayout.BeginVertical("box");
-        EditorGUILayout.LabelField("Remote Delivery", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField(
-            "As your app grows, switching to Remote Delivery is recommended to offload large environments to the cloud, " +
-            "keeping the local app size small.\n\n" +
-            "To enable Remote Delivery, update the settings in both the Addressable Groups and the Database. Once configured, " +
-            "clicking 'Publish' will build your scenes and store them in the 'Built' folder. You can then upload these files " +
-            "to the cloud provider of your choice.",
-            EditorStyles.wordWrappedLabel);
-        if (GUILayout.Button("Visit Tutorials", GUILayout.Height(25), GUILayout.ExpandWidth(true)))
-        {
-            Application.OpenURL("https://vertexform3d.com/tutorials/");
-        }
-        GUILayout.Space(20);
-        EditorGUILayout.LabelField(
-            "Open the Addressables Groups window to configure and manage your asset groups for Remote Delivery. This allows you to organize assets, set build and load paths, and optimize bundle creation.",
-            EditorStyles.wordWrappedLabel);
-        if (GUILayout.Button("Open Addressables Groups", GUILayout.Height(25)))
+        EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
+        GUILayout.Label("Local Delivery", sectionStyle);
+        EditorGUILayout.HelpBox(
+            "Local delivery builds all scenes directly into the .apk file, suitable for smaller apps or offline use. " +
+            "Ensure you clear the build cache (Addressables Groups > Build > Clear Build Cache > All) after switching delivery modes to prevent asset conflicts.",
+            MessageType.Info);
+        if (GUILayout.Button(new GUIContent("Create Local Group", "Create a new Addressable group configured for local delivery"), buttonStyle, GUILayout.Height(30)))
         {
             EditorApplication.ExecuteMenuItem("Window/Asset Management/Addressables/Groups");
+            CreateLocalGroup();
         }
-        GUILayout.Space(20);
-        EditorGUILayout.LabelField(
-            "Open the Addressables Profiles window to manage build and load paths for your addressable assets. This allows you to configure profiles for different environments, such as local or remote hosting.",
-            EditorStyles.wordWrappedLabel);
-        if (GUILayout.Button("Open Addressables Profiles", GUILayout.Height(25)))
-        {
-            EditorApplication.ExecuteMenuItem("Window/Asset Management/Addressables/Profiles");
-        }
-        GUILayout.Space(20);
-        EditorGUILayout.LabelField(
-            "Open the catalogFolder where all addressables bundles saved.",
-            EditorStyles.wordWrappedLabel);
-        if (GUILayout.Button("Open bundles Folder", GUILayout.Height(25)))
-        {
-            OpenCatalogFolder();
-        }
+        EditorGUILayout.Space(5);
         EditorGUILayout.EndVertical();
 
-        // Addressable Catalog File Input Section
-        EditorGUILayout.BeginVertical("box");
-        EditorGUILayout.LabelField("Addressable Catalog File", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField("go to the path where you uploaded addressableCatalog json file copy its public URL and paste it here if you are using remote addressables",
-            EditorStyles.wordWrappedLabel);
-        addressableCatalogFilePath = EditorGUILayout.TextField("Catalog File Path:", addressableCatalogFilePath);
-        catalogFileName = EditorGUILayout.TextField("Catalog File Name:", catalogFileName);
-        if (GUILayout.Button("Save Catalog Settings", GUILayout.Height(25)))
+        // Remote Delivery Section
+        EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
+        GUILayout.Label("Remote Delivery", sectionStyle);
+        EditorGUILayout.HelpBox(
+            "Remote delivery offloads large assets to a cloud server, reducing app size. Configure Addressable Groups and Profiles, build bundles, and upload them to your cloud provider.",
+            MessageType.Info);
+        if (GUILayout.Button(new GUIContent("Create Remote Group", "Create a new Addressable group configured for remote delivery"), buttonStyle, GUILayout.Height(30)))
+        {
+            EditorApplication.ExecuteMenuItem("Window/Asset Management/Addressables/Groups");
+            CreateRemoteGroup();
+        }
+        EditorGUILayout.Space(5);
+        EditorGUILayout.EndVertical();
+
+        // Catalog Settings Section
+        EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
+        GUILayout.Label("Catalog Settings", sectionStyle);
+        EditorGUILayout.HelpBox(
+            "Specify the public URL and name for the Addressable catalog JSON file used in remote delivery. " +
+            "Upload the catalog file to your cloud provider and paste the public URL here.",
+            MessageType.Info);
+        addressableCatalogFilePath = EditorGUILayout.TextField(new GUIContent("Catalog File Path", "Enter the public URL or local path to the Addressable catalog JSON file"), addressableCatalogFilePath);
+        catalogFileName = EditorGUILayout.TextField(new GUIContent("Catalog File Name", "Enter the name of the catalog file (without .json extension)"), catalogFileName);
+        if (GUILayout.Button(new GUIContent("Save Catalog Settings", "Save the catalog file path and name to the Project Data SO"), buttonStyle, GUILayout.Height(30)))
         {
             SaveCatalogSettings();
         }
+        EditorGUILayout.Space(5);
         EditorGUILayout.EndVertical();
 
-        GUILayout.Space(10);
-
-        EditorGUILayout.EndVertical();
-
-        GUILayout.Space(15);
-
-        EditorGUILayout.LabelField("Clear Cached Bundles", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField(
-            "It deletes downloaded AssetBundles stored in the local cache. This is useful during development or when updating bundles to ensure that Unity loads the most recent versions instead of outdated cached data.",
-            EditorStyles.wordWrappedLabel);
-        if (GUILayout.Button("Clear CachedBundles", GUILayout.Height(25)))
+        // Clear Cache Section
+        EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
+        GUILayout.Label("Cache Management", sectionStyle);
+        EditorGUILayout.HelpBox(
+            "Clear cached bundles to remove outdated assets from the local cache. This ensures the latest bundles are loaded during development or after updates.",
+            MessageType.Info);
+        if (GUILayout.Button(new GUIContent("Clear Cached Bundles", "Delete all locally cached Addressable bundles and reset PlayerPrefs"), buttonStyle, GUILayout.Height(30)))
         {
             ClearCashedBundles();
         }
-        GUILayout.Space(15);
+        EditorGUILayout.Space(5);
+        EditorGUILayout.EndVertical();
 
-        // Centered Build Scenes Button
-        GUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-        if (GUILayout.Button("Build Addressables", GUILayout.Width(150), GUILayout.Height(30), GUILayout.ExpandWidth(true)))
-        {
-            UnityEngine.Debug.Log("Building scenes...");
-            BuildAddressablesAndRenameRemoteCatalog();
-        }
-        GUILayout.FlexibleSpace();
-        GUILayout.EndHorizontal();
-
-        // End scrollable view
+        EditorGUILayout.Space(10);
         EditorGUILayout.EndScrollView();
+    }
+
+    private void CreateRemoteGroup()
+    {
+        CreateAddressableGroup(true);
+    }
+
+    private void CreateLocalGroup()
+    {
+        CreateAddressableGroup(false);
+    }
+
+    private void CreateAddressableGroup(bool remote)
+    {
+        AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null)
+        {
+            UnityEngine.Debug.LogError("AddressableAssetSettings not found!");
+            return;
+        }
+
+        AddressableAssetGroup newGroup = settings.CreateGroup(remote ? "Remote Group" : "Local Group", false, false, false, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+        BundledAssetGroupSchema bundledSchema = newGroup.GetSchema<BundledAssetGroupSchema>();
+        if (bundledSchema != null)
+        {
+            bundledSchema.BuildPath.SetVariableByName(settings, remote ? "Remote.BuildPath" : "Local.BuildPath");
+            bundledSchema.LoadPath.SetVariableByName(settings, remote ? "Remote.LoadPath" : "Local.LoadPath");
+            bundledSchema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZ4;
+            bundledSchema.UseAssetBundleCache = true;
+            bundledSchema.UseAssetBundleCrc = false;
+            bundledSchema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.FileNameHash;
+            bundledSchema.IncludeAddressInCatalog = true;
+            bundledSchema.IncludeGUIDInCatalog = true;
+            bundledSchema.IncludeLabelsInCatalog = true;
+            bundledSchema.BundleMode = BundledAssetGroupSchema.BundlePackingMode.PackTogetherByLabel;
+            bundledSchema.AssetBundledCacheClearBehavior = BundledAssetGroupSchema.CacheClearBehavior.ClearWhenSpaceIsNeededInCache;
+        }
+
+        EditorUtility.SetDirty(settings);
+        UnityEngine.Debug.Log($"Created new Addressable group '{(remote ? "Remote Group" : "Local Group")}' with specified settings.");
     }
 
     private void SaveCatalogSettings()
@@ -203,12 +230,12 @@ public class AddressablesBuildEditor : EditorWindow
         {
             pso.projectData.addressableCatalogFilePath = string.IsNullOrEmpty(addressableCatalogFilePath) ? DEFAULT_CATALOG_PATH : addressableCatalogFilePath;
             pso.projectData.catalogFileName = string.IsNullOrEmpty(catalogFileName) ? "VertexForm3DAddressablesCatalog" : catalogFileName;
-            EditorUtility.SetDirty(pso); // Mark the ScriptableObject as modified to save changes
-            UnityEngine.Debug.Log($"Catalog settings saved: Path = {pso.projectData.addressableCatalogFilePath}, Name = {pso.projectData.catalogFileName}");
+            EditorUtility.SetDirty(pso);
+            UnityEngine.Debug.Log($" Mischief managed! Catalog settings saved: Path = {pso.projectData.addressableCatalogFilePath}, Name = {pso.projectData.catalogFileName}");
         }
         else
         {
-            UnityEngine.Debug.LogError("AddressableBuildScriptableObject not found at 'Project Data SO'.");
+            UnityEngine.Debug.LogError("ProjectDataScriptableObject not found at 'Project Data SO'.");
         }
     }
 
@@ -218,7 +245,7 @@ public class AddressablesBuildEditor : EditorWindow
         if (PSO != null)
         {
             PSO.projectData.onlyLocalBundles = useOnlyLocalBundles;
-            EditorUtility.SetDirty(PSO); // Mark the ScriptableObject as modified to save changes
+            EditorUtility.SetDirty(PSO);
             UnityEngine.Debug.Log($"Bundle delivery mode saved: onlyLocalBundles = {useOnlyLocalBundles}");
         }
         else
@@ -229,24 +256,18 @@ public class AddressablesBuildEditor : EditorWindow
 
     public static void BuildAddressablesAndRenameRemoteCatalog()
     {
-        // Get remote catalog build path from Addressables settings
         string remoteBuildPath = GetRemoteBuildPath();
-
         if (string.IsNullOrEmpty(remoteBuildPath))
         {
             UnityEngine.Debug.LogError("Remote Build Path is not set in Addressables settings.");
             return;
         }
 
-        // Clear old bundles before building
         ClearOldBundles(remoteBuildPath);
-
-        // Clean and build Addressables
         AddressableAssetSettings.CleanPlayerContent();
         AddressableAssetSettings.BuildPlayerContent();
 
         ProjectDataScriptableObject PSO = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
-        // Rename catalog files
         RenameCatalogFiles(remoteBuildPath, PSO.projectData.catalogFileName);
 
         UnityEngine.Debug.Log("Addressables build complete, remote catalog files renamed.");
@@ -256,8 +277,8 @@ public class AddressablesBuildEditor : EditorWindow
     {
         if (Directory.Exists(path))
         {
-            Directory.Delete(path, true); // Delete all contents
-            Directory.CreateDirectory(path); // Recreate the directory
+            Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
             UnityEngine.Debug.Log($"Cleared old Addressables bundles at: {path}");
         }
         else
@@ -275,12 +296,10 @@ public class AddressablesBuildEditor : EditorWindow
         }
 
         string[] files = Directory.GetFiles(buildPath, "catalog_*");
-
         foreach (var file in files)
         {
             string directory = Path.GetDirectoryName(file);
             string extension = Path.GetExtension(file);
-
             if (file.Contains(".hash"))
             {
                 File.Move(file, Path.Combine(directory, $"{newCatalogName}.hash"));
@@ -296,7 +315,6 @@ public class AddressablesBuildEditor : EditorWindow
 
     private static string GetRemoteBuildPath()
     {
-        // Get Addressables settings
         AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null)
         {
@@ -304,10 +322,8 @@ public class AddressablesBuildEditor : EditorWindow
             return null;
         }
 
-        // Get Remote Build Path from the active profile
         string remoteBuildPath = settings.RemoteCatalogBuildPath.GetValue(settings);
         remoteBuildPath = remoteBuildPath.Replace("[UnityEngine.AddressableAssets.Addressables.BuildPath]", "ServerData");
-
         return remoteBuildPath;
     }
 
@@ -317,11 +333,22 @@ public class AddressablesBuildEditor : EditorWindow
         pso.projectData.addressableCatalogFilePath = string.IsNullOrEmpty(addressableCatalogFilePath) ? DEFAULT_CATALOG_PATH : addressableCatalogFilePath;
     }
 
+    public static void CenterWindow()
+    {
+        var window = GetWindow<AddressablesBuildEditor>();
+        var position = window.position;
+        var screenWidth = Screen.currentResolution.width;
+        var screenHeight = Screen.currentResolution.height;
+
+        position.x = (screenWidth - position.width) / 2;
+        position.y = (screenHeight - position.height) / 2;
+        window.position = position;
+    }
+
     public static void ClearCashedBundles()
     {
         Caching.ClearCache();
         PlayerPrefs.DeleteAll();
-
         Addressables.CleanBundleCache().Completed += handle => UnityEngine.Debug.Log("Cache cleared.");
     }
 
@@ -340,11 +367,9 @@ public class AddressablesBuildEditor : EditorWindow
             return;
         }
 
-        // Convert to absolute path if necessary
         string absolutePath = Path.GetFullPath(remoteBuildPath);
         UnityEngine.Debug.Log($"Opening catalog folder at: {absolutePath}");
 
-        // Open the folder in the system's file explorer
         try
         {
             Process.Start(new ProcessStartInfo

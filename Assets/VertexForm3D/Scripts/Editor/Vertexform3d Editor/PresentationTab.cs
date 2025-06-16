@@ -80,30 +80,35 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Video Player/Video Screen Player"));
             g.name = "Video Screen Player";
+            EditorGUIUtility.PingObject(g);
         }
 
         public void Create3DVideoPlayer()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Video Player/3D Render Video"));
             g.name = "3D Render Video";
+            EditorGUIUtility.PingObject(g);
         }
 
         public void CreateSkybox360VideoPlayer()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Video Player/SkyboxVideo"));
             g.name = "SkyboxVideo";
+            EditorGUIUtility.PingObject(g);
         }
 
         public void CreateAudioPlayer()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Video Player/AudioPlayer"));
             g.name = "AudioPlayer";
+            EditorGUIUtility.PingObject(g);
         }
 
         public void CreateSpatialAudioPlayer()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Video Player/Spatial AudioPlayer"));
             g.name = "Spatial AudioPlayer";
+            EditorGUIUtility.PingObject(g);
         }
 
         #endregion

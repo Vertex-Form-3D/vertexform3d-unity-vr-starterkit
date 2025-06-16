@@ -22,7 +22,7 @@ MonoBehaviour:
         campfire, and a few tents. Logs are placed around the fire for seating. Ambient
         sound include fire crackling. The area is calm and designed for quiet exploration
         or relaxation.
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
       flyMode: 0
     - worldName: Ocean Villa
@@ -31,7 +31,7 @@ MonoBehaviour:
       worldDescription: 'A modern oceanfront villa with glass walls, open to the
         sea breeze. The environment includes palm trees, wooden floors, an infinity
         pool, and minimalist indoor spaces. '
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: be96b4c00f375bf478889b601850b20c, type: 3}
       flyMode: 0
     - worldName: Games
@@ -42,7 +42,7 @@ MonoBehaviour:
         Users can interact with objects and levers to learn core XR mechanics. Teleportation
         zones are marked by pulsing lights. Dynamic lighting and a subtle background
         hum enhance the immersive, tech-focused environment.
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: ba956be2dc747c84cb5aa20a77ea3a87, type: 3}
       flyMode: 0
   - categoryName: Geospatial
@@ -52,14 +52,14 @@ MonoBehaviour:
       worldImagePath: 
       worldDescription: This environment is built using real-world Earth terrain
         data.
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: 0068bbc61dbc44e46a5e683b43156547, type: 3}
       flyMode: 1
     - worldName: Moon Terrain
       worldKey: Moon Terrain
       worldImagePath: 
       worldDescription: This environment is built using real-world Moon terrain data.
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: d00d7b756bb37cd498b519c772cfd351, type: 3}
       flyMode: 1
   - categoryName: Other
@@ -72,7 +72,7 @@ MonoBehaviour:
         magenta tones. Cherry blossom trees bloom nearby, with petals suspended in
         still air. The surrounding environment is dark and minimal, creating a surreal,
         tranquil atmosphere. This scene is designed as a quiet, dreamlike sanctuary.
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: 9c9cb025d886ca24e9b0af1416589e5a, type: 3}
       flyMode: 0
     - worldName: Bright Space
@@ -84,7 +84,7 @@ MonoBehaviour:
         and uncluttered, with no walls, emphasizing clean lines and openness. Designed
         to feel peaceful and otherworldly, this environment showcases a balance of
         light, form, and architectural elegance.
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: c6ad4fd66735ec7419f4f0a41284a0c0, type: 3}
       flyMode: 0
     - worldName: Materials Examples
@@ -97,7 +97,7 @@ MonoBehaviour:
         and reflection probes enhance realism. Users can walk or fly around to inspect
         materials from any angle. This environment functions as a visual catalog
         for material testing and presentation."
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: 1f7c26e3fa3c9234aac14ed5ca91b9da, type: 3}
       flyMode: 0
     - worldName: Mixed Reality
@@ -110,6 +110,6 @@ MonoBehaviour:
         and reflection probes enhance realism. Users can walk or fly around to inspect
         materials from any angle. This environment functions as a visual catalog
         for material testing and presentation."
-      sceneProvider: 0
+      sceneProvider: 1
       worldImage: {fileID: 21300000, guid: 70b38ab1fd2e8e844b5d4da8356e172f, type: 3}
       flyMode: 0

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace VertexFormCore.Editor
@@ -42,6 +43,7 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/PlayerSpawnPoint"));
             g.name = "PlayerspwanPoint";
+            EditorGUIUtility.PingObject(g);
         }
 
         #endregion

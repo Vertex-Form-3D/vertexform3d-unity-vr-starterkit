@@ -2,12 +2,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using TMPro;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 public class VideoPlayerController : MonoBehaviour
 {
+    [SerializeField] private bool loadVideoFromAddressables = false; // New field for Addressables
+    [SerializeField] private string videoKey = ""; // New field for Addressable video key
     public VideoPlayerType PlayerType;
     [SerializeField] private bool isLooping = false;
     [SerializeField] private bool clearSky = true;
@@ -33,13 +37,44 @@ public class VideoPlayerController : MonoBehaviour
     private bool isPlaying = false;
     private RenderTexture renderTexture;
     Material originalSkyboxMaterial;
+    private AsyncOperationHandle<VideoClip> videoClipHandle;
 
     void Start()
     {
         originalSkyboxMaterial = RenderSettings.skybox;
-        // Initialize video player settings based on PlayerType
-        SetupVideoPlayer();
+        // Load video from Addressables if enabled
+        if (loadVideoFromAddressables && !string.IsNullOrEmpty(videoKey))
+        {
+            LoadVideoFromAddressables();
+        }
+        else
+        {
+            // Initialize video player settings based on PlayerType
+            SetupVideoPlayer();
+            InitializeVideoPlayer();
+        }
+    }
 
+    void LoadVideoFromAddressables()
+    {
+        videoClipHandle = Addressables.LoadAssetAsync<VideoClip>(videoKey);
+        videoClipHandle.Completed += handle =>
+        {
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                videoPlayer.clip = handle.Result;
+                SetupVideoPlayer();
+                InitializeVideoPlayer();
+            }
+            else
+            {
+                Debug.LogError($"Failed to load video from Addressables with key: {videoKey}");
+            }
+        };
+    }
+
+    void InitializeVideoPlayer()
+    {
         if (videoPlayer.playOnAwake)
         {
             VideoPlay();
@@ -149,9 +184,12 @@ public class VideoPlayerController : MonoBehaviour
         }
     }
 
-
     void OnDrawGizmos()
     {
+        if (videoPlayer == null)
+        {
+            return;
+        }
         // Draw minimum distance sphere
         if (videoPlayer.GetComponent<AudioSource>() != null && videoPlayer.GetComponent<AudioSource>().spatialBlend != 0)
         {
@@ -366,6 +404,11 @@ public class VideoPlayerController : MonoBehaviour
             renderTexture.Release();
             Destroy(renderTexture);
         }
+        // Release Addressable handle
+        if (videoClipHandle.IsValid())
+        {
+            Addressables.Release(videoClipHandle);
+        }
     }
 }
 
@@ -391,6 +434,8 @@ public class VideoPlayerControllerEditor : Editor
         SerializedProperty isLoopingProp = serializedObject.FindProperty("isLooping");
         SerializedProperty clearSkyProp = serializedObject.FindProperty("clearSky");
         SerializedProperty showUIProp = serializedObject.FindProperty("showUI");
+        SerializedProperty loadVideoFromAddressablesProp = serializedObject.FindProperty("loadVideoFromAddressables"); // New property
+        SerializedProperty videoKeyProp = serializedObject.FindProperty("videoKey"); // New property
         SerializedProperty currentTimeProp = serializedObject.FindProperty("currentTime");
         SerializedProperty totalTimeProp = serializedObject.FindProperty("totalTime");
         SerializedProperty skipTimeProp = serializedObject.FindProperty("skipTime");
@@ -411,6 +456,11 @@ public class VideoPlayerControllerEditor : Editor
         serializedObject.Update();
 
         // Draw non-UI fields
+        EditorGUILayout.PropertyField(loadVideoFromAddressablesProp); // Draw new field
+        if (loadVideoFromAddressablesProp.boolValue)
+        {
+            EditorGUILayout.PropertyField(videoKeyProp); // Draw videoKey if loadVideoFromAddressables is true
+        }
         EditorGUILayout.PropertyField(playerTypeProp);
         EditorGUILayout.PropertyField(isLoopingProp);
         EditorGUILayout.PropertyField(clearSkyProp);

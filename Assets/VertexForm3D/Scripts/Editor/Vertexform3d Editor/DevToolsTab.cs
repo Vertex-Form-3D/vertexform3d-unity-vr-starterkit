@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor;
 using VertextFormCore;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
+using UnityEditor.SceneManagement;
 
 namespace VertexFormCore.Editor
 {
@@ -41,7 +42,7 @@ namespace VertexFormCore.Editor
                 "Make This scene home scene",
                 "Add this scene into buildSettings at second position.",
                 MakeThisHomeScene));
-            
+
             items.Add(new ToolkitItem(
                 "Make Mixed Reality Scene",
                 "Make This scene Mixed Reality scene",
@@ -72,6 +73,24 @@ namespace VertexFormCore.Editor
                 "Adds a \"Network Sync Event\" Game Object to the active Scene, to sync events over the multiplayer network.",
                 "",
                 CreateNetworkSyncEvent));
+            
+            items.Add(new ToolkitItem(
+                "Attach AnimationHandler Script",
+                "Animate the object by moving, Rotate and Scale.",
+                "",
+                AttachAnimationHandlerScript));
+            
+            items.Add(new ToolkitItem(
+                "Attach UIAnimationHandler Script",
+                "Animate the UI via Fading, Changing Color and Moving.",
+                "",
+                AttachUIAnimationHandlerScript));
+            
+            items.Add(new ToolkitItem(
+                "Add Addressable Object Loader",
+                "Load SkyBox, Texture, Sprite, Audio, Video via addressables.",
+                "",
+                AddObjectLoaderViaAddressables));
         }
 
         #region DEV TOOLS METHODS
@@ -80,6 +99,7 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/SyncEvent"));
             g.name = "SyncEvent";
+            EditorGUIUtility.PingObject(g);
         }
 
         private void SelectProjectData()
@@ -110,6 +130,7 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/XR Device Simulator"));
             g.name = "XR Device Simulator";
+            EditorGUIUtility.PingObject(g);
         }
 
         public void MakeThisHomeScene()
@@ -119,6 +140,7 @@ namespace VertexFormCore.Editor
             {
                 GameObject hsc = PrefabUtility.InstantiatePrefab(Resources.Load<GameObject>("CustomEditor/HomeSceneComponent")) as GameObject;
                 hsc.name = "HomeSceneComponent";
+                EditorGUIUtility.PingObject(hsc);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(hsc.scene);
             }
         }
@@ -130,10 +152,11 @@ namespace VertexFormCore.Editor
             {
                 GameObject lsc = PrefabUtility.InstantiatePrefab(Resources.Load<GameObject>("CustomEditor/LoginSceneComponent")) as GameObject;
                 lsc.name = "LoginSceneComponent";
+                EditorGUIUtility.PingObject(lsc);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(lsc.scene);
             }
         }
-        
+
         public void MakeThisMixedRealityScene()
         {
             GameObject MixedRealityScene = GameObject.Find("MixedRealityScene");
@@ -141,8 +164,53 @@ namespace VertexFormCore.Editor
             {
                 GameObject mrs = PrefabUtility.InstantiatePrefab(Resources.Load<GameObject>("CustomEditor/MixedRealityScene")) as GameObject;
                 mrs.name = "MixedRealityScene";
-                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(mrs.scene);
+                EditorGUIUtility.PingObject(mrs);
+                EditorSceneManager.MarkSceneDirty(mrs.scene);
             }
+        }
+
+        public void AttachAnimationHandlerScript()
+        {
+            GameObject[] selectedObject = Selection.gameObjects;
+            if (selectedObject.Length > 0)
+            {
+                foreach (GameObject obj in selectedObject)
+                {
+                    obj.AddComponent<TeleportationAreaNetworked>();
+                    EditorSceneManager.MarkSceneDirty(obj.scene);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("No object selected.");
+            }
+        }
+
+        public void AttachUIAnimationHandlerScript()
+        {
+            GameObject[] selectedObject = Selection.gameObjects;
+            if (selectedObject.Length > 0)
+            {
+                foreach (GameObject obj in selectedObject)
+                {
+                    if (obj.GetComponent<RectTransform>()!=null)
+                    {
+                        obj.AddComponent<UIAnimationHandler>();
+                        EditorSceneManager.MarkSceneDirty(obj.scene);
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("No object selected.");
+            }
+        }
+
+        public void AddObjectLoaderViaAddressables()
+        {
+            GameObject a = new GameObject("AddressablesObjectLoader");
+            a.AddComponent<AddressableObjectLoader>();
+            EditorGUIUtility.PingObject(a);
         }
         #endregion
     }

@@ -110,6 +110,7 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/SwitchSceneUI"));
             g.name = "SwitchSceneUI";
+            EditorGUIUtility.PingObject(g);
             EditorSceneManager.MarkSceneDirty(g.scene);
         }
 
@@ -182,6 +183,7 @@ namespace VertexFormCore.Editor
             GameObject canvas = GetOrCreateCanvas();
             GameObject slider = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/UIElements/Slider"), canvas.transform);
             slider.name = "Slider";
+            EditorGUIUtility.PingObject(slider);
             EditorSceneManager.MarkSceneDirty(canvas.scene);
             Debug.Log("Slider added to " + canvas.name);
         }
@@ -191,6 +193,7 @@ namespace VertexFormCore.Editor
             GameObject canvas = GetOrCreateCanvas();
             GameObject dropdown = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/UIElements/Dropdown"), canvas.transform);
             dropdown.name = "Dropdown";
+            EditorGUIUtility.PingObject(dropdown);
             EditorSceneManager.MarkSceneDirty(canvas.scene);
             Debug.Log("Dropdown added to " + canvas.name);
         }
@@ -200,6 +203,7 @@ namespace VertexFormCore.Editor
             GameObject canvas = GetOrCreateCanvas();
             GameObject toggle = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/UIElements/Toggle"), canvas.transform);
             toggle.name = "Toggle";
+            EditorGUIUtility.PingObject(toggle);
             EditorSceneManager.MarkSceneDirty(canvas.scene);
             Debug.Log("Toggle added to " + canvas.name);
         }
@@ -209,6 +213,7 @@ namespace VertexFormCore.Editor
             GameObject canvas = GetOrCreateCanvas();
             GameObject inputField = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/UIElements/InputField"), canvas.transform);
             inputField.name = "InputField";
+            EditorGUIUtility.PingObject(inputField);
             EditorSceneManager.MarkSceneDirty(canvas.scene);
             Debug.Log("InputField added to " + canvas.name);
         }

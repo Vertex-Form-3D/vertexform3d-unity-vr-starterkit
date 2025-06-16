@@ -7,7 +7,6 @@ public class ProjectSetUpEditor : EditorWindow
     private Texture2D bannerTexture;
     private Vector2 scrollPosition;
 
-    [MenuItem("Tools/Project Setup")]
     public static void ShowWindow()
     {
         GetWindow<ProjectSetUpEditor>("Project Setup");
