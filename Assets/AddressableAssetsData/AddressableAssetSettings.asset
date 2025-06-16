@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 635e9b242c41d2f4ca0a86a48509b67e
   m_currentHash:
     serializedVersion: 2
-    Hash: d8faa9fcf356602ad50434b30f7c1f57
+    Hash: 00000000000000000000000000000000
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 1
   m_BundleLocalCatalog: 0
@@ -86,9 +86,9 @@ MonoBehaviour:
       m_ProfileName: VertexRemote
       m_Values:
       - m_Id: 0d1e9007f64df0d4f9c88727b51ec188
-        m_Value: 'ServerData/[BuildTarget]'
+        m_Value: '[UnityEngine.AddressableAssets.Addressables.BuildPath]/[BuildTarget]'
       - m_Id: 0ec9839b3fc49dc43b434da5c787bf95
-        m_Value: 'https://storage.googleapis.com/vertex_devlopment_bucket/[BuildTarget]'
+        m_Value: '{UnityEngine.AddressableAssets.Addressables.RuntimePath}/[BuildTarget]'
       - m_Id: 168db7a08e8861e4583507f69c184d87
         m_Value: '{UnityEngine.AddressableAssets.Addressables.RuntimePath}/[BuildTarget]'
       - m_Id: 512115b213b6e824dafb252062b56854

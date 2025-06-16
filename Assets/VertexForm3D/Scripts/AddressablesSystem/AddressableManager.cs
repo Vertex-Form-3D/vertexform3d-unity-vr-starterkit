@@ -67,6 +67,9 @@ public class AddressableManager : MonoBehaviour
         return addressablesDownloader.downloadingBundlekey;
     }
 
+
+    #region CACHE_CHECKING
+
     public void CheckCacheByLabels(string key, Action<bool> inCacheAction)
     {
         string label = key;
@@ -152,6 +155,8 @@ public class AddressableManager : MonoBehaviour
             }
         }
     }
+
+    #endregion
 }
 
 public interface IBundleDownloadCallBack

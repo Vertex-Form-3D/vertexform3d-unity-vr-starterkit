@@ -31,6 +31,8 @@ public class AudioPlayer : MonoBehaviour
     // Draw gizmos to visualize audio distances
     void OnDrawGizmos()
     {
+        if (audioSource==null) return;
+
         // Draw minimum distance sphere
         if (audioSource.spatialBlend != 0)
         {

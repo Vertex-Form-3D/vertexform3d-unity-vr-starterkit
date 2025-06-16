@@ -1,5 +1,12 @@
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
+using TMPro;
+using UnityEditor.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard;
+using VertexFormCore;
+using UnityEngine.SceneManagement;
 
 namespace VertexFormCore.Editor
 {
@@ -103,3 +110,38 @@ namespace VertexFormCore.Editor
         }
     }
 }
+
+#if UNITY_EDITOR
+[InitializeOnLoad]
+public class SceneSavingEditor
+{
+    static SceneSavingEditor()
+    {
+        // Subscribe to the sceneSaving event
+        EditorSceneManager.sceneSaving += OnSceneSaving;
+    }
+    private static void OnSceneSaving(Scene scene, string path)
+    {
+        // Find all XRGrabNetworkInteractable components in the scene
+        var interactables = Resources.FindObjectsOfTypeAll<XRGrabNetworkInteractable>();
+
+        foreach (var interactable in interactables)
+        {
+            // Call SetInitialPosition and SetInitialRotation
+            interactable.SetInitialPosition();
+            interactable.SetInitialRotation();
+        }
+
+        var tmpInputFields = Resources.FindObjectsOfTypeAll<TMP_InputField>();
+
+        foreach (var inputfield in tmpInputFields)
+        {
+            if (inputfield.GetComponent<XRKeyboardDisplay>() == null)
+            {
+                inputfield.gameObject.AddComponent<XRKeyboardDisplay>();
+            }
+            inputfield.GetComponent<XRKeyboardDisplay>().inputField = inputfield;
+        }
+    }
+}
+#endif

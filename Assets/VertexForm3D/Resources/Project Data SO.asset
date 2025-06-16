@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Project Data SO
   m_EditorClassIdentifier: 
   projectData:
-    addressableCatalogFilePath: https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json
-    onlyLocalBundles: 1
     DebugEnabled: 1
     anonymousUserNamePrefix: Mystery Guest_
-    catalogFileName: YourProjectAddressablesCatalog
+    onlyLocalBundles: 0
+    addressableCatalogFilePath: https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json
+    catalogFileName: VertexForm3DAddressablesCatalog

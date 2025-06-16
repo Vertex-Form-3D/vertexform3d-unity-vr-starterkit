@@ -179,6 +179,7 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/GrabNetworkedObject"));
             g.name = "GrabNetworkedObject";
+            EditorGUIUtility.PingObject(g);
         }
 
         private void CreateRespawnableGrabNetworkedObject()
@@ -188,12 +189,14 @@ namespace VertexFormCore.Editor
             g.GetComponent<XRGrabNetworkInteractable>().shouldReset = true;
             g.GetComponent<XRGrabNetworkInteractable>().SetInitialPosition();
             g.GetComponent<XRGrabNetworkInteractable>().SetInitialRotation();
+            EditorGUIUtility.PingObject(g);
         }
 
         public void CreateSnapAndSwap()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/SnapAndSwap"));
             g.name = "SnapAndSwap";
+            EditorGUIUtility.PingObject(g);
         }
 
         private void HandleGravity(bool gravity)

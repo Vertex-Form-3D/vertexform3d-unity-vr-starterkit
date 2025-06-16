@@ -56,12 +56,14 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/SwitchSceneUI"));
             g.name = "SwitchSceneUI";
+            EditorGUIUtility.PingObject(g);
         }
 
         private void SceneSwitchingTeleport()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Scene Switcher Teleport"));
             g.name = "SceneSwitcherTeleport";
+            EditorGUIUtility.PingObject(g);
         }
 
         private void MakeSceneSwitchingTeleport()

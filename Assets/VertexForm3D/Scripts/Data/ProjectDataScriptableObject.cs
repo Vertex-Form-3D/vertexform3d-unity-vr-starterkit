@@ -10,9 +10,9 @@ public class ProjectDataScriptableObject : ScriptableObject
 [Serializable]
 public class ProjectData
 {
-    public string addressableCatalogFilePath;
-    public bool onlyLocalBundles = true;
     public bool DebugEnabled;
-    public string anonymousUserNamePrefix= "Mystery Guest_";
+    public string anonymousUserNamePrefix = "Mystery Guest_";
+    public bool onlyLocalBundles = true;
+    public string addressableCatalogFilePath;
     public string catalogFileName;
 }
