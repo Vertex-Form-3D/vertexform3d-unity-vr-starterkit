@@ -5,6 +5,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Management;
 
 namespace VertexFormCore
 {
@@ -34,7 +35,7 @@ namespace VertexFormCore
         Coroutine loadSceneCoroutine;
         public void LoadScnene(string SceneName)
         {
-            sceneIsLoaded=false;
+            sceneIsLoaded = false;
             if (loadSceneCoroutine == null)
             {
                 loadSceneCoroutine = StartCoroutine(WaitToLeveThenLoadScene(SceneName));
@@ -69,6 +70,23 @@ namespace VertexFormCore
                 yield return new WaitForSeconds(1f);
             }
             yield return sceneHandle;
+
+            if (XRGeneralSettings.Instance.Manager.isInitializationComplete)
+            {
+                XRGeneralSettings.Instance.Manager.StopSubsystems();
+                XRGeneralSettings.Instance.Manager.DeinitializeLoader();
+                Debug.Log("XR session stopped.");
+                yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
+                if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+                {
+                    XRGeneralSettings.Instance.Manager.StartSubsystems();
+                    Debug.Log("XR session reinitialized.");
+                }
+                else
+                {
+                    Debug.LogError("Failed to reinitialize XR Loader.");
+                }
+            }
 
             if (sceneHandle.Status == AsyncOperationStatus.Succeeded)
             {
