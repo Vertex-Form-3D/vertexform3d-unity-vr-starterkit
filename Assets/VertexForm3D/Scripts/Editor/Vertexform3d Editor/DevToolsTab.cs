@@ -176,7 +176,7 @@ namespace VertexFormCore.Editor
             {
                 foreach (GameObject obj in selectedObject)
                 {
-                    obj.AddComponent<TeleportationAreaNetworked>();
+                    obj.AddComponent<AnimationHandler>();
                     EditorSceneManager.MarkSceneDirty(obj.scene);
                 }
             }
