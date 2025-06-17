@@ -1,5 +1,7 @@
 using System;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -264,6 +266,7 @@ public class AddressableObjectLoader : MonoBehaviour
 
 }
 
+#if UNITY_EDITOR
 
 [CustomEditor(typeof(AddressableObjectLoader))]
 public class AddressableObjectLoaderEditor : Editor
@@ -314,3 +317,4 @@ public class AddressableObjectLoaderEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 }
+#endif
