@@ -131,7 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0.96476954, y: 1.028049, z: 0.60360473}
+  initialPosition: {x: 1.206, y: 1.051, z: 0.6036048}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -384,7 +384,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -1.2111113, y: 1.1092634, z: -0.07698743}
+  initialPosition: {x: -1.2111114, y: 1.1092635, z: -0.07698742}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -694,7 +694,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -0.8759209, y: 0.8084483, z: -0.095423646}
+  initialPosition: {x: -1.009, y: 0.8084484, z: -0.09542365}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -990,7 +990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 1.3028249, y: 0.82856125, z: -0.5951057}
+  initialPosition: {x: 1.38, y: 0.8285613, z: -0.5951057}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -1243,7 +1243,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -1.2638937, y: 1.1237313, z: -0.6326067}
+  initialPosition: {x: -1.473, y: 1.1237313, z: -0.6326067}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -1496,7 +1496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 1.557198, y: 1.0603797, z: -0.85121787}
+  initialPosition: {x: 1.746, y: 1.078, z: -0.8512179}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -1946,7 +1946,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 0.3449362, y: 0.8667753, z: 0.6828393}
+  initialPosition: {x: 0.3449362, y: 0.86677533, z: 0.6828393}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -2221,7 +2221,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: 1.0187296, y: 0.9451237, z: 0.1912715}
+  initialPosition: {x: 1.0187297, y: 0.94512373, z: 0.1912715}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -2473,7 +2473,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -0.9739472, y: 0.8269603, z: -0.9715417}
+  initialPosition: {x: -1.2, y: 0.8269603, z: -0.97154176}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -2726,7 +2726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -0.44939464, y: 0.86001766, z: 0.42982072}
+  initialPosition: {x: -0.541, y: 0.8600177, z: 0.42982072}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -3015,7 +3015,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1785766282}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3088,7 +3088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -0.93387955, y: 0.82191974, z: -0.32733062}
+  initialPosition: {x: -1.156, y: 0.847, z: -0.514}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
@@ -3341,7 +3341,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03440350d636a7b4fa33504cc9356afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialPosition: {x: -0.8297423, y: 1.0202484, z: 0.49866405}
+  initialPosition: {x: -1.002, y: 1.056, z: 0.49866408}
   initialRotation: {x: -0, y: 0, z: 0}
   shouldReset: 1
   onSelectEnterEvent:
