@@ -1,4 +1,4 @@
-using Photon.Pun;
+using Fusion;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -15,7 +15,6 @@ namespace VertexFormCore
         public bool isFlyModeEnabled;
         public float completePerchantage;
         public bool isCesiumScene;
-        public CesiumWorldClass cesiumWorldClass = new CesiumWorldClass();
         public bool sceneIsLoaded;
 
         private void Awake()
@@ -29,7 +28,6 @@ namespace VertexFormCore
             {
                 Destroy(gameObject);
             }
-            PhotonNetwork.GameVersion = Application.version;
         }
 
         Coroutine loadSceneCoroutine;
@@ -44,15 +42,25 @@ namespace VertexFormCore
 
         public IEnumerator WaitToLeveThenLoadScene(string SceneName)
         {
-            if (PhotonNetwork.InRoom)
+            // Check if we have a Fusion runner and if it's in a session
+            bool isInSession = RoomManager.Instance != null &&
+                              RoomManager.Instance.Runner != null &&
+                              RoomManager.Instance.Runner.IsClient;
+
+            if (isInSession)
             {
-                PhotonNetwork.LeaveRoom();
+                // Leave the current Fusion session
+                RoomManager.Instance.LeaveRoom();
             }
 
-            while (PhotonNetwork.InRoom)
+            // Wait for Fusion runner to shut down
+            while (RoomManager.Instance != null &&
+                   RoomManager.Instance.Runner != null &&
+                   RoomManager.Instance.Runner.IsClient)
             {
                 yield return new WaitForSeconds(1f);
             }
+
             Debug.Log("addressable SceneName is : " + SceneName);
             completePerchantage = 0;
             SceneManager.LoadSceneAsync(2);
@@ -62,14 +70,6 @@ namespace VertexFormCore
             {
                 OnSceneLoaded(SceneName);
             };
-            Debug.Log("LoadSceneAsync: " + SceneName);
-            while (!sceneHandle.IsDone)
-            {
-                completePerchantage = sceneHandle.PercentComplete * 100f;
-                Debug.Log("Scene is not done yet please wait");
-                yield return new WaitForSeconds(1f);
-            }
-            yield return sceneHandle;
 
             if (XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
@@ -88,9 +88,20 @@ namespace VertexFormCore
                 }
             }
 
+            Debug.Log("LoadSceneAsync: " + SceneName);
+            while (!sceneHandle.IsDone)
+            {
+                completePerchantage = sceneHandle.PercentComplete * 100f;
+                Debug.Log("Scene is not done yet please wait");
+                yield return new WaitForSeconds(1f);
+            }
+            yield return sceneHandle;
+
+
             if (sceneHandle.Status == AsyncOperationStatus.Succeeded)
             {
                 completePerchantage = sceneHandle.PercentComplete * 100f;
+
                 yield return sceneHandle.Result.ActivateAsync();
                 Debug.Log("operation successful");
             }
@@ -107,15 +118,29 @@ namespace VertexFormCore
             loadSceneCoroutine = null;
         }
 
-
+        string currentScene;
+        [ContextMenu("ActivateScene")]
+        public void ActivateScene()
+        {
+            Scene sc = SceneManager.GetSceneByName(currentScene);
+            SceneManager.SetActiveScene(sc);
+        }
         public void OnSceneLoaded(string sceneName)
         {
             sceneIsLoaded = true;
+            currentScene = sceneName;
             Debug.Log(" scene loaded " + sceneName);
-            RoomManager.Instance.ConnectToRoom(sceneName);
 
-            Scene sc = SceneManager.GetSceneByName(sceneName);
-            SceneManager.SetActiveScene(sc);
+            // Connect to Fusion room using the new scene name
+            // Note: Fusion will handle setting the active scene when it loads the networked version
+            if (RoomManager.Instance != null)
+            {
+                RoomManager.Instance.ConnectToRoom(sceneName);
+            }
+
+            // Don't set active scene here - Fusion's NetworkSceneManager will handle it
+            // when it loads the scene for networking. Setting it here causes duplicate activation.
+
             Resources.UnloadUnusedAssets();
             Caching.ClearCache();
         }

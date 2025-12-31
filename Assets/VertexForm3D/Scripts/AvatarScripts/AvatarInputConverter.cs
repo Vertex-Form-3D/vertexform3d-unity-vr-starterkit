@@ -1,4 +1,4 @@
-﻿using Photon.Pun;
+﻿using Fusion;
 using UnityEngine;
 
 namespace VertexFormCore
@@ -21,14 +21,14 @@ namespace VertexFormCore
         public Vector3 headPositionOffset;
         public Vector3 rightHandRotationOffset;
         public Vector3 leftHandRotationOffset;
-        public PhotonView PhotonView;
+        public NetworkObject networkObject;
 
         // Update is called once per frame
         void Update()
         {
-            if (PhotonView != null)
+            if (networkObject != null)
             {
-                if (!PhotonView.IsMine)
+                if (!networkObject.HasInputAuthority)
                 {
                     return;
                 }

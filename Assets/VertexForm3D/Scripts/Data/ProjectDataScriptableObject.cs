@@ -15,4 +15,34 @@ public class ProjectData
     public bool onlyLocalBundles = true;
     public string addressableCatalogFilePath;
     public string catalogFileName;
+    public SettingClass defaultSetting;
+}
+
+public enum micType
+{
+    mute,
+    unmute
+}
+
+public enum grabMode
+{
+    near,
+    distance
+}
+
+public enum toggle
+{
+    on,
+    off
+}
+
+[System.Serializable]
+public class SettingClass
+{
+    public toggle standDefault;
+    public micType micType = micType.mute;
+    public grabMode grabMode;
+    public toggle flyMode;
+    public toggle megaphone;
+
 }

@@ -10,7 +10,6 @@
         private SerializedProperty randomRoomSp;
         private SerializedProperty roomNameSp;
         private SerializedProperty autoConnectSp;
-        private SerializedProperty autoTransmitSp;
         private SerializedProperty publishUserIdSp;
 
         private void OnEnable()
@@ -19,7 +18,6 @@
             this.randomRoomSp = this.serializedObject.FindProperty("RandomRoom");
             this.roomNameSp = this.serializedObject.FindProperty("RoomName");
             this.autoConnectSp = this.serializedObject.FindProperty("autoConnect");
-            this.autoTransmitSp = this.serializedObject.FindProperty("autoTransmit");
             this.publishUserIdSp = this.serializedObject.FindProperty("publishUserId");
         }
 
@@ -27,7 +25,6 @@
         {
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(this.autoConnectSp);
-            EditorGUILayout.PropertyField(this.autoTransmitSp);
             EditorGUILayout.PropertyField(this.randomRoomSp);
             EditorGUILayout.PropertyField(this.publishUserIdSp);
             if (!this.randomRoomSp.boolValue)

@@ -22,7 +22,7 @@ MonoBehaviour:
         campfire, and a few tents. Logs are placed around the fire for seating. Ambient
         sound include fire crackling. The area is calm and designed for quiet exploration
         or relaxation.
-      sceneProvider: 1
+      sceneProvider: 0
       worldImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
       flyMode: 0
     - worldName: Ocean Villa
@@ -31,7 +31,7 @@ MonoBehaviour:
       worldDescription: 'A modern oceanfront villa with glass walls, open to the
         sea breeze. The environment includes palm trees, wooden floors, an infinity
         pool, and minimalist indoor spaces. '
-      sceneProvider: 1
+      sceneProvider: 0
       worldImage: {fileID: 21300000, guid: be96b4c00f375bf478889b601850b20c, type: 3}
       flyMode: 0
     - worldName: Games
@@ -42,7 +42,7 @@ MonoBehaviour:
         Users can interact with objects and levers to learn core XR mechanics. Teleportation
         zones are marked by pulsing lights. Dynamic lighting and a subtle background
         hum enhance the immersive, tech-focused environment.
-      sceneProvider: 1
+      sceneProvider: 0
       worldImage: {fileID: 21300000, guid: ba956be2dc747c84cb5aa20a77ea3a87, type: 3}
       flyMode: 0
   - categoryName: Geospatial
@@ -52,16 +52,23 @@ MonoBehaviour:
       worldImagePath: 
       worldDescription: This environment is built using real-world Earth terrain
         data.
-      sceneProvider: 1
+      sceneProvider: 0
       worldImage: {fileID: 21300000, guid: 0068bbc61dbc44e46a5e683b43156547, type: 3}
       flyMode: 1
     - worldName: Moon Terrain
       worldKey: Moon Terrain
       worldImagePath: 
       worldDescription: This environment is built using real-world Moon terrain data.
-      sceneProvider: 1
+      sceneProvider: 0
       worldImage: {fileID: 21300000, guid: d00d7b756bb37cd498b519c772cfd351, type: 3}
       flyMode: 1
+    - worldName: Mars Terrain
+      worldKey: Mars Terrain
+      worldImagePath: 
+      worldDescription: This environment is built using real-world Mars terrain data.
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: 7afa089e0c0e9124498b062fe0a24e52, type: 3}
+      flyMode: 0
   - categoryName: Other
     environments:
     - worldName: Dark Space

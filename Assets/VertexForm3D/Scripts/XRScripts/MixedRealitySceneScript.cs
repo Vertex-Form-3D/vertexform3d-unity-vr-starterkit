@@ -7,7 +7,7 @@ public class MixedRealitySceneScript : MonoBehaviour
 {
     IEnumerator Start()
     {
-        while (SpawnManager.Instance == null || SpawnManager.Instance.localVRPlayer == null)
+        while (RoomManager.Instance == null || RoomManager.Instance.localVRPlayer == null)
         {
             yield return new WaitForSeconds(0.5f);
         }
@@ -16,6 +16,6 @@ public class MixedRealitySceneScript : MonoBehaviour
 
     private void InitializeMixedRealityScene()
     {
-        SpawnManager.Instance.localVRPlayer.GetComponent<MixedRealityHandler>().EnableMixedReality();
+        RoomManager.Instance.localVRPlayer.GetComponent<MixedRealityHandler>().EnableMixedReality();
     }
 }

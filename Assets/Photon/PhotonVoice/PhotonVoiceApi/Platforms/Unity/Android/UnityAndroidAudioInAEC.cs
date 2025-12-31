@@ -3,6 +3,15 @@ using UnityEngine;
 
 namespace Photon.Voice.Unity
 {
+    [System.Serializable]
+    public struct AndroidAudioInParameters
+    {
+        public bool EnableAEC;
+        public bool EnableAGC;
+        public bool EnableNS;
+        static public AndroidAudioInParameters Default = new AndroidAudioInParameters() { EnableAEC = true, EnableAGC = true, EnableNS = true };
+    }
+
     // depends on Unity's AndroidJavaProxy
     public class AndroidAudioInAEC : Voice.IAudioPusher<short>, IResettable
     {
@@ -46,9 +55,9 @@ namespace Photon.Voice.Unity
             // true means to use a route-dependent value which is usually the sample rate of the source
             // otherwise, 44100 Hz requested
             // On Android 4.4.4 (probably on all < 6.0), auto does not work: java.lang.IllegalArgumentException: 0Hz is not a supported sample rate.
-            const bool SAMPLE_RATE_AUTO = false; 
-            
-            // 44100Hz is currently the only rate that is guaranteed to work on all devices 
+            const bool SAMPLE_RATE_AUTO = false;
+
+            // 44100Hz is currently the only rate that is guaranteed to work on all devices
             // used for GetMinBufferSize call even if SAMPLE_RATE_AUTO = true
             const int SAMPLE_RATE_44100 = 44100;
             const int SAMPLE_RATE_UNSPECIFIED = 0;
@@ -61,7 +70,7 @@ namespace Photon.Voice.Unity
                 audioIn = new AndroidJavaObject("com.exitgames.photon.audioinaec.AudioInAEC");
                 //bool aecAvailable = audioIn.Call<bool>("AECIsAvailable");
                 int minBufSize = audioIn.Call<int>("GetMinBufferSize", SAMPLE_RATE_44100, Channels);
-                logger.LogInfo("[PV] AndroidAudioInAEC: AndroidJavaObject created: aec: {0}/{1}, agc: {2}/{3}, ns: {4}/{5} minBufSize: {6}", 
+                logger.Log(LogLevel.Info, "[PV] AndroidAudioInAEC: AndroidJavaObject created: aec: {0}/{1}, agc: {2}/{3}, ns: {4}/{5} minBufSize: {6}",
                     enableAEC, audioIn.Call<bool>("AECIsAvailable"),
                     enableAGC, audioIn.Call<bool>("AGCIsAvailable"),
                     enableNS, audioIn.Call<bool>("NSIsAvailable"),
@@ -75,13 +84,13 @@ namespace Photon.Voice.Unity
                 if (ok)
                 {
                     audioInSampleRate = audioIn.Call<int>("GetSampleRate");
-                    logger.LogInfo("[PV] AndroidAudioInAEC: AndroidJavaObject started: {0}, sampling rate: {1}, channels: {2}, record buffer size: {3}", ok, SamplingRate, Channels, minBufSize * 4);
+                    logger.Log(LogLevel.Info, "[PV] AndroidAudioInAEC: AndroidJavaObject started: {0}, sampling rate: {1}, channels: {2}, record buffer size: {3}", ok, SamplingRate, Channels, minBufSize * 4);
                 }
                 else
                 {
                     Error = "[PV] AndroidAudioInAEC constructor: calling Start java method failure";
-                    logger.LogError("[PV] AndroidAudioInAEC: {0}", Error);
-                }                
+                    logger.Log(LogLevel.Error, "[PV] AndroidAudioInAEC: {0}", Error);
+                }
             }
             catch (Exception e)
             {
@@ -90,19 +99,18 @@ namespace Photon.Voice.Unity
                 {
                     Error = "Exception in AndroidAudioInAEC constructor";
                 }
-                logger.LogError("[PV] AndroidAudioInAEC: {0}", Error);
+                logger.Log(LogLevel.Error, "[PV] AndroidAudioInAEC: {0}", Error);
             }
         }
 
         // Supposed to be called once at voice initialization.
         // Otherwise recreate native object (instead of adding 'set callback' method to java interface)
-        public void SetCallback(Action<short[]> callback, ObjectFactory<short[], int> bufferFactory)
+        public void SetCallback(Action<short[]> callback, ObjectFactory<short[], int> bufferFactory, int optimalFrameSize)
         {
             if (Error == null)
             {
-                var voiceFrameSize = bufferFactory.Info;
                 // setting to voice FrameSize lets to avoid framing procedure
-                javaBuf = AndroidJNI.NewGlobalRef(AndroidJNI.NewShortArray(voiceFrameSize));
+                javaBuf = AndroidJNI.NewGlobalRef(AndroidJNI.NewShortArray(optimalFrameSize));
                 this.callback.SetCallback(callback, javaBuf);
                 var meth = AndroidJNI.GetMethodID(audioIn.GetRawClass(), "SetBuffer", "([S)Z");
                 bool ok = AndroidJNI.CallBooleanMethod(audioIn.GetRawObject(), meth, new jvalue[] { new jvalue() { l = javaBuf } });
@@ -113,7 +121,7 @@ namespace Photon.Voice.Unity
             }
             if (Error != null)
             {
-                logger.LogError("[PV] AndroidAudioInAEC: {0}", Error);
+                logger.Log(LogLevel.Error, "[PV] AndroidAudioInAEC: {0}", Error);
             }
         }
 

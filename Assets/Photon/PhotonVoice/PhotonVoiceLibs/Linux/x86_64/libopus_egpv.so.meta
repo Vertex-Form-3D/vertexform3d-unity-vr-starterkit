@@ -18,12 +18,15 @@ PluginImporter:
       settings:
         Exclude Android: 1
         Exclude Editor: 0
+        Exclude Linux: 1
         Exclude Linux64: 0
+        Exclude LinuxUniversal: 0
         Exclude OSXUniversal: 1
         Exclude WebGL: 1
         Exclude Win: 0
         Exclude Win64: 0
         Exclude WindowsStoreApps: 1
+        Exclude iOS: 1
   - first:
       '': Linux
     second:
@@ -76,11 +79,35 @@ PluginImporter:
         DefaultValueInitialized: true
         OS: Linux
   - first:
+      Facebook: Win
+    second:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+  - first:
+      Facebook: Win64
+    second:
+      enabled: 0
+      settings:
+        CPU: AnyCPU
+  - first:
+      Standalone: Linux
+    second:
+      enabled: 0
+      settings:
+        CPU: x86
+  - first:
       Standalone: Linux64
     second:
       enabled: 1
       settings:
-        CPU: AnyCPU
+        CPU: x86_64
+  - first:
+      Standalone: LinuxUniversal
+    second:
+      enabled: 1
+      settings:
+        CPU: x86_64
   - first:
       Standalone: OSXUniversal
     second:
@@ -114,8 +141,16 @@ PluginImporter:
     second:
       enabled: 0
       settings:
+        AddToEmbeddedBinaries: false
         CompileFlags: 
         FrameworkDependencies: 
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 130518
+  packageName: Photon Voice 2
+  packageVersion: 2.59
+  assetPath: Assets/Photon/PhotonVoice/PhotonVoiceLibs/Linux/x86_64/libopus_egpv.so
+  uploadId: 756092

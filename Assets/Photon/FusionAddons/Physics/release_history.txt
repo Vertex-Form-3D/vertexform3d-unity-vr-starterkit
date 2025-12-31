@@ -1,0 +1,23 @@
+Photon Fusion Physics Addon - Release History
+
+Last tested with Fusion SDK 2.0.5
+
+Version 2.0.3
+- Fix: Added safety check when despawning the NetworkRigidbody to avoid exceptions.
+- Fix: Broken interpolation with interpolation target set and client physics disabled
+
+Version 2.0.2
+- Fix: local and world space mixing.
+- Fix: Broken interpolation in shared mode with SyncParent enabled.
+
+Version 2.0.1
+- Fixed reset of Physics.autoSimulation after stopping all network runners.
+
+Version 2.0.0
+- Initial release.
+- Replaced 'Is Forward' property on RunnerSimulatePhysics2D / RunnerSimulatePhysics3D by 'Client Physics Simulation'.
+  This option allows you to specify behavior of physics simulation on clients. Option are:
+    - Disabled        - physics simulation is not running and transforms are not synced (default).
+    - SyncTransforms  - calls Physics.SyncTransforms() in all ticks.
+    - SimulateForward - calls Physics.SyncTransforms() in resimulation ticks + Physics.Simulate() in forward ticks.
+    - SimulateAlways  - calls Physics.Simulate() in all ticks.

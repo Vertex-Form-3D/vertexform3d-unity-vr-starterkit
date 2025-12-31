@@ -108,6 +108,14 @@ namespace VertexFormCore.Editor
         {
             VertexForm3DHelp.ShowWindow();
         }
+        
+        [MenuItem("VertexForm3D SDK/XR Device Simulator", false, 12)]
+        private static void AddXRDeviceSimulator()
+        {
+            GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/XR Device Simulator"));
+            g.name = "XR Device Simulator";
+            EditorGUIUtility.PingObject(g);
+        }
     }
 }
 
@@ -120,11 +128,11 @@ public class SceneSavingEditor
         // Subscribe to the sceneSaving event
         EditorSceneManager.sceneSaving += OnSceneSaving;
     }
+
     private static void OnSceneSaving(Scene scene, string path)
     {
         // Find all XRGrabNetworkInteractable components in the scene
         var interactables = Resources.FindObjectsOfTypeAll<XRGrabNetworkInteractable>();
-
         foreach (var interactable in interactables)
         {
             // Call SetInitialPosition and SetInitialRotation
@@ -132,8 +140,8 @@ public class SceneSavingEditor
             interactable.SetInitialRotation();
         }
 
+        // Handle TMP_InputField components
         var tmpInputFields = Resources.FindObjectsOfTypeAll<TMP_InputField>();
-
         foreach (var inputfield in tmpInputFields)
         {
             if (inputfield.GetComponent<XRKeyboardDisplay>() == null)

@@ -5,12 +5,6 @@ using System.Runtime.InteropServices;
 
 namespace Photon.Voice.MacOS
 {
-    public class MonoPInvokeCallbackAttribute : System.Attribute
-    {
-        private Type type;
-        public MonoPInvokeCallbackAttribute(Type t) { type = t; }
-    }
-
     public class AudioInPusher : IAudioPusher<float>
     {
         const string lib_name = "AudioIn";
@@ -36,7 +30,7 @@ namespace Photon.Voice.MacOS
                 {
                     Error = "Exception in AudioInPusher constructor";
                 }
-                logger.LogError("[PV] AudioInPusher: " + Error);
+                logger.Log(LogLevel.Error, "[PV] AudioInPusher: " + Error);
             }
         }
 
@@ -61,13 +55,13 @@ namespace Photon.Voice.MacOS
 
         // Supposed to be called once at voice initialization.
         // Otherwise recreate native object (instead of adding 'set callback' method to native interface)
-        public void SetCallback(Action<float[]> callback, ObjectFactory<float[], int> bufferFactory)
+        public void SetCallback(Action<float[]> callback, ObjectFactory<float[], int> bufferFactory, int optimalFrameSize)
         {
             this.bufferFactory = bufferFactory;
             this.pushCallback = callback;
         }
         private void push(IntPtr buf, int len)
-        {            
+        {
             if (this.pushCallback != null)
             {
                 var bufManaged = bufferFactory.New(len);
@@ -78,7 +72,7 @@ namespace Photon.Voice.MacOS
 
         public int Channels { get { return 1; } }
 
-		public int SamplingRate { get { return 44100; } }
+        public int SamplingRate { get { return 44100; } }
 
         public string Error { get; private set; }
 

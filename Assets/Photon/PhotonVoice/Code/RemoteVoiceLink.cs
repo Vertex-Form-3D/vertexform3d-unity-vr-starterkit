@@ -5,18 +5,17 @@
 
     public class RemoteVoiceLink
     {
-        public VoiceInfo Info { get; private set; }
-        public int PlayerId { get; private set; }
-        public int VoiceId { get; private set; }
-        public int ChannelId { get; private set; }
+        public readonly VoiceInfo VoiceInfo;
+        public readonly int PlayerId;
+        public readonly byte VoiceId;
+        public readonly int ChannelId;
 
         public event Action<FrameOut<float>> FloatFrameDecoded;
         public event Action RemoteVoiceRemoved;
 
-        public RemoteVoiceLink(VoiceInfo info, int playerId, int voiceId, int channelId,
-            ref RemoteVoiceOptions options)
+        public RemoteVoiceLink(VoiceInfo info, int playerId, byte voiceId, int channelId, ref RemoteVoiceOptions options)
         {
-            this.Info = info;
+            this.VoiceInfo = info;
             this.PlayerId = playerId;
             this.VoiceId = voiceId;
             this.ChannelId = channelId;
@@ -38,6 +37,16 @@
             {
                 this.FloatFrameDecoded(floats);
             }
+        }
+
+        private string cached;
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(this.cached))
+            {
+                this.cached = string.Format("[p#{0} v#{1} c#{2} i:{{{3}}}]", this.PlayerId, this.VoiceId, this.ChannelId, this.VoiceInfo);
+            }
+            return this.cached;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace VertexFormCore
         {
             Debug.Log("Loading: " + SceneLoader.Instance.completePerchantage + "%");
             loadingText.text = "Loading..." + SceneLoader.Instance.completePerchantage + "%";
-            if (SceneLoader.Instance.completePerchantage >= 100 && SceneLoader.Instance.sceneIsLoaded)
+            if (SceneLoader.Instance.completePerchantage >= 100 && SceneLoader.Instance.sceneIsLoaded && RoomManager.Instance.localVRPlayer != null)
             {
                 FadeOut();
                 CancelInvoke(nameof(ShowLoading));

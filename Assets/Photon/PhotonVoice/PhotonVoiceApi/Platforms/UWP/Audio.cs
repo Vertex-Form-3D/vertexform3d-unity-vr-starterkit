@@ -31,7 +31,7 @@ namespace Photon.Voice.UWP
             }
             catch (AggregateException e)
             {
-                logger.LogError("[PV] [AI] Device initialization Error: " + e);
+                logger.Log(LogLevel.Error, "[PV] [AI] Device initialization Error: (HResult=" + e.HResult + ") " + e);
                 e.Handle((x) =>
                 {
                     if (x is UnauthorizedAccessException)
@@ -39,13 +39,13 @@ namespace Photon.Voice.UWP
                         ErrorAccess = true;
                     }
                     Error = x.Message;
-                    logger.LogError("[PV] [AI] Device initialization Error (Inner Level 2): " + e);
+                    logger.Log(LogLevel.Error, "[PV] [AI] Device initialization Error (Inner Level 2): (HResult=" + x.HResult + ") " + x);
                     if (x is AggregateException)
                     {
                         (x as AggregateException).Handle((y) =>
                         {
                             Error = y.Message;
-                            logger.LogError("[PV] [AI] Device initialization Error (Inner Level 3): " + y);
+                            logger.Log(LogLevel.Error, "[PV] [AI] Device initialization Error (Inner Level 3): (HResult=" + y.HResult + ") " + y);
                             return true;
                         });
                     }
@@ -55,19 +55,19 @@ namespace Photon.Voice.UWP
             catch (Exception e)
             {
                 Error = e.Message;
-                logger.LogError("[PV] [AI] Device initialization Error: " + e);
+                logger.Log(LogLevel.Error, "[PV] [AI] Device initialization Error: " + e);
             }
 
             if (Error == null)
             {
-                logger.LogInfo("[PV] [AI] AudioIn successfully created");
+                logger.Log(LogLevel.Info, "[PV] [AI] AudioIn successfully created");
             }
         }
 
         private void Device_CaptureFailed(object sender, Windows.Media.Capture.MediaCaptureFailedEventArgs e)
         {
             Error = e.Message;
-            logger.LogError("[PV] [AI] Error: " + Error);
+            logger.Log(LogLevel.Error, "[PV] [AI] Error: " + Error);
         }
 
         public int SamplingRate { get { return samplingRate; } }
@@ -75,7 +75,7 @@ namespace Photon.Voice.UWP
         /// <summary>Number of channels in the audio signal.</summary>
         public int Channels { get { return channels; } }
 
-        public void SetCallback(Action<short[]> callback, ObjectFactory<short[], int> bufferFactory)
+        public void SetCallback(Action<short[]> callback, ObjectFactory<short[], int> bufferFactory, int optimalFrameSize)
         {
             init();
             if (Error != null)
@@ -91,7 +91,7 @@ namespace Photon.Voice.UWP
 
             device.StartRecordingAsync(mep, (buf, flags) =>
             {
-                    //                    logger.LogInfo("[PV] [AI] " + buf.Length + ": " + BitConverter.ToString(buf, 0, buf.Length > 20 ? 20 : buf.Length));
+                // logger.Log(LogLevel.Info, "[PV] [AI] " + buf.Length + ": " + BitConverter.ToString(buf, 0, buf.Length > 20 ? 20 : buf.Length));
                 if (buf != null)
                 {
                     var sb = bufferFactory.New(buf.Length / 2);
@@ -102,14 +102,14 @@ namespace Photon.Voice.UWP
             {
                 if (t.Exception == null)
                 {
-                    logger.LogInfo("[PV] [AI] Recording successfully started");
+                    logger.Log(LogLevel.Info, "[PV] [AI] Recording successfully started");
                 }
                 else
                 {
                     t.Exception.Handle((x) =>
                     {
                         Error = x.Message;
-                        logger.LogError("[PV] [AI] Recording starting Error: " + Error);
+                        logger.Log(LogLevel.Error, "[PV] [AI] Recording starting Error: " + Error);
                         return true;
                     });
                 }
@@ -139,7 +139,7 @@ namespace Photon.Voice.UWP
         {
             device.StopRecordingAsync().ContinueWith((t) =>
             {
-                logger.LogInfo("[PV] [AI] AudioIn disposed");
+                logger.Log(LogLevel.Info, "[PV] [AI] AudioIn disposed");
             });
         }
 

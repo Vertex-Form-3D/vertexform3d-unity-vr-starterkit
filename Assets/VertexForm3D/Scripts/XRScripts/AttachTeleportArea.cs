@@ -3,6 +3,7 @@ using UnityEngine;
 using CesiumForUnity;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.UIElements;
+using Photon.Realtime;
 
 namespace VertexFormCore
 {
@@ -21,12 +22,7 @@ namespace VertexFormCore
             {
                 tileset.OnTileGameObjectCreated += go =>
                 {
-                    var ta = go.AddComponent<UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea>();
-                    ta.interactionLayers = teleportLayer;
-                    if (SpawnManager.Instance.localVRPlayer)
-                    {
-                        ta.teleportationProvider = SpawnManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().tp;
-                    }
+                    go.AddComponent<TeleportationAreaNetworked>();
                 };
             }
         }

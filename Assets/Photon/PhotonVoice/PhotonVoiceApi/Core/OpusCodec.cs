@@ -33,21 +33,7 @@ namespace Photon.Voice
                 else if (typeof(B) == typeof(short[]))
                     return new EncoderShort(i, logger);
                 else
-                    throw new UnsupportedCodecException("Factory.CreateEncoder<" + typeof(B) + ">", i.Codec, logger);
-            }
-        }
-
-        public static class DecoderFactory
-        {
-            public static IEncoder Create<T>(VoiceInfo i, ILogger logger)
-            {
-                var x = new T[1];
-                if (x[0].GetType() == typeof(float))
-                    return new EncoderFloat(i, logger);
-                else if (x[0].GetType() == typeof(short))
-                    return new EncoderShort(i, logger);
-                else
-                    throw new UnsupportedCodecException("EncoderFactory.Create<" + x[0].GetType() + ">", i.Codec, logger);
+                    throw new UnsupportedCodecException("Factory.CreateEncoder<" + typeof(B) + ">", i.Codec);
             }
         }
 
@@ -60,7 +46,7 @@ namespace Photon.Voice
                 try
                 {
                     encoder = new OpusEncoder((SamplingRate)i.SamplingRate, (Channels)i.Channels, i.Bitrate, OpusApplicationType.Voip, (Delay)(i.FrameDurationUs * 2 / 1000));
-                    logger.LogInfo("[PV] OpusCodec.Encoder created. Opus version " + Version + ". Bitrate " + encoder.Bitrate + ". EncoderDelay " + encoder.EncoderDelay);
+                    logger.Log(LogLevel.Info, "[PV] OpusCodec.Encoder created. Opus version " + Version + ", " + i);
                 }
                 catch (Exception e)
                 {
@@ -69,13 +55,22 @@ namespace Photon.Voice
                     {
                         Error = "Exception in OpusCodec.Encoder constructor";
                     }
-                    logger.LogError("[PV] OpusCodec.Encoder: " + Error);
+                    logger.Log(LogLevel.Error, "[PV] OpusCodec.Encoder: " + Error);
                 }
             }
 
             public string Error { get; private set; }
 
-            public Action<ArraySegment<byte>, FrameFlags> Output { set; get; }
+            Action<ArraySegment<byte>, FrameFlags> output;
+            public Action<ArraySegment<byte>, FrameFlags> Output
+            {
+                set
+                {
+                    output = value;
+                    encoder.Output = value;
+                }
+                get { return output; }
+            }
 
             public void Input(T[] buf)
             {
@@ -94,11 +89,7 @@ namespace Photon.Voice
                     if (disposed || Error != null) { }
                     else
                     {
-                        var res = encodeTyped(buf);
-                        if (res.Count != 0)
-                        {
-                            Output(res, 0);
-                        }
+                        encodeTyped(buf);
                     }
                 }
             }
@@ -120,7 +111,7 @@ namespace Photon.Voice
 
             public ArraySegment<byte> DequeueOutput(out FrameFlags flags) { flags = 0; return EmptyBuffer; }
 
-            protected abstract ArraySegment<byte> encodeTyped(T[] buf);
+            protected abstract void encodeTyped(T[] buf);
 
             public I GetPlatformAPI<I>() where I : class
             {
@@ -144,17 +135,17 @@ namespace Photon.Voice
         {
             internal EncoderFloat(VoiceInfo i, ILogger logger) : base(i, logger) { }
 
-            override protected ArraySegment<byte> encodeTyped(float[] buf)
+            override protected void encodeTyped(float[] buf)
             {
-                return encoder.Encode(buf);
+                encoder.Encode(buf);
             }
         }
         public class EncoderShort : Encoder<short>
         {
             internal EncoderShort(VoiceInfo i, ILogger logger) : base(i, logger) { }
-            override protected ArraySegment<byte> encodeTyped(short[] buf)
+            override protected void encodeTyped(short[] buf)
             {
-                return encoder.Encode(buf);
+                encoder.Encode(buf);
             }
         }
 
@@ -172,8 +163,17 @@ namespace Photon.Voice
             {
                 try
                 {
-                    decoder = new OpusDecoder<T>((SamplingRate)i.SamplingRate, (Channels)i.Channels);
-                    logger.LogInfo("[PV] OpusCodec.Decoder created. Opus version " + Version);
+#pragma warning disable CS0162 // Unreachable code detected (AsyncAPI is const)
+                    if (Wrapper.AsyncAPI)
+                    {
+                        decoder = new OpusDecoderAsync<T>(output, (SamplingRate)i.SamplingRate, (Channels)i.Channels, i.FrameDurationSamples);
+                    }
+                    else
+                    {
+                        decoder = new OpusDecoder<T>(output, (SamplingRate)i.SamplingRate, (Channels)i.Channels, i.FrameDurationSamples);
+                    }
+                    logger.Log(LogLevel.Info, "[PV] OpusCodec.Decoder created. Opus version " + Version + ", " + i);
+#pragma warning restore CS0162
                 }
                 catch (Exception e)
                 {
@@ -182,7 +182,7 @@ namespace Photon.Voice
                     {
                         Error = "Exception in OpusCodec.Decoder constructor";
                     }
-                    logger.LogError("[PV] OpusCodec.Decoder: " + Error);
+                    logger.Log(LogLevel.Error, "[PV] OpusCodec.Decoder: " + Error);
                 }
             }
 
@@ -198,51 +198,12 @@ namespace Photon.Voice
                 }
             }
 
-            FrameOut<T> frameOut = new FrameOut<T>(null, false);
-            public void Input(byte[] buf, FrameFlags flags)
+            public void Input(ref FrameBuffer buf)
             {
                 if (Error == null)
                 {
-                    bool endOfStream = (flags & FrameFlags.EndOfStream) != 0;
-                    if (endOfStream)
-                    {
-                        T[] res1 = null;
-                        T[] res2;
-                        // EndOfStream packet may have data
-                        // normally we do not send null with EndOfStream flag, but null is still valid here
-                        if (buf == null && buf.Length > 0)
-                        {
-                            res1 = decoder.DecodePacket(buf);
-                        }
-                        // flush decoder
-                        res2 = decoder.DecodeEndOfStream();
-
-                        // if res1 is empty, res2 has correct (possible empty) buffer for EndOfStream frame
-                        if (res1 != null && res1.Length == 0)
-                        {
-                            // output cal per res required
-                            if (res2 != null && res2.Length != 0)
-                            {
-                                output(frameOut.Set(res1, false));
-                            }
-                            else                            
-                            {
-                                // swap results to reuse the code below
-                                res2 = res1;
-                            }
-                        }
-                        output(frameOut.Set(res2, true));
-                    }
-                    else
-                    {
-                        T[] res;
-                        res = decoder.DecodePacket(buf);
-                        if (res.Length != 0)
-                        {
-                            output(frameOut.Set(res, false));
-                        }
-                    }
-                    
+                    bool endOfStream = (buf.Flags & FrameFlags.EndOfStream) != 0;
+                    decoder.DecodePacket(ref buf, endOfStream);
                 }
             }
         }

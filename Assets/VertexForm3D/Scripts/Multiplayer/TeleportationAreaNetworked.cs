@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using VertexFormCore;
 
@@ -13,16 +11,16 @@ public class TeleportationAreaNetworked : MonoBehaviour
     {
         teleportationArea = GetComponent<TeleportationArea>();
         teleportationArea.interactionLayers = LayerMask.GetMask("Teleport");
-        if (SpawnManager.Instance != null)
+        if (RoomManager.Instance != null)
         {
             SetTeleportation();
         }
     }
     void SetTeleportation()
     {
-        if (SpawnManager.Instance.localVRPlayer != null)
+        if (RoomManager.Instance.localVRPlayer != null)
         {
-            teleportationArea.teleportationProvider = SpawnManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().tp;
+            teleportationArea.teleportationProvider = RoomManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().tp;
         }
         else
         {

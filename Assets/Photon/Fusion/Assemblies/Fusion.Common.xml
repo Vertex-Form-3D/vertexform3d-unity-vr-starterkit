@@ -1,0 +1,3127 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Fusion.Common</name>
+    </assembly>
+    <members>
+        <member name="T:Fusion.Async.AsyncOperationHandler`1">
+            <summary>
+            Abstract Async Operation Handler
+            
+            Built around the <see cref="T:System.Threading.Tasks.TaskCompletionSource`1"/>
+            </summary>
+            <typeparam name="T">Result Type of the Async Operation</typeparam>
+        </member>
+        <member name="F:Fusion.Async.AsyncOperationHandler`1.OperationTimeoutSec">
+            <summary>
+            Default Operation Timeout
+            </summary>
+        </member>
+        <member name="P:Fusion.Async.AsyncOperationHandler`1.Task">
+            <summary>
+            Internal Task
+            </summary>
+        </member>
+        <member name="M:Fusion.Async.AsyncOperationHandler`1.#ctor(System.Threading.CancellationToken,System.Single,System.String)">
+            <summary>
+            Create a new Operation Handler
+            </summary>
+            <param name="externalCancellationToken">Optional External Cancellation Token</param>
+            <param name="operationTimeout">Optional Custom Operation Timeout</param>
+            <param name="customTimeoutMsg">Optional Custom Timeout Message</param>
+        </member>
+        <member name="M:Fusion.Async.AsyncOperationHandler`1.SetResult(`0)">
+            <summary>
+            Set the result of Async Operation
+            </summary>
+            <param name="result">Result to be set on the Operation</param>
+        </member>
+        <member name="M:Fusion.Async.AsyncOperationHandler`1.SetException(System.Exception)">
+            <summary>
+            Set the Async Operation as faulted using the Exception
+            </summary>
+            <param name="e">Exception to be set on the Operation</param>
+        </member>
+        <member name="M:Fusion.Async.AsyncOperationHandler`1.Expire">
+            <summary>
+            Cancel the Async Operation via a <see cref="T:System.TimeoutException"/>
+            </summary>
+        </member>
+        <member name="M:Fusion.Async.AsyncOperationHandler`1.Cancel">
+            <summary>
+            Cancel the Async Operation via a <see cref="T:System.OperationCanceledException"/>
+            </summary>
+        </member>
+        <member name="T:Fusion.Async.TaskManager">
+            <summary>
+            Task Factory is used to create new Tasks and Schedule long running Tasks
+            </summary>
+        </member>
+        <member name="P:Fusion.Async.TaskManager.TaskFactory">
+            <summary>
+            Stores a Task Factory ready made to be used with Unity
+            </summary>
+        </member>
+        <member name="M:Fusion.Async.TaskManager.Setup">
+            <summary>
+            Setup a new TaskFactory tailored to work with Unity
+            </summary>
+        </member>
+        <member name="M:Fusion.Async.TaskManager.Service(System.Action,System.Threading.CancellationToken,System.Int32,System.String)">
+            <summary>
+            Starts a service task that will invoke a recurring action at specified intervals.
+            </summary>
+            <param name="recurringAction">The action to be invoked at each interval.</param>
+            <param name="cancellationToken">The cancellation token used to stop the service.</param>
+            <param name="interval">The interval in milliseconds between each invocation of the action.</param>
+            <param name="serviceName">An optional custom name for the service.</param>
+            <returns>A task representing the service.</returns>
+        </member>
+        <member name="M:Fusion.Async.TaskManager.Service(System.Func{System.Threading.Tasks.Task{System.Boolean}},System.Threading.CancellationToken,System.Int32,System.String)">
+            <summary>
+            Start a Service Task that will invoke a Recurring Action every each interval in millis
+            </summary>
+            <param name="recurringAction">Action invoked every interval. It can return false to stop the service</param>
+            <param name="cancellationToken">CancellationToken used to stop the service</param>
+            <param name="interval">Interval between action invoke</param>
+            <param name="serviceName">Custom id name for the Service</param>
+            <returns>Service Task</returns>
+        </member>
+        <member name="M:Fusion.Async.TaskManager.Run(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.Threading.CancellationToken,System.Threading.Tasks.TaskCreationOptions)">
+            <summary>
+            Run an Action asynchronously
+            </summary>
+            <param name="action">Action to be invoked</param>
+            <param name="cancellationToken">CancellationToken used to stop the Action</param>
+            <param name="options">Extra Task Creation options</param>
+            <returns>Async Task based on the Action</returns>
+        </member>
+        <member name="M:Fusion.Async.TaskManager.ContinueWhenAll(System.Threading.Tasks.Task[],System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run a continuation Task after all other Tasks have completed
+            </summary>
+            <param name="precedingTasks">List of pending tasks to wait</param>
+            <param name="action">Action to run after the Tasks</param>
+            <param name="cancellationToken">ellationToken used to stop the Action</param>
+            <returns>Async Task based on the Action</returns>
+        </member>
+        <member name="M:Fusion.Async.TaskManager.Delay(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Custom Task Delay method as Task.Delay is not supported by WebGL Builds
+            </summary>
+            <param name="delay">Delay in milliseconds to wait</param>
+            <param name="token">Cancellation Token used to stop the Delay</param>
+            <returns>Awaitable Task</returns>
+        </member>
+        <member name="T:Fusion.AtomicInt">
+            <summary>
+            Represents an atomic integer that provides thread-safe operations.
+            </summary>
+        </member>
+        <member name="F:Fusion.AtomicInt._value">
+            <summary>
+            The underlying value of the atomic integer.
+            </summary>
+        </member>
+        <member name="M:Fusion.AtomicInt.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.AtomicInt"/> struct with the specified value.
+            </summary>
+            <param name="value">The initial value of the atomic integer.</param>
+        </member>
+        <member name="P:Fusion.AtomicInt.Value">
+            <summary>
+            Gets the current value of the atomic integer.
+            </summary>
+        </member>
+        <member name="M:Fusion.AtomicInt.IncrementPost">
+            <summary>
+            Atomically increments the current value by one and returns the original value.
+            </summary>
+            <returns>The original value before the increment.</returns>
+        </member>
+        <member name="M:Fusion.AtomicInt.IncrementPre">
+            <summary>
+            Atomically increments the current value by one and returns the incremented value.
+            </summary>
+            <returns>The incremented value.</returns>
+        </member>
+        <member name="M:Fusion.AtomicInt.Decrement">
+            <summary>
+            Atomically decrements the current value by one and returns the decremented value.
+            </summary>
+            <returns>The decremented value.</returns>
+        </member>
+        <member name="M:Fusion.AtomicInt.Exchange(System.Int32)">
+            <summary>
+            Atomically sets the value to the specified value and returns the original value.
+            </summary>
+            <param name="value">The value to set.</param>
+            <returns>The original value before the exchange.</returns>
+        </member>
+        <member name="M:Fusion.AtomicInt.CompareExchange(System.Int32,System.Int32)">
+            <summary>
+            Compares the current value with a specified value and, if they are equal, replaces the current value.
+            </summary>
+            <param name="value">The value to set if the comparison succeeds.</param>
+            <param name="assumed">The value to compare to the current value.</param>
+            <returns>The original value before the comparison.</returns>
+        </member>
+        <member name="T:Fusion.BinUtils">
+            <summary>
+            Utility class for binary data.
+            </summary>
+        </member>
+        <member name="M:Fusion.BinUtils.ByteToHex(System.Byte)">
+            <summary>
+            Converts a byte value to its hexadecimal string representation.
+            </summary>
+            <param name="value">The byte value to convert.</param>
+            <returns>A string representing the hexadecimal value of the byte.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.BytesToHex(System.Byte*,System.Int32,System.Int32,System.String,System.String)">
+            <summary>
+            Converts a buffer of bytes to a hexadecimal string representation.
+            </summary>
+            <param name="buffer">A pointer to the buffer containing the bytes to convert.</param>
+            <param name="length">The number of bytes in the buffer.</param>
+            <param name="columns">The number of columns to format the output. Default is 16.</param>
+            <param name="rowSeparator">The string to use as a row separator. Default is newline.</param>
+            <param name="columnSeparator">The string to use as a column separator. Default is a space.</param>
+            <returns>A string representing the hexadecimal values of the bytes in the buffer.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.WordsToHex(System.Int32*,System.Int32,System.Int32,System.String,System.String)">
+            <summary>
+            Converts a buffer of 32-bit integers to a hexadecimal string representation.
+            </summary>
+            <param name="buffer">A pointer to the buffer containing the 32-bit integers to convert.</param>
+            <param name="length">The number of 32-bit integers in the buffer.</param>
+            <param name="columns">The number of columns to format the output. Default is 4.</param>
+            <param name="rowSeparator">The string to use as a row separator. Default is newline.</param>
+            <param name="columnSeparator">The string to use as a column separator. Default is a space.</param>
+            <returns>A string representing the hexadecimal values of the 32-bit integers in the buffer.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.WordsToHex(System.UInt32*,System.Int32,System.Int32,System.String,System.String)">
+            <summary>
+            Converts a buffer of 32-bit unsigned integers to a hexadecimal string representation.
+            </summary>
+            <param name="buffer">A pointer to the buffer containing the 32-bit unsigned integers to convert.</param>
+            <param name="length">The number of 32-bit unsigned integers in the buffer.</param>
+            <param name="columns">The number of columns to format the output. Default is 4.</param>
+            <param name="rowSeparator">The string to use as a row separator. Default is newline.</param>
+            <param name="columnSeparator">The string to use as a column separator. Default is a space.</param>
+            <returns>A string representing the hexadecimal values of the 32-bit unsigned integers in the buffer.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.WordsToHex(System.ReadOnlySpan{System.Int32},System.Int32,System.String,System.String)">
+            <summary>
+            Converts a buffer of 32-bit integers to a hexadecimal string representation.
+            </summary>
+        </member>
+        <member name="M:Fusion.BinUtils.WordsToHex(System.ReadOnlySpan{System.UInt32},System.Int32,System.String,System.String)">
+            <summary>
+            Converts a buffer of 32-bit unsigned integers to a hexadecimal string representation.
+            </summary>
+        </member>
+        <member name="M:Fusion.BinUtils.HexToBytes(System.String,System.Byte*,System.Int32)">
+            <summary>
+            Converts a hexadecimal string to a byte array.
+            </summary>
+            <param name="str">The hexadecimal string to convert.</param>
+            <param name="buffer">A pointer to the buffer where the bytes will be stored.</param>
+            <param name="length">The maximum number of bytes to store in the buffer.</param>
+            <returns>The number of characters processed from the input string.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.HexToInts(System.String,System.Int32*,System.Int32)">
+            <summary>
+            Converts a hexadecimal string to an array of 32-bit integers.
+            </summary>
+            <param name="str">The hexadecimal string to convert.</param>
+            <param name="buffer">A pointer to the buffer where the 32-bit integers will be stored.</param>
+            <param name="length">The maximum number of 32-bit integers to store in the buffer.</param>
+            <returns>A tuple containing the number of characters processed from the input string and the number of 32-bit integers stored in the buffer.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.BytesToHex(System.Byte[],System.Int32)">
+            <summary>
+            Converts a byte array to its hexadecimal string representation.
+            </summary>
+            <param name="buffer">The byte array to convert.</param>
+            <param name="columns">The number of columns to format the output. Default is 16.</param>
+            <returns>A string representing the hexadecimal values of the bytes in the array.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.BytesToHex(System.ReadOnlySpan{System.Byte},System.Int32)">
+            <summary>
+            Converts a byte array to its hexadecimal string representation.
+            </summary>
+            <param name="buffer">The byte array to convert.</param>
+            <param name="columns">The number of columns to format the output. Default is 16.</param>
+            <returns>A string representing the hexadecimal values of the bytes in the array.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.Read``1(System.Span{System.Byte})">
+            <summary>
+            Reads a value of type T from the given byte span.
+            </summary>
+            <typeparam name="T">The type of the value to read.</typeparam>
+            <param name="source">The span of bytes to read from.</param>
+            <returns>The value of type T read from the span.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.Read``1(System.Span{System.Int32})">
+            <summary>
+            Reads a value of type T from the given int span.
+            </summary>
+            <typeparam name="T">The type of the value to read.</typeparam>
+            <param name="source">The span of ints to read from.</param>
+            <returns>The value of type T read from the span.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.AsRef``1(System.Span{System.Byte})">
+            <summary>
+            Returns a managed pointer to a value of type T.
+            </summary>
+        </member>
+        <member name="M:Fusion.BinUtils.AsRef``1(System.Span{System.Int32})">
+            <summary>
+            Returns a managed pointer to a value of type T.
+            </summary>
+        </member>
+        <member name="M:Fusion.BinUtils.AsPointer``1(System.Span{System.Byte})">
+            <summary>
+            Returns a pointer to a value of type T from the given byte span.
+            </summary>
+            <typeparam name="T">The type of the value to point to.</typeparam>
+            <param name="source">The span of bytes to get the pointer from.</param>
+            <returns>A pointer to the value of type T.</returns>
+        </member>
+        <member name="M:Fusion.BinUtils.AsPointer``1(System.Span{System.Int32})">
+            <summary>
+            Returns a pointer to a value of type T from the given int span.
+            </summary>
+            <typeparam name="T">The type of the value to point to.</typeparam>
+            <param name="source">The span of ints to get the pointer from.</param>
+            <returns>A pointer to the value of type T.</returns>
+        </member>
+        <member name="M:Fusion.CompressionUtils.Compress(System.Byte[])">
+            <summary>
+            Compress the byte array uisng GZip
+            </summary>
+            <param name="data">Original byte array</param>
+            <returns>Compressed byte array</returns>
+        </member>
+        <member name="M:Fusion.CompressionUtils.Decompress(System.Byte[])">
+            <summary>
+            Decompress the byte array using GZip
+            </summary>
+            <param name="data">Compressed byte array</param>
+            <returns>Decompressed byte array</returns>
+        </member>
+        <member name="T:Fusion.CRC64">
+            <summary>
+            Provides methods to compute CRC64 checksums.
+            </summary>
+        </member>
+        <member name="M:Fusion.CRC64.Compute(System.Byte*,System.Int32)">
+            <summary>
+            Computes the CRC64 checksum for the given data.
+            </summary>
+            <param name="data">A pointer to the data to compute the checksum for.</param>
+            <param name="length">The length of the data.</param>
+            <returns>The computed CRC64 checksum.</returns>
+        </member>
+        <member name="M:Fusion.CRC64.Compute(System.ReadOnlySpan{System.Int32})">
+            <summary>
+            Computes the CRC64 checksum for the given data.
+            </summary>
+            <param name="data">A pointer to the data to compute the checksum for.</param>
+            <returns>The computed CRC64 checksum.</returns>
+        </member>
+        <member name="M:Fusion.CRC64.Compute(System.UInt64,System.Byte*,System.Int32,System.Int32)">
+            <summary>
+            Computes the CRC64 checksum for the given data with an initial CRC value and offset.
+            </summary>
+            <param name="crc">The initial CRC value.</param>
+            <param name="data">A pointer to the data to compute the checksum for.</param>
+            <param name="offset">The offset in the data to start computing the checksum from.</param>
+            <param name="length">The length of the data.</param>
+            <returns>The computed CRC64 checksum.</returns>
+        </member>
+        <member name="T:Fusion.EngineProfiler">
+            <summary>
+            Provides a set of methods to profile the engine.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.RoundTripTimeCallback">
+            <summary>
+            Callback for round trip time profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.ResimulationsCallback">
+            <summary>
+            Callback for resimulations profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.WorldSnapshotSizeCallback">
+            <summary>
+            Callback for world snapshot size profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InputSizeCallback">
+            <summary>
+            Callback for input size profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InputQueueCallback">
+            <summary>
+            Callback for input queue profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.RpcInCallback">
+            <summary>
+            Callback for RPC in profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.RpcOutCallback">
+            <summary>
+            Callback for RPC out profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.StateRecvDeltaCallback">
+            <summary>
+            Callback for state receive delta profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.StateRecvDeltaDeviationCallback">
+            <summary>
+            Callback for state receive delta deviation profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InterpolationSpeedCallback">
+            <summary>
+            Callback for interpolation speed profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InterpolationOffsetCallback">
+            <summary>
+            Callback for interpolation offset profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InterpolationOffsetDeviationCallback">
+            <summary>
+            Callback for interpolation offset deviation profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InputRecvDeltaCallback">
+            <summary>
+            Callback for input receive delta profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.SimulationSpeedCallback">
+            <summary>
+            Callback for simulation speed profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InputRecvDeltaDeviationCallback">
+            <summary>
+            Callback for input receive delta deviation profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.SimulationOffsetCallback">
+            <summary>
+            Callback for simulation offset profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.SimulationOffsetDeviationCallback">
+            <summary>
+            Callback for simulation offset deviation profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalObjectAllocatedCallback">
+            <summary>
+            Callback for simulation offset deviation profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalObjectFreedCallback">
+            <summary>
+            Callback for simulation offset deviation profiling.
+            </summary>
+        </member>
+        <member name="M:Fusion.EngineProfiler.Begin(System.String)">
+            <summary>
+            Begins a profiling sample with the specified name.
+            </summary>
+            <param name="sample">The name of the profiling sample.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.End">
+            <summary>
+            Ends the current profiling sample.
+            </summary>
+        </member>
+        <member name="M:Fusion.EngineProfiler.RoundTripTime(System.Single)">
+            <summary>
+            Invokes the round trip time callback with the specified value.
+            </summary>
+            <param name="value">The round trip time value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.Resimulations(System.Int32)">
+            <summary>
+            Invokes the resimulations callback with the specified value.
+            </summary>
+            <param name="value">The resimulations value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.WorldSnapshotSize(System.Int32)">
+            <summary>
+            Invokes the world snapshot size callback with the specified value.
+            </summary>
+            <param name="value">The world snapshot size value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InputSize(System.Int32)">
+            <summary>
+            Invokes the input size callback with the specified value.
+            </summary>
+            <param name="value">The input size value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InputQueue(System.Int32)">
+            <summary>
+            Invokes the input queue callback with the specified value.
+            </summary>
+            <param name="value">The input queue value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.RpcIn(System.Int32)">
+            <summary>
+            Invokes the RPC in callback with the specified value.
+            </summary>
+            <param name="value">The RPC in value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.RpcOut(System.Int32)">
+            <summary>
+            Invokes the RPC out callback with the specified value.
+            </summary>
+            <param name="value">The RPC out value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.StateRecvDelta(System.Single)">
+            <summary>
+            Invokes the state receive delta callback with the specified value.
+            </summary>
+            <param name="value">The state receive delta value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.StateRecvDeltaDeviation(System.Single)">
+            <summary>
+            Invokes the state receive delta deviation callback with the specified value.
+            </summary>
+            <param name="value">The state receive delta deviation value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InterpolationSpeed(System.Single)">
+            <summary>
+            Invokes the interpolation speed callback with the specified value.
+            </summary>
+            <param name="value">The interpolation speed value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InterpolationOffset(System.Single)">
+            <summary>
+            Invokes the interpolation offset callback with the specified value.
+            </summary>
+            <param name="value">The interpolation offset value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InterpolationOffsetDeviation(System.Single)">
+            <summary>
+            Invokes the interpolation offset deviation callback with the specified value.
+            </summary>
+            <param name="value">The interpolation offset deviation value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InputRecvDelta(System.Single)">
+            <summary>
+            Invokes the input receive delta callback with the specified value.
+            </summary>
+            <param name="value">The input receive delta value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InputRecvDeltaDeviation(System.Single)">
+            <summary>
+            Invokes the input receive delta deviation callback with the specified value.
+            </summary>
+            <param name="value">The input receive delta deviation value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.SimulationSpeed(System.Single)">
+            <summary>
+            Invokes the simulation speed callback with the specified value.
+            </summary>
+            <param name="value">The simulation speed value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.SimulationOffset(System.Single)">
+            <summary>
+            Invokes the simulation offset callback with the specified value.
+            </summary>
+            <param name="value">The simulation offset value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.SimulationOffsetDeviation(System.Single)">
+            <summary>
+            Invokes the simulation offset deviation callback with the specified value.
+            </summary>
+            <param name="value">The simulation offset deviation value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InternalObjectAllocated(Fusion.EngineProfiler.InternalSimulationType,System.Int32)">
+            <summary>
+            Invokes the simulation offset deviation callback with the specified value.
+            </summary>
+        </member>
+        <member name="M:Fusion.EngineProfiler.InternalObjectFreed(Fusion.EngineProfiler.InternalSimulationType,System.Int32)">
+            <summary>
+            Invokes the simulation offset deviation callback with the specified value.
+            </summary>
+        </member>
+        <member name="T:Fusion.EngineProfiler.InternalSimulationType">
+            <summary>
+            Enum representing internal simulation types. To be used with EngineProfiler callbacks.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.Object">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.ObjectChanges">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.ObjectSnapshot">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.Message">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.Input">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.PacketEnvelope">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.MessageEnvelope">
+            <summary/>
+        </member>
+        <member name="F:Fusion.EngineProfiler.InternalSimulationType.ObjectPacketData">
+            <summary/>
+        </member>
+        <member name="T:Fusion.Protocol.ICommunicator">
+            <summary>
+            Interface for a Communicator
+            </summary>
+        </member>
+        <member name="P:Fusion.Protocol.ICommunicator.CommunicatorID">
+            <summary>
+            Represents the current ID of the communicator.
+            </summary>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.SendPackage(System.Byte,System.Int32,System.Boolean,System.Byte*,System.Int32)">
+            <summary>
+            Sends a package data using the communication system
+            </summary>
+            <param name="code">Event Code used to send the Package</param>
+            <param name="targetActor">Target Actor of the Package</param>
+            <param name="reliable">Flag if this Package should be sent reliably</param>
+            <param name="buffer">Data Buffer</param>
+            <param name="bufferLength">Buffer Length</param>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.ReceivePackage(System.Int32@,System.Byte*,System.Int32)">
+            <summary>
+            Retrieve a Data Package
+            </summary>
+            <param name="senderActor">Data Package Sender</param>
+            <param name="buffer">Buffer to be filled with the Data</param>
+            <param name="bufferLength">Buffer length</param>
+            <returns>Total number of bytes written to buffer</returns>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.Poll">
+            <summary>
+            Check if there are data package to be retrieved
+            </summary>
+            <returns>True if the internal buffer has pendind data</returns>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.PushPackage(System.Int32,System.Int32,System.Object)">
+            <summary>
+            Push a new Package into the communicator queues
+            </summary>
+            <param name="senderActor">Data Sender Actor</param>
+            <param name="eventCode">Event Code of the Package</param>
+            <param name="data">Package</param>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.RegisterPackageCallback``1(System.Action{System.Int32,``0})">
+            <summary>
+            Register a callback for a specific Message Type
+            </summary>
+            <typeparam name="T">Message Type</typeparam>
+            <param name="callback">Callback to be invoked when a Message of type T is received</param>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.SendMessage(System.Int32,Fusion.Protocol.IMessage)">
+            <summary>
+            Send a Protocol Message using the communicator system
+            </summary>
+            <param name="targetActor">Target Actor of the Protocol Message</param>
+            <param name="message">Protocol Message to be sent</param>
+        </member>
+        <member name="M:Fusion.Protocol.ICommunicator.Service">
+            <summary>
+            Step the Communicator internals
+            </summary>
+        </member>
+        <member name="T:Fusion.Protocol.IMessage">
+            <summary>
+            Represents a Protocol Message
+            
+            Used to tag the Messages in <see cref="T:Fusion.Protocol.ICommunicator"/>.
+            </summary>
+        </member>
+        <member name="T:Fusion.Common.ExceptionConstants">
+            <summary>
+            Hold Exception Key used to attach extra data to exception within the SDK
+            </summary>
+        </member>
+        <member name="F:Fusion.Common.ExceptionConstants.TrackerId">
+            <summary>
+            Used to associate a unique ID to an Exception
+            It must contain a long value
+            </summary>
+        </member>
+        <member name="T:Fusion.ArrayLengthAttribute">
+            <summary>
+            Editor attribute for selecting the minimum and maximum length constraints for an array field.
+            </summary>
+        </member>
+        <member name="M:Fusion.ArrayLengthAttribute.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.ArrayLengthAttribute"/> class with the specified length.
+            </summary>
+            <param name="length">The length of the array.</param>
+        </member>
+        <member name="M:Fusion.ArrayLengthAttribute.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.ArrayLengthAttribute"/> class with the specified minimum and maximum lengths.
+            </summary>
+            <param name="minLength">The minimum length of the array.</param>
+            <param name="maxLength">The maximum length of the array.</param>
+        </member>
+        <member name="P:Fusion.ArrayLengthAttribute.MinLength">
+            <summary>
+            Gets the minimum length of the array.
+            </summary>
+        </member>
+        <member name="P:Fusion.ArrayLengthAttribute.MaxLength">
+            <summary>
+            Gets the maximum length of the array.
+            </summary>
+        </member>
+        <member name="T:Fusion.AssemblyNameAttribute">
+            <summary>
+            Specifies that the attributed field represents the name of an assembly.
+            </summary>
+        </member>
+        <member name="P:Fusion.AssemblyNameAttribute.RequiresUnsafeCode">
+            <summary>
+            Gets or sets a value indicating whether the assembly requires unsafe code.
+            </summary>
+        </member>
+        <member name="T:Fusion.BinaryDataAttribute">
+            <summary>
+            Specifies that the field represents binary data.
+            </summary>
+        </member>
+        <member name="M:Fusion.BinaryDataAttribute.#ctor">
+            <summary/>
+        </member>
+        <member name="T:Fusion.BitSetAttribute">
+            <summary>
+            Represents an attribute that specifies the number of bits in a bit set.
+            </summary>
+        </member>
+        <member name="M:Fusion.BitSetAttribute.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.BitSetAttribute"/> class with the specified number of bits.
+            </summary>
+            <param name="bitCount">The number of bits in the bit set.</param>
+        </member>
+        <member name="P:Fusion.BitSetAttribute.BitCount">
+            <summary>
+            Gets the number of bits in the bit set.
+            </summary>
+        </member>
+        <member name="T:Fusion.DecoratingPropertyAttribute">
+            <summary>
+            A base class for property attributes that decorate other property attributes.
+            </summary>
+        </member>
+        <member name="F:Fusion.DecoratingPropertyAttribute.DefaultOrder">
+            <summary>
+            The default order of the attribute.
+            </summary>
+        </member>
+        <member name="M:Fusion.DecoratingPropertyAttribute.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance with the default order.
+            </summary>
+        </member>
+        <member name="M:Fusion.DecoratingPropertyAttribute.#ctor(System.Int32,System.Boolean)">
+            <summary>
+            Initializes a new instance with the specified order.
+            </summary>
+        </member>
+        <member name="T:Fusion.DirectoryPathAttribute">
+            <summary>
+            Specifies that the string field represents a path to directory.
+            </summary>
+        </member>
+        <member name="T:Fusion.DisplayAsEnumAttribute">
+            <summary>
+            Casts an enum or int value in the inspector to specific enum type for rendering of its popup list. 
+            Supplying a method name rather than a type allows a property with the type Type to be used to dynamically get the enum type.
+            </summary>
+        </member>
+        <member name="M:Fusion.DisplayAsEnumAttribute.#ctor(System.Type)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.DisplayAsEnumAttribute"/> class with the specified enum type.
+            </summary>
+            <param name="enumType">The type of the enum.</param>
+        </member>
+        <member name="M:Fusion.DisplayAsEnumAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.DisplayAsEnumAttribute"/> class with the specified enum type member name.
+            </summary>
+            <param name="enumTypeMemberName">The name of the member that returns the enum type.</param>
+        </member>
+        <member name="P:Fusion.DisplayAsEnumAttribute.EnumType">
+            <summary>
+            Gets the type of the enum.
+            </summary>
+        </member>
+        <member name="P:Fusion.DisplayAsEnumAttribute.EnumTypeMemberName">
+            <summary>
+            Gets the name of the member that returns the enum type.
+            </summary>
+        </member>
+        <member name="T:Fusion.DisplayNameAttribute">
+            <summary>
+            Specifies the display name for a field.
+            </summary>
+        </member>
+        <member name="F:Fusion.DisplayNameAttribute.Name">
+            <summary>
+            Field name to display.
+            </summary>
+        </member>
+        <member name="M:Fusion.DisplayNameAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.DisplayNameAttribute"/> class with the specified name.
+            </summary>
+            <param name="name">The display name.</param>
+        </member>
+        <member name="T:Fusion.CompareOperator">
+            <summary>
+              Comparison method for evaluating condition member value against compareToValues.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.Equal">
+            <summary>
+              <see langword="true"/> if condition member value equals compareToValue.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.NotEqual">
+            <summary>
+              <see langword="true"/> if condition member value is not equal to compareToValue.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.Less">
+            <summary>
+              <see langword="true"/> if condition member value is less than compareToValue.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.LessOrEqual">
+            <summary>
+              <see langword="true"/> if condition member value is less than or equal to compareToValue.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.GreaterOrEqual">
+            <summary>
+              <see langword="true"/> if condition member value is greater than or equal to compareToValue.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.Greater">
+            <summary>
+              <see langword="true"/> if condition member value is greater than compareToValue.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.NotZero">
+            <summary>
+              Returns <see langword="true"/> if the condition member evaluates to anything other than zero.
+              In the case of object references, this means <see langword="true"/> for any non-<see langword="null"/> value.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.IsZero">
+            <summary>
+              Returns <see langword="true"/> if the condition member evaluates to zero.
+              In the case of object references, this means <see langword="true"/> for any <see langword="null"/> value.
+            </summary>
+        </member>
+        <member name="F:Fusion.CompareOperator.BitwiseAndNotEqualZero">
+            <summary>
+            Returns <see langword="true"/> if the bitwise AND of the condition member and compareToValue is not zero.
+            </summary>
+        </member>
+        <member name="T:Fusion.DoIfAttributeBase">
+            <summary>
+              Editor attribute for selective editor rendering. Condition member can be a property, field or method (with a
+              return value).
+              <para>Value of condition method is converted to a long or a double. <see langword="null"/> = 0, <see langword="false"/> = 0, <see langword="true"/> = 1, Unity Object = InstanceId</para>
+            </summary>
+        </member>
+        <member name="F:Fusion.DoIfAttributeBase._doubleValue">
+            <summary>
+            The double value to compare against.
+            </summary>
+        </member>
+        <member name="F:Fusion.DoIfAttributeBase._isDouble">
+            <summary>
+            Is the value to compare against a double?
+            </summary>
+        </member>
+        <member name="F:Fusion.DoIfAttributeBase._longValue">
+            <summary>
+            The long value to compare against.
+            </summary>
+        </member>
+        <member name="F:Fusion.DoIfAttributeBase.Compare">
+            <summary>
+            The comparison operator to use.
+            </summary>
+        </member>
+        <member name="F:Fusion.DoIfAttributeBase.ConditionMember">
+            <summary>
+            Condition member to evaluate.
+            </summary>
+        </member>
+        <member name="F:Fusion.DoIfAttributeBase.ErrorOnConditionMemberNotFound">
+            <summary>
+            If <see langword="true"/>, an error will be thrown if the condition member is not found.
+            </summary>
+        </member>
+        <member name="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Double,Fusion.CompareOperator)">
+            <summary>
+            Initializes a new instance with a double value to compare against.
+            </summary>
+            <param name="conditionMember"></param>
+            <param name="compareToValue"></param>
+            <param name="compare"></param>
+        </member>
+        <member name="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Int64,Fusion.CompareOperator)">
+            <summary>
+            Initializes a new instance with a long value to compare against.
+            </summary>
+            <param name="conditionMember"></param>
+            <param name="compareToValue"></param>
+            <param name="compare"></param>
+        </member>
+        <member name="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Boolean,Fusion.CompareOperator)">
+            <summary>
+            Initializes a new instance with a boolean value to compare against.
+            </summary>
+            <param name="conditionMember"></param>
+            <param name="compareToValue"></param>
+            <param name="compare"></param>
+        </member>
+        <member name="T:Fusion.DrawerPropertyAttribute">
+            <summary>
+            A base class for property attributes that are used to draw properties in the inspector.
+            </summary>
+        </member>
+        <member name="M:Fusion.DrawerPropertyAttribute.#ctor(System.Boolean)">
+            <summary/>
+        </member>
+        <member name="T:Fusion.DrawIfMode">
+            <summary>
+            Mode for the DrawIf attribute. If the condition is not met, should the field be hidden or just read-only?
+            </summary>
+        </member>
+        <member name="F:Fusion.DrawIfMode.ReadOnly">
+            <summary>
+            Field is read-only if the condition is not met.
+            </summary>
+        </member>
+        <member name="F:Fusion.DrawIfMode.Hide">
+            <summary>
+            Field is hidden if the condition is not met.
+            </summary>
+        </member>
+        <member name="T:Fusion.DrawIfAttribute">
+            <summary>
+              Editor attribute for selectively drawing/hiding fields. Condition member can be a property, field or method
+              (with a return value).
+              <para>Value of condition method is converted to a long. <see langword="null"/> = 0, <see langword="false"/> = 0, <see langword="true"/> = 1, Unity Object = InstanceId</para>
+            </summary>
+        </member>
+        <member name="F:Fusion.DrawIfAttribute.Mode">
+            <summary>
+              Instructs the attribute completely hide the field if not draw, rather than the default of just disabling it.
+            </summary>
+        </member>
+        <member name="P:Fusion.DrawIfAttribute.Hide">
+            <summary>
+            Should the field be hidden if the condition is not met?
+            </summary>
+        </member>
+        <member name="M:Fusion.DrawIfAttribute.#ctor(System.String,System.Double,Fusion.CompareOperator,Fusion.DrawIfMode)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Double,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.DrawIfAttribute.#ctor(System.String,System.Boolean,Fusion.CompareOperator,Fusion.DrawIfMode)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Boolean,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.DrawIfAttribute.#ctor(System.String,System.Int64,Fusion.CompareOperator,Fusion.DrawIfMode)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Int64,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.DrawIfAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance that will hide the field if the condition member is not equal to zero.
+            </summary>
+            <param name="conditionMember"></param>
+        </member>
+        <member name="T:Fusion.DrawInlineAttribute">
+            <summary>
+            Specifies that a field should be drawn inline in the inspector.
+            </summary>
+        </member>
+        <member name="T:Fusion.EditorButtonAttribute">
+            <summary>
+            Specifies that a method should be displayed as a button in the Unity editor.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonAttribute.Label">
+            <summary>
+            The label text to display on the button.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonAttribute.Visibility">
+            <summary>
+            The visibility of the button in the Unity editor.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonAttribute.Priority">
+            <summary>
+            The priority of the button. Buttons with higher priority are displayed first.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonAttribute.AllowMultipleTargets">
+            <summary>
+            Determines whether multiple targets are supported.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonAttribute.DirtyObject">
+            <summary>
+            Determines whether the object should be marked as dirty after clicking the button.
+            </summary>
+        </member>
+        <member name="M:Fusion.EditorButtonAttribute.#ctor(System.String,Fusion.EditorButtonVisibility,System.Int32,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.EditorButtonAttribute"/> class with the specified label, visibility, priority, and dirty object flag.
+            </summary>
+            <param name="label">The label text to display on the button.</param>
+            <param name="visibility">The visibility of the button in the Unity editor.</param>
+            <param name="priority">The priority of the button. Buttons with higher priority are displayed first.</param>
+            <param name="dirtyObject">Determines whether the object should be marked as dirty after clicking the button.</param>
+        </member>
+        <member name="M:Fusion.EditorButtonAttribute.#ctor(Fusion.EditorButtonVisibility,System.Int32,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.EditorButtonAttribute"/> class with the specified visibility, priority, and dirty object flag.
+            </summary>
+            <param name="visibility">The visibility of the button in the Unity editor.</param>
+            <param name="priority">The priority of the button. Buttons with higher priority are displayed first.</param>
+            <param name="dirtyObject">Determines whether the object should be marked as dirty after clicking the button.</param>
+        </member>
+        <member name="T:Fusion.EditorButtonVisibility">
+            <summary>
+            Specifies the visibility options for an editor button.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonVisibility.PlayMode">
+            <summary>
+            The button is only visible in Play Mode.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonVisibility.EditMode">
+            <summary>
+            The button is only visible in Edit Mode.
+            </summary>
+        </member>
+        <member name="F:Fusion.EditorButtonVisibility.Always">
+            <summary>
+            The button is always visible.
+            </summary>
+        </member>
+        <member name="T:Fusion.ErrorIfAttribute">
+            <summary>
+              Editor attribute for adding notices to fields if the condition member evaluates as <see langword="true"/>.
+              Condition member can be a property, field or method (with a return value).
+            </summary>
+        </member>
+        <member name="F:Fusion.ErrorIfAttribute.Message">
+            <summary>
+            The default error text, when an error is shown.
+            </summary>
+        </member>
+        <member name="F:Fusion.ErrorIfAttribute.AsBox">
+            <summary>
+            Should the error be shown as a box?
+            </summary>
+        </member>
+        <member name="M:Fusion.ErrorIfAttribute.#ctor(System.String,System.Double,System.String,Fusion.CompareOperator)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Double,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.ErrorIfAttribute.#ctor(System.String,System.Boolean,System.String,Fusion.CompareOperator)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Boolean,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.ErrorIfAttribute.#ctor(System.String,System.Int64,System.String,Fusion.CompareOperator)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Int64,Fusion.CompareOperator)"/>
+        </member>
+        <member name="T:Fusion.ExpandableEnumAttribute">
+            <summary>
+            Editor attribute that shows an enum as an expandable list of options in the inspector.
+            </summary>
+        </member>
+        <member name="P:Fusion.ExpandableEnumAttribute.AlwaysExpanded">
+            <summary>
+            Always expand the enum in the inspector (no foldout)
+            </summary>
+        </member>
+        <member name="P:Fusion.ExpandableEnumAttribute.ShowFlagsButtons">
+            <summary>
+            Show the enum flags as buttons in the inspector.
+            </summary>
+        </member>
+        <member name="P:Fusion.ExpandableEnumAttribute.ShowInlineHelp">
+            <summary>
+            Show inline help for enum values in the inspector.
+            </summary>
+        </member>
+        <member name="T:Fusion.FieldEditorButtonAttribute">
+            <summary>
+            Editor attribute to add a button that invokes a custom method in the inspector.
+            </summary>
+        </member>
+        <member name="F:Fusion.FieldEditorButtonAttribute.Label">
+            <summary>
+            Button label.
+            </summary>
+        </member>
+        <member name="F:Fusion.FieldEditorButtonAttribute.AllowMultipleTargets">
+            <summary>
+            Is it allowed to select multiple targets for the button?
+            </summary>
+        </member>
+        <member name="F:Fusion.FieldEditorButtonAttribute.TargetMethod">
+            <summary>
+            The method to invoke when the button is clicked.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldEditorButtonAttribute.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance class with the specified label and target method.
+            </summary>
+            <param name="label">The label of the button</param>
+            <param name="targetMethod">The method to invoke when the button is clicked</param>
+        </member>
+        <member name="T:Fusion.HideArrayElementLabelAttribute">
+            <summary>
+            Attribute used to hide the label of an array element in the inspector.
+            </summary>
+        </member>
+        <member name="M:Fusion.HideArrayElementLabelAttribute.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.HideArrayElementLabelAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:Fusion.InlineHelpAttribute">
+            <summary>
+            If applied to a field, checks if there is a help text for the field or the field's type and shows it in the inspector.
+            </summary>
+        </member>
+        <member name="P:Fusion.InlineHelpAttribute.ShowTypeHelp">
+            <summary>
+            Gets or sets a value indicating whether to show help for the type.
+            </summary>
+        </member>
+        <member name="M:Fusion.InlineHelpAttribute.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.InlineHelpAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:Fusion.LastSupportedVersionAttribute">
+            <summary>
+            Marks the last version that supports the attributed type/method/property/field.
+            </summary>
+        </member>
+        <member name="M:Fusion.LastSupportedVersionAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.LastSupportedVersionAttribute"/> class with the specified version.
+            </summary>
+            <param name="version">The last supported version.</param>
+        </member>
+        <member name="T:Fusion.LayerAttribute">
+            <summary>
+            Specifies that an int field should be drawn as a layer field in the inspector.
+            </summary>
+        </member>
+        <member name="T:Fusion.LayerMatrixAttribute">
+            <summary>
+            Specifies that the integer array field should be drawn as a layer matrix in the inspector.
+            </summary>
+        </member>
+        <member name="M:Fusion.LayerMatrixAttribute.#ctor">
+            <summary />
+        </member>
+        <member name="T:Fusion.MaxStringByteCountAttribute">
+            <summary>
+            Specifies that the string field should be drawn as a text field with a maximum byte count for given encoding.
+            </summary>
+        </member>
+        <member name="M:Fusion.MaxStringByteCountAttribute.#ctor(System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.MaxStringByteCountAttribute"/> class with the specified byte count and encoding.
+            </summary>
+            <param name="count"></param>
+            <param name="encoding"></param>
+        </member>
+        <member name="P:Fusion.MaxStringByteCountAttribute.ByteCount">
+            <summary>
+            Maximum byte count for the string.
+            </summary>
+        </member>
+        <member name="P:Fusion.MaxStringByteCountAttribute.Encoding">
+            <summary>
+            The encoding of the string.
+            </summary>
+        </member>
+        <member name="T:Fusion.RangeExAttribute">
+            <summary>
+            Represents an attribute that specifies a range of values for a field or property.
+            </summary>
+        </member>
+        <member name="P:Fusion.RangeExAttribute.Max">
+            <summary>
+            Gets the maximum value of the range.
+            </summary>
+        </member>
+        <member name="P:Fusion.RangeExAttribute.Min">
+            <summary>
+            Gets the minimum value of the range.
+            </summary>
+        </member>
+        <member name="F:Fusion.RangeExAttribute.ClampMin">
+            <summary>
+            Gets or sets a value indicating whether the minimum value should be clamped.
+            </summary>
+        </member>
+        <member name="F:Fusion.RangeExAttribute.ClampMax">
+            <summary>
+            Gets or sets a value indicating whether the maximum value should be clamped.
+            </summary>
+        </member>
+        <member name="F:Fusion.RangeExAttribute.UseSlider">
+            <summary>
+            Gets or sets a value indicating whether a slider should be used for the range.
+            </summary>
+        </member>
+        <member name="M:Fusion.RangeExAttribute.#ctor(System.Double,System.Double)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.RangeExAttribute"/> class with the specified minimum and maximum values.
+            </summary>
+            <param name="min">The minimum value of the range.</param>
+            <param name="max">The maximum value of the range.</param>
+        </member>
+        <member name="F:Fusion.RangeExAttribute.Values">
+            <summary>
+            Possible values.
+            </summary>
+        </member>
+        <member name="T:Fusion.ReadOnlyAttribute">
+            <summary>
+            Attribute used to mark a field as read-only.
+            </summary>
+        </member>
+        <member name="P:Fusion.ReadOnlyAttribute.InPlayMode">
+            <summary>
+            Should the field be read-only in play mode?
+            </summary>
+        </member>
+        <member name="P:Fusion.ReadOnlyAttribute.InEditMode">
+            <summary>
+            Should the field be read-only in edit mode?
+            </summary>
+        </member>
+        <member name="M:Fusion.ReadOnlyAttribute.#ctor">
+            <summary/>
+        </member>
+        <member name="T:Fusion.ScenePathAttribute">
+            <summary>
+            Specifies that a string field represents a scene path.
+            </summary>
+        </member>
+        <member name="T:Fusion.ScriptHelpAttribute">
+            <summary>
+            Defines the appearance of the script header in the Unity inspector.
+            </summary>
+        </member>
+        <member name="P:Fusion.ScriptHelpAttribute.Hide">
+            <summary>
+            Hide the script header in the Unity inspector.
+            </summary>
+        </member>
+        <member name="P:Fusion.ScriptHelpAttribute.Url">
+            <summary>
+            </summary>
+        </member>
+        <member name="P:Fusion.ScriptHelpAttribute.BackColor">
+            <summary>
+              Color of the inspector header for this component type. None indicates no header graphic should be used.
+            </summary>
+        </member>
+        <member name="P:Fusion.ScriptHelpAttribute.Style">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="T:Fusion.ScriptHeaderStyle">
+            <summary>
+            Style of the script header in the Unity inspector.
+            </summary>
+        </member>
+        <member name="F:Fusion.ScriptHeaderStyle.Unity">
+            <summary>
+            Use the default Unity header style.
+            </summary>
+        </member>
+        <member name="F:Fusion.ScriptHeaderStyle.Photon">
+            <summary>
+            Use the Photon header style.
+            </summary>
+        </member>
+        <member name="T:Fusion.ScriptHeaderIcon">
+            <summary>
+              Icon to be rendered on the component graphic header in the Unity inspector.
+            </summary>
+        </member>
+        <member name="T:Fusion.ScriptHeaderBackColor">
+            <summary>
+              Color of the component graphic header in the Unity inspector. None indicates no header graphic should be used.
+            </summary>
+        </member>
+        <member name="T:Fusion.SerializableTypeAttribute">
+            <summary>
+            Specifies that either a string field represents a type name or sets additional options for <see cref="T:Fusion.SerializableType"/> field.
+            </summary>
+        </member>
+        <member name="P:Fusion.SerializableTypeAttribute.BaseType">
+            <summary>
+            The base type of the picked type.
+            </summary>
+        </member>
+        <member name="P:Fusion.SerializableTypeAttribute.UseFullAssemblyQualifiedName">
+            <summary>
+            Should the type be stored as a full assembly qualified name.
+            </summary>
+        </member>
+        <member name="P:Fusion.SerializableTypeAttribute.WarnIfNoPreserveAttribute">
+            <summary>
+            Should a warning be shown if the field does not have a PreserveAttribute.
+            </summary>
+        </member>
+        <member name="T:Fusion.SerializeReferenceTypePickerAttribute">
+            <summary>
+            Attribute used to show a type picker for a field with [SerializeReference].
+            </summary>
+        </member>
+        <member name="F:Fusion.SerializeReferenceTypePickerAttribute.GroupTypesByNamespace">
+            <summary>
+            Should the types be grouped by namespace?
+            </summary>
+        </member>
+        <member name="F:Fusion.SerializeReferenceTypePickerAttribute.ShowFullName">
+            <summary>
+            Should the full name be shown?
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializeReferenceTypePickerAttribute.#ctor(System.Type[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.SerializeReferenceTypePickerAttribute"/> class.
+            </summary>
+            <param name="types">The types to be picked.</param>
+        </member>
+        <member name="P:Fusion.SerializeReferenceTypePickerAttribute.Types">
+            <summary>
+            Gets the types to be picked.
+            </summary>
+        </member>
+        <member name="T:Fusion.SpaceAfterAttribute">
+            <summary>
+            Similar to UnityEngine.SpaceAttribute, but adds space after the property.
+            </summary>
+        </member>
+        <member name="F:Fusion.SpaceAfterAttribute.DefaultOrder">
+            <summary>
+            The default order for this attribute.
+            </summary>
+        </member>
+        <member name="M:Fusion.SpaceAfterAttribute.#ctor(System.Single)">
+            <summary/>
+        </member>
+        <member name="F:Fusion.SpaceAfterAttribute.Height">
+            <summary>
+            Height of the space.
+            </summary>
+        </member>
+        <member name="T:Fusion.ToggleLeftAttribute">
+            <summary>
+            Specifies that the bool field should be drawn as the toggle on the left side of the label.
+            </summary>
+        </member>
+        <member name="T:Fusion.Units">
+            <summary>
+            Unit Type for a certain field.
+            This helps to identify the unit that a certain value represents, like Seconds or Percentage
+            </summary>
+        </member>
+        <member name="F:Fusion.Units.None">
+            <summary> </summary>
+        </member>
+        <member name="F:Fusion.Units.Ticks">
+            <summary>ticks</summary>
+        </member>
+        <member name="F:Fusion.Units.Seconds">
+            <summary>seconds - secs</summary>
+        </member>
+        <member name="F:Fusion.Units.MilliSecs">
+            <summary>millisecs - ms</summary>
+        </member>
+        <member name="F:Fusion.Units.Kilobytes">
+            <summary>kilobytes - kB</summary>
+        </member>
+        <member name="F:Fusion.Units.Megabytes">
+            <summary>megabytes - MB</summary>
+        </member>
+        <member name="F:Fusion.Units.Normalized">
+            <summary>normalized - norm</summary>
+        </member>
+        <member name="F:Fusion.Units.Multiplier">
+            <summary>multiplier - mult</summary>
+        </member>
+        <member name="F:Fusion.Units.Percentage">
+            <summary>%</summary>
+        </member>
+        <member name="F:Fusion.Units.NormalizedPercentage">
+            <summary>normalized % - n%</summary>
+        </member>
+        <member name="F:Fusion.Units.Degrees">
+            <summary>degrees - \u00B0</summary>
+        </member>
+        <member name="F:Fusion.Units.PerSecond">
+            <summary>per sec - /sec</summary>
+        </member>
+        <member name="F:Fusion.Units.DegreesPerSecond">
+            <summary>\u00B0 / sec - \u00B0/sec</summary>
+        </member>
+        <member name="F:Fusion.Units.Radians">
+            <summary>radians - rad</summary>
+        </member>
+        <member name="F:Fusion.Units.RadiansPerSecond">
+            <summary>radian / sec - rad/s</summary>
+        </member>
+        <member name="F:Fusion.Units.TicksPerSecond">
+            <summary>ticks / sec - tck/s</summary>
+        </member>
+        <member name="F:Fusion.Units.Units">
+            <summary>units - units</summary>
+        </member>
+        <member name="F:Fusion.Units.Bytes">
+            <summary>bytes - bytes</summary>
+        </member>
+        <member name="F:Fusion.Units.Count">
+            <summary>count - count</summary>
+        </member>
+        <member name="F:Fusion.Units.Packets">
+            <summary>packets - packets</summary>
+        </member>
+        <member name="F:Fusion.Units.Frames">
+            <summary>frames - frames</summary>
+        </member>
+        <member name="F:Fusion.Units.FramesPerSecond">
+            <summary>fps - fps</summary>
+        </member>
+        <member name="F:Fusion.Units.SquareMagnitude">
+            <summary>sqrMagnitude - sqrMag</summary>
+        </member>
+        <member name="T:Fusion.UnitAttribute">
+            <summary>
+            Unit Attribute class.
+            Used to mark a field with the respective <see cref="T:Fusion.Units"/>
+            </summary>
+        </member>
+        <member name="P:Fusion.UnitAttribute.Unit">
+            <summary>
+            Selected Unit for the field.
+            </summary>
+        </member>
+        <member name="M:Fusion.UnitAttribute.#ctor(Fusion.Units)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.UnitAttribute"/> class with the specified unit.
+            </summary>
+            <param name="units"></param>
+        </member>
+        <member name="T:Fusion.UnityAddressablesRuntimeKeyAttribute">
+            <summary>
+            Specifies that the string field represents a key for Unity Addressables.
+            </summary>
+        </member>
+        <member name="T:Fusion.UnityAssetGuidAttribute">
+            <summary>
+            Specifies that the string field represents a GUID of an asset.
+            </summary>
+        </member>
+        <member name="T:Fusion.PropertyAttribute">
+            <summary>
+            A replacement for UnityEngine.PropertyAttribute.
+            </summary>
+        </member>
+        <member name="T:Fusion.UnityResourcePathAttribute">
+            <summary>
+            Specifies that the string field represents a path to a Unity resource.
+            </summary>
+        </member>
+        <member name="M:Fusion.UnityResourcePathAttribute.#ctor(System.Type)">
+            <summary>
+            Initializes a new instance of the class with the specified resource type.
+            </summary>
+            <param name="resourceType"></param>
+        </member>
+        <member name="P:Fusion.UnityResourcePathAttribute.ResourceType">
+            <summary>
+            The type of the resource.
+            </summary>
+        </member>
+        <member name="T:Fusion.WarnIfAttribute">
+            <summary>
+              Editor attribute for adding notices to fields if the condition member evaluates as <see langword="true"/>.
+              Condition member can be a property, field or method (with a return value).
+            </summary>
+        </member>
+        <member name="F:Fusion.WarnIfAttribute.Message">
+            <summary>
+            The default warning text, when a warning is shown.
+            </summary>
+        </member>
+        <member name="F:Fusion.WarnIfAttribute.AsBox">
+            <summary>
+            Should the warning be shown as a box?
+            </summary>
+        </member>
+        <member name="M:Fusion.WarnIfAttribute.#ctor(System.String,System.Double,System.String,Fusion.CompareOperator)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Double,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.WarnIfAttribute.#ctor(System.String,System.Boolean,System.String,Fusion.CompareOperator)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Boolean,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.WarnIfAttribute.#ctor(System.String,System.Int64,System.String,Fusion.CompareOperator)">
+            <inheritdoc cref="M:Fusion.DoIfAttributeBase.#ctor(System.String,System.Int64,Fusion.CompareOperator)"/>
+        </member>
+        <member name="M:Fusion.WarnIfAttribute.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance that will hide the field if the condition member is not equal to zero.
+            </summary>
+            <param name="conditionMember"></param>
+            <param name="message"></param>
+        </member>
+        <member name="T:Fusion.FieldsMask">
+            <summary>
+            Base class for <see cref="T:Fusion.FieldsMask`1"/>.
+            </summary>
+        </member>
+        <member name="F:Fusion.FieldsMask.Mask">
+            <summary>
+            The internal mask value.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask.#ctor(Fusion.Mask256)">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask.#ctor(System.Int64,System.Int64,System.Int64,System.Int64)">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask.#ctor">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask.op_Implicit(Fusion.FieldsMask)~Fusion.Mask256">
+            <summary>
+            Implicitly convert <see cref="T:Fusion.FieldsMask"/> to its long mask value.
+            </summary>
+        </member>
+        <member name="T:Fusion.FieldsMask`1">
+            <summary>
+            Associates and displays a 64 bit mask which represents the field members of a struct. Makes it possible to treat a Struct like an Flags Enum.
+            NOTE: A <see cref="T:Fusion.FieldsMask`1"/> attribute is required for proper rendering in the Inspector.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask`1.#ctor(Fusion.Mask256)">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask`1"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask`1.#ctor(System.Int64,System.Int64,System.Int64,System.Int64)">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask`1.#ctor">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask`1"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FieldsMask`1.#ctor(System.Func{Fusion.Mask256})">
+            <summary>
+            Constructor for <see cref="T:Fusion.FieldsMask"/>.
+            </summary>
+        </member>
+        <member name="T:Fusion.Mask256">
+            <summary>
+            Mask256 is a 256-bit mask that can be used to store 256 boolean values.
+            </summary>
+        </member>
+        <member name="P:Fusion.Mask256.Item(System.Int32)">
+            <summary>
+            Returns selected 64-bit value from the mask.
+            </summary>
+            <param name="i"></param>
+        </member>
+        <member name="M:Fusion.Mask256.Clear">
+            <summary>
+            Sets all bits to 0.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.SetBit(System.Int32,System.Boolean)">
+            <summary>
+            Sets a specific bit in the mask.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.GetBit(System.Int32)">
+            <summary>
+            Returns a specific bit from the mask.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.#ctor(System.Int64,System.Int64,System.Int64,System.Int64)">
+            <summary>
+            Creates a new mask with specified initial values.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.op_Implicit(Fusion.Mask256)~System.Int64">
+            <summary>
+            Equivalent to <code>mask[0]</code>
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.op_Implicit(System.Int64)~Fusion.Mask256">
+            <summary>
+            Converts a long value to a mask.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.op_BitwiseAnd(Fusion.Mask256,Fusion.Mask256)">
+            <summary>
+            Performs a logical-AND operation.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.op_BitwiseOr(Fusion.Mask256,Fusion.Mask256)">
+            <summary>
+            Performs a logical-OR operation.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.op_OnesComplement(Fusion.Mask256)">
+            <summary>
+            Performs a logical-NOT operation.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.Equals(System.Object)">
+            <summary>
+            Returns <see langword="true"/> if the masks are equal.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.GetHashCode">
+            <summary>
+            Calculates the hash code of the mask.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.Equals(Fusion.Mask256)">
+            <summary>
+            Returns <see langword="true"/> if the masks are equal.
+            </summary>
+        </member>
+        <member name="M:Fusion.Mask256.IsNothing">
+            <summary>
+            Returns <see langword="true"/> if the mask is empty.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.Mask256.ToString">
+            <summary>
+            Converts the mask to a string in the form of "a:b:c:d".
+            </summary>
+        </member>
+        <member name="T:Fusion.SerializableType">
+            <summary>
+            A System.Type wrapper that can be serialized.
+            </summary>
+        </member>
+        <member name="F:Fusion.SerializableType.AssemblyQualifiedName">
+            <summary>
+            Type's assembly qualified name.
+            </summary>
+        </member>
+        <member name="P:Fusion.SerializableType.IsValid">
+            <summary>
+            Is the type valid.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.#ctor(System.Type)">
+            <summary>
+            Create a new instance and stores full <see cref="P:System.Type.AssemblyQualifiedName"/>. To use shorter form, use <see cref="M:Fusion.SerializableType.AsShort"/>.
+            </summary>
+            <param name="type">Type to store. Can be <see langword="null"/>.</param>
+        </member>
+        <member name="M:Fusion.SerializableType.#ctor(System.String)">
+            <summary>
+            Create a new instance and stores <paramref name="type"/> as <see cref="F:Fusion.SerializableType.AssemblyQualifiedName"/>.
+            </summary>
+            <param name="type">Type name.</param>
+        </member>
+        <member name="P:Fusion.SerializableType.Value">
+            <summary>
+            Retrieve the type. The value is obtained using <see cref="M:System.Type.GetType(System.String)"/> and cached in a static
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.AsShort">
+            <summary>
+            Converts <see cref="F:Fusion.SerializableType.AssemblyQualifiedName"/> and returns a short form, without version, culture etc.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.op_Implicit(System.Type)~Fusion.SerializableType">
+            <summary>
+            Implicitly convert a <see cref="T:System.Type"/> to a <see cref="T:Fusion.SerializableType"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.op_Implicit(Fusion.SerializableType)~System.Type">
+            <summary>
+            Implicitly convert a <see cref="T:Fusion.SerializableType"/> to a <see cref="T:System.Type"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.Equals(Fusion.SerializableType)">
+            <summary>
+            Returns <see langword="true"/> if the <see cref="F:Fusion.SerializableType.AssemblyQualifiedName"/> is the same.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.Equals(System.Object)">
+            <summary>
+            Returns <see langword="true"/> if <paramref name="obj"/> is <see cref="T:Fusion.SerializableType"/> and the <see cref="F:Fusion.SerializableType.AssemblyQualifiedName"/> is the same.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.GetHashCode">
+            <summary>
+            Returns the hash code of the <see cref="F:Fusion.SerializableType.AssemblyQualifiedName"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.SerializableType.GetShortAssemblyQualifiedName(System.Type)">
+            <summary>
+            Converts the <see cref="P:System.Type.AssemblyQualifiedName"/> to a shorter form, without version, culture etc.
+            </summary>
+        </member>
+        <member name="T:Fusion.SerializableType`1">
+            <summary>
+            A generic version of <see cref="T:Fusion.SerializableType"/> that can be used to store types that inherit from a specific base type.
+            </summary>
+            <typeparam name="BaseType">The base type of the type stored</typeparam>
+        </member>
+        <member name="F:Fusion.SerializableType`1.AssemblyQualifiedName">
+            <inheritdoc cref="F:Fusion.SerializableType.AssemblyQualifiedName"/>
+        </member>
+        <member name="P:Fusion.SerializableType`1.IsValid">
+            <inheritdoc cref="P:Fusion.SerializableType.IsValid"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.#ctor(System.Type)">
+            <inheritdoc cref="T:Fusion.SerializableType"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.AsShort">
+            <inheritdoc cref="M:Fusion.SerializableType.AsShort"/>
+        </member>
+        <member name="P:Fusion.SerializableType`1.Value">
+            <inheritdoc cref="P:Fusion.SerializableType.Value"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.op_Implicit(System.Type)~Fusion.SerializableType{`0}">
+            <inheritdoc cref="M:Fusion.SerializableType.op_Implicit(System.Type)~Fusion.SerializableType"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.op_Implicit(Fusion.SerializableType{`0})~System.Type">
+            <inheritdoc cref="M:Fusion.SerializableType.op_Implicit(Fusion.SerializableType)~System.Type"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.Equals(Fusion.SerializableType{`0})">
+            <inheritdoc cref="M:Fusion.SerializableType.Equals(Fusion.SerializableType)"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.Equals(System.Object)">
+            <inheritdoc cref="M:Fusion.SerializableType.Equals(System.Object)"/>
+        </member>
+        <member name="M:Fusion.SerializableType`1.GetHashCode">
+            <inheritdoc cref="M:Fusion.SerializableType.GetHashCode"/>
+        </member>
+        <member name="T:Fusion.FusionGlobalScriptableObject">
+            <summary>
+            A base class for ScriptableObjects that are meant to be globally accessible, at edit-time and runtime. The way such objects
+            are loaded is driven by usages of <see cref="T:Fusion.FusionGlobalScriptableObjectSourceAttribute"/> attributes. 
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionGlobalScriptableObject`1">
+            <inheritdoc cref="T:Fusion.FusionGlobalScriptableObject`1"/>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObject`1.IsGlobal">
+            <summary>
+            Is this instance a global instance.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject`1.OnLoadedAsGlobal">
+            <summary>
+            Invoked when the instance is loaded as global.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject`1.OnUnloadedAsGlobal(System.Boolean)">
+            <summary>
+            Invoked when the instance is unloaded as global.
+            </summary>
+            <param name="destroyed"></param>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject`1.OnDisable">
+            <summary>
+            If the current instance is global, unsets <see cref="P:Fusion.FusionGlobalScriptableObject`1.IsGlobal"/> and calls <see cref="M:Fusion.FusionGlobalScriptableObject`1.OnUnloadedAsGlobal(System.Boolean)"/>
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObject`1.GlobalInternal">
+            <summary>
+            A singleton instance-like property. Loads or returns the current global instance. Derived classes can package it in a property
+            with a different name. Throws if loading an instance failed.
+            </summary>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObject`1.IsGlobalLoadedInternal">
+            <summary>
+            Returns true if a global instance is loaded. Compared to <see cref="P:Fusion.FusionGlobalScriptableObject`1.GlobalInternal"/>, it does not attempt to load an instance.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject`1.TryGetGlobalInternal(`0@)">
+            <summary>
+            Loads or returns the current global instance. Returns <see langword="null"/> if loading an instance failed.
+            </summary>
+            <param name="global"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject`1.UnloadGlobalInternal">
+            <summary>
+            Unloads the global instance if it is loaded.
+            </summary>
+            <returns><see langword="true"/> if an instance was unloaded</returns>
+        </member>
+        <member name="T:Fusion.FusionGlobalScriptableObjectAttribute">
+            <summary>
+            Provides additional information for a global scriptable object.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObjectAttribute.#ctor(System.String)">
+            <summary>
+            Creates a new instance.
+            </summary>
+            <param name="defaultPath">The default path for the asset.</param>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectAttribute.DefaultPath">
+            <summary>
+            The default path for the asset.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectAttribute.DefaultContents">
+            <summary>
+            The default contents for the asset, if it is a TextAsset.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectAttribute.DefaultContentsGeneratorMethod">
+            <summary>
+            Name of the method that is used to generate the default contents for the asset.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionGlobalScriptableObjectSourceAttribute">
+            <summary>
+            Base class for all attributes that can be used to load <see cref="T:Fusion.FusionGlobalScriptableObject"/>.
+            Attributes need to be registered at the assembly level. For instance, this snippet is used to register a default loader,
+            that attempts to load from Resources based on <see cref="P:Fusion.FusionGlobalScriptableObjectAttribute.DefaultPath"/>:
+            <code>
+            [assembly: Fusion.FusionGlobalScriptableObjectResource(typeof(Fusion.FusionGlobalScriptableObject), Order = 2000, AllowFallback = true)]
+            </code>
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObjectSourceAttribute.#ctor(System.Type)">
+            <param name="objectType">Type or the base type of <see cref="T:Fusion.FusionGlobalScriptableObject"/> that this loader supports.</param>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectSourceAttribute.ObjectType">
+            <summary>
+            Type or the base type of <see cref="T:Fusion.FusionGlobalScriptableObject"/> that this loader supports.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectSourceAttribute.Order">
+            <summary>
+            Order in which this loader will be executed. Lower values are executed first.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectSourceAttribute.AllowEditMode">
+            <summary>
+            Can this loader be used in edit mode.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionGlobalScriptableObjectSourceAttribute.AllowFallback">
+            <summary>
+            Does this loader allow fallback to the next loader?
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObjectSourceAttribute.Load(System.Type)">
+            <summary>
+            Attempt to load the object of the specified type. Return <see langword="default"/> if the object cannot be loaded.
+            </summary>
+            <param name="type">The requested type</param>
+        </member>
+        <member name="T:Fusion.FusionGlobalScriptableObjectUnloadDelegate">
+            <summary>
+            A delegate that can be used to unload a <see cref="T:Fusion.FusionGlobalScriptableObject"/>.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionGlobalScriptableObjectLoadResult">
+            <summary>
+            The result of <see cref="M:Fusion.FusionGlobalScriptableObjectSourceAttribute.Load(System.Type)"/>. Contains the loaded object and an optional
+            unloader delegate.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionGlobalScriptableObjectLoadResult.Object">
+            <summary>
+            Object instance.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionGlobalScriptableObjectLoadResult.Unloader">
+            <summary>
+            An optional delegate that is used to unload <see cref="F:Fusion.FusionGlobalScriptableObjectLoadResult.Object"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObjectLoadResult.#ctor(Fusion.FusionGlobalScriptableObject,Fusion.FusionGlobalScriptableObjectUnloadDelegate)">
+            <param name="obj">Object instance.</param>
+            <param name="unloader">An optional delegate that is used to unload <paramref name="obj"/>.</param>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObjectLoadResult.op_Implicit(Fusion.FusionGlobalScriptableObject)~Fusion.FusionGlobalScriptableObjectLoadResult">
+            <summary>
+            Implicitly converts a <see cref="T:Fusion.FusionGlobalScriptableObject"/> to a <see cref="T:Fusion.FusionGlobalScriptableObjectLoadResult"/>.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionMonoBehaviour">
+            <summary>
+            Base class for all Fusion MonoBehaviours.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionScriptableObject">
+            <summary>
+            Base class for all Fusion scriptable objects.
+            </summary>
+        </member>
+        <member name="T:Fusion.JsonUtils">
+            <summary>
+            Collection of simple JSON Utility methods
+            </summary>
+        </member>
+        <member name="M:Fusion.JsonUtils.RemoveExtraReferences(System.String)">
+            <summary>
+            Removes from a JSON serialized by Unity Serializer the "referenes" field.
+            This aims to reduce the JSON size when sending accross the network
+            </summary>
+            <param name="baseJson">JSON output of "JsonUtility.ToJson" call</param>
+            <returns>Same JSON but without the "referenes" object</returns>
+        </member>
+        <member name="T:Fusion.Maths">
+            <summary>
+            Math utility methods.
+            </summary>
+        </member>
+        <member name="T:Fusion.Maths.FastAbs2">
+            <summary>Uses fieldoffset to allow quick setting of the sign bit of floats.</summary>
+        </member>
+        <member name="M:Fusion.Maths.QuaternionCompress(UnityEngine.Quaternion)">
+            <summary>
+            Primary Compression Method. Converts a quaternion into a ulong buffer. Depending on size most of the top bits will be 0. 
+            </summary>
+            <param name="rot">The quaternion to be compressed</param>
+            <returns>A ulong buffer of the compressed quat.</returns>
+        </member>
+        <member name="M:Fusion.Maths.QuaternionDecompress(System.UInt32)">
+            <summary>
+            Primary Decompression Method. Decompress the 3 channels and missing channel ID from the serialized ULong buffer.
+            </summary>
+            <param name="buffer">The ulong that represents the compressed quaternion.</param>
+            <returns>The restored Quaternion.</returns>
+        </member>
+        <member name="T:Fusion.Maths.FastAbs">
+            <summary>
+            Represents a structure that allows quick setting of the sign bit of floats using field offsets.
+            </summary>
+        </member>
+        <member name="F:Fusion.Maths.FastAbs.Mask">
+            <summary>
+            The mask used to clear the sign bit of a float.
+            </summary>
+        </member>
+        <member name="F:Fusion.Maths.FastAbs.UInt32">
+            <summary>
+            The unsigned integer representation of the float.
+            </summary>
+        </member>
+        <member name="F:Fusion.Maths.FastAbs.Single">
+            <summary>
+            The single-precision floating-point number.
+            </summary>
+        </member>
+        <member name="M:Fusion.Maths.SizeOfBits``1">
+            <summary>
+            Returns the size of the specified unmanaged type in bits.
+            </summary>
+            <typeparam name="T">The unmanaged type.</typeparam>
+            <returns>The size of the type in bits.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BytesRequiredForBits(System.Int32)">
+            <summary>
+            Calculates the number of bytes required to store the specified number of bits.
+            </summary>
+            <param name="b">The number of bits.</param>
+            <returns>The number of bytes required.</returns>
+        </member>
+        <member name="M:Fusion.Maths.IntsRequiredForBits(System.Int32)">
+            <summary>
+            Calculates the number of integers required to store the specified number of bits.
+            </summary>
+            <param name="b">The number of bits.</param>
+            <returns>The number of integers required.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BytesRequiredForBits(System.Int16)">
+            <summary>
+            Calculates the number of bytes required to store the specified number of bits.
+            </summary>
+            <param name="b">The number of bits.</param>
+            <returns>The number of bytes required.</returns>
+        </member>
+        <member name="M:Fusion.Maths.PrintBits(System.Byte*,System.Int32)">
+            <summary>
+            Converts a byte array to a string representation of its bits.
+            </summary>
+            <param name="data">Pointer to the byte array.</param>
+            <param name="count">The number of bytes to convert.</param>
+            <returns>A string representation of the bits.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BitsRequiredForNumber(System.Int32)">
+            <summary>
+            Determines the number of bits required to represent the specified integer.
+            </summary>
+            <param name="n">The integer to evaluate.</param>
+            <returns>The number of bits required to represent the integer.</returns>
+        </member>
+        <member name="M:Fusion.Maths.FloorToInt(System.Double)">
+            <summary>
+            Rounds a double value down to the nearest integer.
+            </summary>
+            <param name="value">The double value to round down.</param>
+            <returns>The largest integer less than or equal to the specified value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.CeilToInt(System.Double)">
+            <summary>
+            Rounds a double value up to the nearest integer.
+            </summary>
+            <param name="value">The double value to round up.</param>
+            <returns>The smallest integer greater than or equal to the specified value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.CountUsedBitsMinOne(System.UInt32)">
+            <summary>
+            Counts the number of bits set to 1 in a uint value, minus one.
+            </summary>
+            <param name="value">The uint value to count bits in.</param>
+            <returns>The number of bits set to 1, minus one.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BitsRequiredForNumber(System.UInt32)">
+            <summary>
+            Determines the number of bits required to represent a uint value.
+            </summary>
+            <param name="n">The uint value to evaluate.</param>
+            <returns>The number of bits required to represent the value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.NextPowerOfTwo(System.UInt32)">
+            <summary>
+            Calculates the next power of two greater than or equal to a given uint value.
+            </summary>
+            <param name="v">The uint value to evaluate.</param>
+            <returns>The next power of two greater than or equal to the value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.CountSetBits(System.UInt64)">
+            <summary>
+            Counts the number of bits set to 1 in a ulong value.
+            </summary>
+            <param name="x">The ulong value to count bits in.</param>
+            <returns>The number of bits set to 1.</returns>
+        </member>
+        <member name="M:Fusion.Maths.MillisecondsToSeconds(System.Double)">
+            <summary>
+            Converts milliseconds to seconds.
+            </summary>
+            <param name="seconds">The time in milliseconds.</param>
+            <returns>The time in seconds.</returns>
+        </member>
+        <member name="M:Fusion.Maths.SecondsToMilliseconds(System.Double)">
+            <summary>
+            Converts seconds to milliseconds.
+            </summary>
+            <param name="seconds">The time in seconds.</param>
+            <returns>The time in milliseconds.</returns>
+        </member>
+        <member name="M:Fusion.Maths.SecondsToMicroseconds(System.Double)">
+            <summary>
+            Converts seconds to microseconds.
+            </summary>
+            <param name="seconds">The time in seconds.</param>
+            <returns>The time in microseconds.</returns>
+        </member>
+        <member name="M:Fusion.Maths.MicrosecondsToSeconds(System.Int64)">
+            <summary>
+            Converts microseconds to seconds.
+            </summary>
+            <param name="microseconds">The time in microseconds.</param>
+            <returns>The time in seconds.</returns>
+        </member>
+        <member name="M:Fusion.Maths.MillisecondsToMicroseconds(System.Int64)">
+            <summary>
+            Converts milliseconds to microseconds.
+            </summary>
+            <param name="milliseconds">The time in milliseconds.</param>
+            <returns>The time in microseconds.</returns>
+        </member>
+        <member name="M:Fusion.Maths.CosineInterpolate(System.Double,System.Double,System.Double)">
+            <summary>
+            Performs cosine interpolation between two values.
+            </summary>
+            <param name="a">The start value.</param>
+            <param name="b">The end value.</param>
+            <param name="t">The interpolation factor, typically between 0 and 1.</param>
+            <returns>The interpolated value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.ClampToByte(System.Int32)">
+            <summary>
+            Clamps an integer value to the range [0, 255] and returns it as a byte.
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <returns>The clamped value as a byte.</returns>
+        </member>
+        <member name="M:Fusion.Maths.ZigZagEncode(System.Int32)">
+            <summary>
+            Encodes an integer using ZigZag encoding.
+            </summary>
+            <param name="i">The integer to encode.</param>
+            <returns>The ZigZag encoded integer.</returns>
+        </member>
+        <member name="M:Fusion.Maths.ZigZagDecode(System.Int32)">
+            <summary>
+            Decodes a ZigZag encoded integer.
+            </summary>
+            <param name="i">The ZigZag encoded integer to decode.</param>
+            <returns>The decoded integer.</returns>
+        </member>
+        <member name="M:Fusion.Maths.ZigZagEncode(System.Int64)">
+            <summary>
+            Encodes a long integer using ZigZag encoding.
+            </summary>
+            <param name="i">The long integer to encode.</param>
+            <returns>The ZigZag encoded long integer.</returns>
+        </member>
+        <member name="M:Fusion.Maths.ZigZagDecode(System.Int64)">
+            <summary>
+            Decodes a ZigZag encoded long integer.
+            </summary>
+            <param name="i">The ZigZag encoded long integer to decode.</param>
+            <returns>The decoded long integer.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Clamp(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Clamps an integer value to the specified range.
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <param name="min">The minimum value of the range.</param>
+            <param name="max">The maximum value of the range.</param>
+            <returns>The clamped value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Clamp(System.UInt32,System.UInt32,System.UInt32)">
+            <summary>
+            Clamps an unsigned integer value to the specified range.
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <param name="min">The minimum value of the range.</param>
+            <param name="max">The maximum value of the range.</param>
+            <returns>The clamped value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Clamp(System.Double,System.Double,System.Double)">
+            <summary>
+            Clamps a double value to the specified range.
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <param name="min">The minimum value of the range.</param>
+            <param name="max">The maximum value of the range.</param>
+            <returns>The clamped value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Clamp(System.Single,System.Single,System.Single)">
+            <summary>
+            Clamps a float value to the specified range.
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <param name="min">The minimum value of the range.</param>
+            <param name="max">The maximum value of the range.</param>
+            <returns>The clamped value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Clamp01(System.Double)">
+            <summary>
+            Clamps a double value to the range [0, 1].
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <returns>The clamped value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Clamp01(System.Single)">
+            <summary>
+            Clamps a float value to the range [0, 1].
+            </summary>
+            <param name="v">The value to clamp.</param>
+            <returns>The clamped value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Lerp(System.Single,System.Single,System.Single)">
+            <summary>
+            Linearly interpolates between two float values.
+            </summary>
+            <param name="a">The start value.</param>
+            <param name="b">The end value.</param>
+            <param name="t">The interpolation factor, typically between 0 and 1.</param>
+            <returns>The interpolated value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Lerp(System.Double,System.Double,System.Double)">
+            <summary>
+            Linearly interpolates between two double values.
+            </summary>
+            <param name="a">The start value.</param>
+            <param name="b">The end value.</param>
+            <param name="t">The interpolation factor, typically between 0 and 1.</param>
+            <returns>The interpolated value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.Min(System.UInt32,System.UInt32)">
+            <summary>
+            Returns the minimum of two unsigned integer values.
+            </summary>
+            <param name="v">The first value.</param>
+            <param name="max">The second value.</param>
+            <returns>The minimum value.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BitScanReverse(System.Int32)">
+            <summary>
+            Finds the index of the most significant set bit (1-bit) in a 32-bit integer.
+            </summary>
+            <param name="v">The 32-bit integer to scan.</param>
+            <returns>The index of the most significant set bit.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BitScanReverse(System.UInt32)">
+            <summary>
+            Finds the index of the most significant set bit (1-bit) in a 32-bit unsigned integer.
+            </summary>
+            <param name="v">The 32-bit unsigned integer to scan.</param>
+            <returns>The index of the most significant set bit.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BitScanReverse(System.Int64)">
+            <summary>
+            Finds the index of the most significant set bit (1-bit) in a 64-bit integer.
+            </summary>
+            <param name="v">The 64-bit integer to scan.</param>
+            <returns>The index of the most significant set bit.</returns>
+        </member>
+        <member name="M:Fusion.Maths.BitScanReverse(System.UInt64)">
+            <summary>
+            Finds the index of the most significant set bit (1-bit) in a 64-bit unsigned integer.
+            </summary>
+            <param name="v">The 64-bit unsigned integer to scan.</param>
+            <returns>The index of the most significant set bit.</returns>
+        </member>
+        <member name="T:Fusion.Native">
+            <summary>
+            Native Memory Allocator
+            </summary>
+        </member>
+        <member name="F:Fusion.Native.ALIGNMENT">
+            <summary>
+            The alignment size in bytes.
+            </summary>
+        </member>
+        <member name="F:Fusion.Native.CACHE_LINE_SIZE">
+            <summary>
+            The size of the cache line in bytes.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MemMove(System.Void*,System.Void*,System.Int32)">
+            <summary>
+            Moves a block of memory from the source to the destination.
+            </summary>
+            <param name="destination">The destination pointer.</param>
+            <param name="source">The source pointer.</param>
+            <param name="size">The number of bytes to move.</param>
+        </member>
+        <member name="M:Fusion.Native.MemCpy(System.Void*,System.Void*,System.Int32)">
+            <summary>
+            Copies a block of memory from the source to the destination.
+            </summary>
+            <param name="destination">The destination pointer.</param>
+            <param name="source">The source pointer.</param>
+            <param name="size">The number of bytes to copy.</param>
+        </member>
+        <member name="M:Fusion.Native.MemClear(System.Void*,System.Int32)">
+            <summary>
+            Clears a block of memory by setting it to zero.
+            </summary>
+            <param name="ptr">The pointer to the memory block.</param>
+            <param name="size">The number of bytes to clear.</param>
+        </member>
+        <member name="M:Fusion.Native.MemClear(System.Span{System.Int32})">
+            <summary>
+            Clears a block of memory by setting it to zero.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MemCmp(System.Void*,System.Void*,System.Int32)">
+            <summary>
+            Compares two blocks of memory.
+            </summary>
+            <param name="ptr1">The first memory block pointer.</param>
+            <param name="ptr2">The second memory block pointer.</param>
+            <param name="size">The number of bytes to compare.</param>
+            <returns>An integer that indicates the relative order of the memory blocks being compared.</returns>
+        </member>
+        <member name="M:Fusion.Native.Malloc(System.Int32)">
+            <summary>
+            Allocates a block of memory.
+            </summary>
+            <param name="size">The number of bytes to allocate.</param>
+            <returns>A pointer to the allocated memory block.</returns>
+            <exception cref="T:System.Exception">Thrown when the size is less than or equal to zero or exceeds the maximum allowed size.</exception>
+        </member>
+        <member name="M:Fusion.Native.Free(System.Void*)">
+            <summary>
+            Frees a block of memory.
+            </summary>
+            <param name="memory">The pointer to the memory block to free.</param>
+        </member>
+        <member name="M:Fusion.Native.SizeOf(System.Type)">
+            <summary>
+            Gets the size of the specified type.
+            </summary>
+            <param name="t">The type to get the size of.</param>
+            <returns>The size of the specified type in bytes.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetFieldOffset(System.Reflection.FieldInfo)">
+            <summary>
+            Gets the offset of the specified field.
+            </summary>
+            <param name="fi">The field information.</param>
+            <returns>The offset of the specified field in bytes.</returns>
+        </member>
+        <member name="M:Fusion.Native.Free(System.Void*@)">
+            <summary>
+            Frees a block of memory.
+            </summary>
+            <param name="memory">The pointer to the memory block to free.</param>
+        </member>
+        <member name="M:Fusion.Native.Free``1(``0*@)">
+            <summary>
+            Frees a block of memory.
+            </summary>
+            <param name="memory">The pointer to the memory block to free.</param>
+        </member>
+        <member name="M:Fusion.Native.Free``1(``0**@)">
+            <summary>
+            Frees a block of memory.
+            </summary>
+            <param name="memory">The pointer to the memory block to free.</param>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClear(System.Int32)">
+            <summary>
+            Allocates and clears a block of memory.
+            </summary>
+            <param name="size">The number of bytes to allocate and clear.</param>
+            <returns>A pointer to the allocated and cleared memory block.</returns>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClear``1">
+            <summary>
+            Allocates and clears a block of memory for a specified type.
+            </summary>
+            <typeparam name="T">The type of the memory block to allocate and clear.</typeparam>
+            <returns>A pointer to the allocated and cleared memory block.</returns>
+        </member>
+        <member name="M:Fusion.Native.Malloc``1">
+            <summary>
+            Allocates a block of memory for a specified type.
+            </summary>
+            <typeparam name="T">The type of the memory block to allocate.</typeparam>
+            <returns>A pointer to the allocated memory block.</returns>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearArray(System.Int32,System.Int32)">
+            <summary>
+            Allocates and clears an array of memory blocks.
+            </summary>
+            <param name="stride">The size of each element in the array.</param>
+            <param name="length">The number of elements in the array.</param>
+            <returns>A pointer to the allocated and cleared array of memory blocks.</returns>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearArray``1(System.Int32)">
+            <summary>
+            Allocates and clears an array of memory blocks for a specified type.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="length">The number of elements in the array.</param>
+            <returns>A pointer to the allocated and cleared array of memory blocks.</returns>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearArrayMin1``1(System.Int32)">
+            <summary>
+            Allocates and clears an array of memory blocks for a specified type, ensuring a minimum length of 1.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="length">The number of elements in the array.</param>
+            <returns>A pointer to the allocated and cleared array of memory blocks.</returns>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearPtrArray``1(System.Int32)">
+            <summary>
+            Allocates and clears an array of pointers for a specified type.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="length">The number of elements in the array.</param>
+            <returns>A pointer to the allocated and cleared array of pointers.</returns>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearPtrArrayMin1``1(System.Int32)">
+            <summary>
+            Allocates and clears an array of pointers for a specified type, ensuring a minimum length of 1.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="length">The number of elements in the array.</param>
+            <returns>A pointer to the allocated and cleared array of pointers.</returns>
+        </member>
+        <member name="M:Fusion.Native.ArrayCopy(System.Void*,System.Int32,System.Void*,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Copies a range of elements from one array to another.
+            </summary>
+            <param name="source">The source array pointer.</param>
+            <param name="sourceIndex">The zero-based index in the source array at which copying begins.</param>
+            <param name="destination">The destination array pointer.</param>
+            <param name="destinationIndex">The zero-based index in the destination array at which storing begins.</param>
+            <param name="count">The number of elements to copy.</param>
+            <param name="elementStride">The size of each element in bytes.</param>
+        </member>
+        <member name="M:Fusion.Native.ArrayClear``1(``0*,System.Int32)">
+            <summary>
+            Clears a range of elements in an array by setting them to zero.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="ptr">The pointer to the array.</param>
+            <param name="size">The number of elements to clear.</param>
+        </member>
+        <member name="M:Fusion.Native.ArrayCompare``1(``0*,``0*,System.Int32)">
+            <summary>
+            Compares two arrays for equality.
+            </summary>
+            <typeparam name="T">The type of the elements in the arrays.</typeparam>
+            <param name="ptr1">The pointer to the first array.</param>
+            <param name="ptr2">The pointer to the second array.</param>
+            <param name="size">The number of elements to compare.</param>
+            <returns>An integer that indicates the relative order of the arrays being compared.</returns>
+        </member>
+        <member name="M:Fusion.Native.DoubleArray``1(``0*,System.Int32)">
+            <summary>
+            Doubles the size of an array by expanding it to twice its current length.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="array">The pointer to the array to double.</param>
+            <param name="currentLength">The current length of the array.</param>
+            <returns>A pointer to the new array with doubled size.</returns>
+        </member>
+        <member name="M:Fusion.Native.ExpandArray``1(``0*,System.Int32,System.Int32)">
+            <summary>
+            Expands an array to a new specified length.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="array">The pointer to the array to expand.</param>
+            <param name="currentLength">The current length of the array.</param>
+            <param name="newLength">The new length of the array.</param>
+            <returns>A pointer to the new expanded array.</returns>
+        </member>
+        <member name="M:Fusion.Native.DoublePtrArray``1(``0**,System.Int32)">
+            <summary>
+            Doubles the size of an array of pointers by expanding it to twice its current length.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="array">The pointer to the array of pointers to double.</param>
+            <param name="currentLength">The current length of the array.</param>
+            <returns>A pointer to the new array of pointers with doubled size.</returns>
+        </member>
+        <member name="M:Fusion.Native.ExpandPtrArray``1(``0**,System.Int32,System.Int32)">
+            <summary>
+            Expands an array of pointers to a new specified length.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="array">The pointer to the array of pointers to expand.</param>
+            <param name="currentLength">The current length of the array.</param>
+            <param name="newLength">The new length of the array.</param>
+            <returns>A pointer to the new expanded array of pointers.</returns>
+        </member>
+        <member name="M:Fusion.Native.Expand(System.Void*,System.Int32,System.Int32)">
+            <summary>
+            Expands a buffer to a new specified size.
+            </summary>
+            <param name="buffer">The pointer to the buffer to expand.</param>
+            <param name="currentSize">The current size of the buffer.</param>
+            <param name="newSize">The new size of the buffer.</param>
+            <returns>A pointer to the new expanded buffer.</returns>
+        </member>
+        <member name="M:Fusion.Native.MemCpyFast(System.Void*,System.Void*,System.Int32)">
+            <summary>
+            Copies memory quickly for specific sizes.
+            </summary>
+            <param name="d">The destination pointer.</param>
+            <param name="s">The source pointer.</param>
+            <param name="size">The number of bytes to copy.</param>
+        </member>
+        <member name="M:Fusion.Native.CopyFromArray``1(System.Void*,``0[])">
+            <summary>
+            Copies elements from a managed array to an unmanaged memory location.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="destination">The destination pointer.</param>
+            <param name="source">The source array.</param>
+            <returns>The number of bytes copied.</returns>
+        </member>
+        <member name="M:Fusion.Native.CopyToArray``1(``0[],System.Void*)">
+            <summary>
+            Copies elements from an unmanaged memory location to a managed array.
+            </summary>
+            <typeparam name="T">The type of the elements in the array.</typeparam>
+            <param name="destination">The destination array.</param>
+            <param name="source">The source pointer.</param>
+            <returns>The number of bytes copied.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetLengthPrefixedUTF8ByteCount(System.String)">
+            <summary>
+            Gets the byte count of a UTF-8 encoded string with a length prefix.
+            </summary>
+            <param name="str">The string to encode.</param>
+            <returns>The byte count of the encoded string with the length prefix.</returns>
+        </member>
+        <member name="M:Fusion.Native.WriteLengthPrefixedUTF8(System.Void*,System.String)">
+            <summary>
+            Writes a length-prefixed UTF-8 encoded string to a memory location.
+            </summary>
+            <param name="destination">The destination pointer.</param>
+            <param name="str">The string to encode and write.</param>
+            <returns>The number of bytes written.</returns>
+        </member>
+        <member name="M:Fusion.Native.ReadLengthPrefixedUTF8(System.Void*,System.String@)">
+            <summary>
+            Reads a length-prefixed UTF-8 encoded string from a memory location.
+            </summary>
+            <param name="source">The source pointer.</param>
+            <param name="result">The resulting string.</param>
+            <returns>The number of bytes read.</returns>
+        </member>
+        <member name="M:Fusion.Native.IsPointerAligned(System.Void*,System.Int32)">
+            <summary>
+            Checks if a pointer is aligned to a specified alignment.
+            </summary>
+            <param name="pointer">The pointer to check.</param>
+            <param name="alignment">The alignment to check against.</param>
+            <returns>True if the pointer is aligned, otherwise false.</returns>
+        </member>
+        <member name="M:Fusion.Native.AlignPointer(System.Void*,System.Int32)">
+            <summary>
+            Aligns a pointer to a specified alignment.
+            </summary>
+            <param name="pointer">The pointer to align.</param>
+            <param name="alignment">The alignment to apply.</param>
+            <returns>The aligned pointer.</returns>
+        </member>
+        <member name="M:Fusion.Native.RoundToMaxAlignment(System.Int32)">
+            <summary>
+            Rounds a stride to the maximum alignment.
+            </summary>
+            <param name="stride">The stride to round.</param>
+            <returns>The rounded stride.</returns>
+        </member>
+        <member name="M:Fusion.Native.WordCount(System.Int32,System.Int32)">
+            <summary>
+            Calculates the word count for a given stride and word size.
+            </summary>
+            <param name="stride">The stride to calculate.</param>
+            <param name="wordSize">The size of each word.</param>
+            <returns>The word count.</returns>
+        </member>
+        <member name="M:Fusion.Native.IsAligned(System.Int32,System.Int32)">
+            <summary>
+            Checks if a stride is aligned to a specified alignment.
+            </summary>
+            <param name="stride">The stride to check.</param>
+            <param name="alignment">The alignment to check against.</param>
+            <returns>True if the stride is aligned, otherwise false.</returns>
+        </member>
+        <member name="M:Fusion.Native.RoundToAlignment(System.Int32,System.Int32)">
+            <summary>
+            Rounds a stride to a specified alignment.
+            </summary>
+            <param name="stride">The stride to round.</param>
+            <param name="alignment">The alignment to apply.</param>
+            <returns>The rounded stride.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown when the alignment is invalid.</exception>
+        </member>
+        <member name="M:Fusion.Native.RoundToAlignment(System.Int64,System.Int32)">
+            <summary>
+            Rounds a stride to a specified alignment.
+            </summary>
+            <param name="stride">The stride to round.</param>
+            <param name="alignment">The alignment to apply.</param>
+            <returns>The rounded stride.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown when the alignment is invalid.</exception>
+        </member>
+        <member name="M:Fusion.Native.Empty``1">
+            <summary>
+            Returns an empty instance of the specified unmanaged type.
+            </summary>
+            <typeparam name="T">The type of the instance to return.</typeparam>
+            <returns>An empty instance of the specified type.</returns>
+        </member>
+        <member name="M:Fusion.Native.RoundBitsUpTo64(System.Int32)">
+            <summary>
+            Rounds the given number of bits up to the nearest multiple of 64.
+            </summary>
+            <param name="bits">The number of bits to round up.</param>
+            <returns>The rounded number of bits.</returns>
+        </member>
+        <member name="M:Fusion.Native.RoundBitsUpTo32(System.Int32)">
+            <summary>
+            Rounds the given number of bits up to the nearest multiple of 32.
+            </summary>
+            <param name="bits">The number of bits to round up.</param>
+            <returns>The rounded number of bits.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetAlignment``1">
+            <summary>
+            Gets the alignment of the specified unmanaged type.
+            </summary>
+            <typeparam name="T">The type to get the alignment of.</typeparam>
+            <returns>The alignment of the specified type.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetAlignment(System.Int32)">
+            <summary>
+            Gets the alignment of the specified stride.
+            </summary>
+            <param name="stride">The stride to get the alignment of.</param>
+            <returns>The alignment of the specified stride.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetMaxAlignment(System.Int32,System.Int32)">
+            <summary>
+            Gets the maximum alignment of two given strides.
+            </summary>
+            <param name="a">The first stride.</param>
+            <param name="b">The second stride.</param>
+            <returns>The maximum alignment of the two strides.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetMaxAlignment(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Gets the maximum alignment of three given strides.
+            </summary>
+            <param name="a">The first stride.</param>
+            <param name="b">The second stride.</param>
+            <param name="c">The third stride.</param>
+            <returns>The maximum alignment of the three strides.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetMaxAlignment(System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Gets the maximum alignment of four given strides.
+            </summary>
+            <param name="a">The first stride.</param>
+            <param name="b">The second stride.</param>
+            <param name="c">The third stride.</param>
+            <param name="d">The fourth stride.</param>
+            <returns>The maximum alignment of the four strides.</returns>
+        </member>
+        <member name="M:Fusion.Native.GetMaxAlignment(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Gets the maximum alignment of five given strides.
+            </summary>
+            <param name="a">The first stride.</param>
+            <param name="b">The second stride.</param>
+            <param name="c">The third stride.</param>
+            <param name="d">The fourth stride.</param>
+            <param name="e">The fifth stride.</param>
+            <returns>The maximum alignment of the five strides.</returns>
+        </member>
+        <member name="M:Fusion.Native.ReferenceToPointer``1(``0@)">
+            <summary>
+            Converts a reference to an unmanaged type to a pointer.
+            </summary>
+            <typeparam name="T">The type of the object.</typeparam>
+            <param name="obj">The reference to the object.</param>
+            <returns>A pointer to the object.</returns>
+        </member>
+        <member name="M:Fusion.Native.ValidateBlockSentinels(System.IntPtr,System.Int32)">
+            <summary>
+            Validates the block sentinels to ensure memory integrity.
+            </summary>
+            <param name="memory">The pointer to the memory block.</param>
+            <param name="size">The size of the memory block.</param>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="M:Fusion.Native.MallocAndClearBlock(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Void*@,System.Int32)">
+            <summary>
+            Allocates a block of memory and clears it.
+            </summary>
+        </member>
+        <member name="T:Fusion.Analyzer.StaticFieldAttribute">
+            <summary>
+            Attribute to mark a static field with a reset mode.
+            </summary>
+        </member>
+        <member name="M:Fusion.Analyzer.StaticFieldAttribute.#ctor(Fusion.Analyzer.StaticFieldResetMode)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.Analyzer.StaticFieldAttribute"/> class with the specified reset mode.
+            </summary>
+            <param name="resetMode">The reset mode for the static field.</param>
+        </member>
+        <member name="M:Fusion.Analyzer.StaticFieldAttribute.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.Analyzer.StaticFieldAttribute"/> class with the default reset mode.
+            </summary>
+        </member>
+        <member name="P:Fusion.Analyzer.StaticFieldAttribute.Reset">
+            <summary>
+            Gets the reset mode for the static field.
+            </summary>
+        </member>
+        <member name="T:Fusion.Analyzer.StaticFieldResetMethodAttribute">
+            <summary>
+            Attribute to mark a method as a static field reset method.
+            </summary>
+        </member>
+        <member name="M:Fusion.Analyzer.StaticFieldResetMethodAttribute.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.Analyzer.StaticFieldResetMethodAttribute"/> class with the specified automatic call flag.
+            </summary>
+            <param name="calledAutomatically">Indicates whether the method is called automatically.</param>
+        </member>
+        <member name="M:Fusion.Analyzer.StaticFieldResetMethodAttribute.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.Analyzer.StaticFieldResetMethodAttribute"/> class.
+            </summary>
+        </member>
+        <member name="T:Fusion.Analyzer.StaticConstructorAttribute">
+            <summary>
+            Attribute to mark a constructor as a static constructor.
+            </summary>
+        </member>
+        <member name="T:Fusion.Analyzer.StaticFieldResetMode">
+            <summary>
+            Specifies the reset mode for a static field.
+            </summary>
+        </member>
+        <member name="F:Fusion.Analyzer.StaticFieldResetMode.None">
+            <summary>
+            No reset mode.
+            </summary>
+        </member>
+        <member name="F:Fusion.Analyzer.StaticFieldResetMode.Manual">
+            <summary>
+            Manual reset mode.
+            </summary>
+        </member>
+        <member name="F:Fusion.Analyzer.StaticFieldResetMode.ResetMethod">
+            <summary>
+            Reset method mode.
+            </summary>
+        </member>
+        <member name="T:Fusion.Primes">
+            <summary>
+            Provides a set of methods to work with prime numbers.
+            </summary>
+        </member>
+        <member name="M:Fusion.Primes.IsPrime(System.Int32)">
+            <summary>
+            Determines whether the specified value is a prime number.
+            </summary>
+            <param name="value">The value to check for primality.</param>
+            <returns><c>true</c> if the specified value is a prime number; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Fusion.Primes.GetNextPrime(System.Int32)">
+            <summary>
+            Gets the next prime number greater than the specified value.
+            </summary>
+            <param name="value">The value to find the next prime number for.</param>
+            <returns>The next prime number greater than the specified value.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown when there is no larger prime number in the table.</exception>
+        </member>
+        <member name="M:Fusion.Primes.GetNextPrime(System.UInt32)">
+            <summary>
+            Gets the next prime number greater than the specified unsigned value.
+            </summary>
+            <param name="value">The unsigned value to find the next prime number for.</param>
+            <returns>The next prime number greater than the specified unsigned value.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown when there is no larger prime number in the table.</exception>
+        </member>
+        <member name="T:Fusion.Timer">
+            <summary>
+            Represents a high-resolution timer.
+            </summary>
+        </member>
+        <member name="M:Fusion.Timer.StartNew">
+            <summary>
+            Creates and starts a new timer.
+            </summary>
+            <returns>A new instance of the <see cref="T:Fusion.Timer"/> struct.</returns>
+        </member>
+        <member name="P:Fusion.Timer.ElapsedInTicks">
+            <summary>
+            Gets the elapsed time in ticks.
+            </summary>
+        </member>
+        <member name="P:Fusion.Timer.ElapsedInMilliseconds">
+            <summary>
+            Gets the elapsed time in milliseconds.
+            </summary>
+        </member>
+        <member name="P:Fusion.Timer.ElapsedInSeconds">
+            <summary>
+            Gets the elapsed time in seconds.
+            </summary>
+        </member>
+        <member name="P:Fusion.Timer.IsRunning">
+            <summary>
+            Gets a value indicating whether the timer is running.
+            </summary>
+        </member>
+        <member name="M:Fusion.Timer.Start">
+            <summary>
+            Starts the timer if it is not already running.
+            </summary>
+        </member>
+        <member name="M:Fusion.Timer.Stop">
+            <summary>
+            Stops the timer if it is running and updates the elapsed time.
+            </summary>
+        </member>
+        <member name="M:Fusion.Timer.Reset">
+            <summary>
+            Resets the timer to its initial state.
+            </summary>
+        </member>
+        <member name="M:Fusion.Timer.Restart">
+            <summary>
+            Restarts the timer, setting the elapsed time to zero and starting it.
+            </summary>
+        </member>
+        <member name="T:Fusion.RuntimeUnityFlagsSetup">
+            <summary>
+            Contains methods to setup runtime flags for Unity.
+            </summary>
+        </member>
+        <member name="F:Fusion.RuntimeUnityFlagsSetup.flagsBuildFlags">
+            <summary>
+            Flags for BuildFlags
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_WEBGL">
+            <summary>
+            Checks if the UNITY_WEBGL flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_XBOXONE">
+            <summary>
+            Checks if the UNITY_XBOXONE flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_GAMECORE">
+            <summary>
+            Checks if the UNITY_GAMECORE flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_EDITOR">
+            <summary>
+            Checks if the UNITY_EDITOR flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_SWITCH">
+            <summary>
+            Checks if the UNITY_SWITCH flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_2019_4_OR_NEWER">
+            <summary>
+            Checks if the UNITY_2019_4_OR_NEWER flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="F:Fusion.RuntimeUnityFlagsSetup.flagsBuildTypes">
+            <summary>
+            Flags for BuildTypes
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_ENABLE_MONO">
+            <summary>
+            Checks if the ENABLE_MONO flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_ENABLE_IL2CPP">
+            <summary>
+            Checks if the ENABLE_IL2CPP flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="F:Fusion.RuntimeUnityFlagsSetup.flagsDotNetVersion">
+            <summary>
+            Flags for DotNetVersion
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NET_4_6">
+            <summary>
+            Checks if the NET_4_6 flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NETFX_CORE">
+            <summary>
+            Checks if the NETFX_CORE flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NET_STANDARD_2_0">
+            <summary>
+            Checks if the NET_STANDARD_2_0 flag is set and updates the flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Reset">
+            <summary>
+            Resets all runtime flags to their default values.
+            </summary>
+        </member>
+        <member name="T:Fusion.Unsafe">
+            <summary>
+            Provides substitution for missing System.Runtime.CompilerServices.Unsafe
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.As``2(``0@)">
+            <summary>
+            Casts the given object to the specified type.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.AsPointer``1(``0@)">
+            <summary>
+            Returns an unmanaged pointer corresponding to the original source pointer.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.AsRef``1(System.Void*)">
+            <summary>
+            Returns a managed pointer to a value of type T.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.AsRef``1(``0@)">
+            <summary>
+            Returns a managed pointer to a value of type T.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.Read``1(System.Void*)">
+            <summary>
+            Writes a value of type T to the given location.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.ReadUnaligned``1(System.Void*)">
+            <summary>
+            Writes a value of type T to the given location without assuming architecture dependent alignment of the destination address.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.ReadUnaligned``1(System.Byte@)">
+            <summary>
+            Writes a value of type T to the given location without assuming architecture dependent alignment of the destination address.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.Write``1(System.Void*,``0)">
+            <summary>
+            Writes a value of type T to the given location.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.WriteUnaligned``1(System.Void*,``0)">
+            <summary>
+            Writes a value of type T to the given location without assuming architecture dependent alignment of the destination address.
+            </summary>
+        </member>
+        <member name="M:Fusion.Unsafe.WriteUnaligned``1(System.Byte@,``0)">
+            <summary>
+            Writes a value of type T to the given location without assuming architecture dependent alignment of the destination address.
+            </summary>
+        </member>
+        <member name="T:Fusion.UTF32Tools">
+            <summary>
+            UTF32Tools provides a set of methods to work with UTF32 encoded strings.
+            </summary>
+        </member>
+        <member name="M:Fusion.UTF32Tools.Convert(System.String,System.UInt32*,System.Int32)">
+            <summary>
+            Converts a UTF-16 encoded string to a UTF-32 encoded representation.
+            </summary>
+            <param name="str">The UTF-16 encoded string to convert.</param>
+            <param name="dst">A pointer to the destination buffer where the UTF-32 encoded result will be stored.</param>
+            <param name="dstCapacity">The capacity of the destination buffer.</param>
+            <returns>A ConversionResult containing the number of characters and code points processed.</returns>
+        </member>
+        <member name="M:Fusion.UTF32Tools.Convert(System.Char*,System.Int32,System.UInt32*,System.Int32)">
+            <summary>
+            Converts a UTF-16 encoded string to a UTF-32 encoded representation.
+            </summary>
+            <param name="str">A pointer to the UTF-16 encoded string to convert.</param>
+            <param name="strLength">The length of the UTF-16 encoded string.</param>
+            <param name="dst">A pointer to the destination buffer where the UTF-32 encoded result will be stored.</param>
+            <param name="dstCapacity">The capacity of the destination buffer.</param>
+            <returns>A ConversionResult containing the number of characters and code points processed.</returns>
+        </member>
+        <member name="M:Fusion.UTF32Tools.GetLength(System.String)">
+            <summary>
+            Gets the length of a UTF-32 encoded string.
+            </summary>
+            <param name="str">The UTF-16 encoded string to measure.</param>
+            <returns>The length of the UTF-32 encoded string.</returns>
+        </member>
+        <member name="T:Fusion.UTF32Tools.CharEnumerator">
+            <summary>
+            Enumerates the characters in a UTF-32 encoded string.
+            </summary>
+        </member>
+        <member name="M:Fusion.UTF32Tools.CharEnumerator.#ctor(System.UInt32*,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.UTF32Tools.CharEnumerator"/> struct.
+            </summary>
+            <param name="utf32">A pointer to the UTF-32 encoded string.</param>
+            <param name="length">The length of the UTF-32 encoded string.</param>
+        </member>
+        <member name="P:Fusion.UTF32Tools.CharEnumerator.Current">
+            <summary>
+            Gets the current character in the enumeration.
+            </summary>
+        </member>
+        <member name="M:Fusion.UTF32Tools.CharEnumerator.Dispose">
+            <summary>
+            Releases all resources used by the <see cref="T:Fusion.UTF32Tools.CharEnumerator"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.UTF32Tools.CharEnumerator.MoveNext">
+            <summary>
+            Advances the enumerator to the next character in the UTF-32 encoded string.
+            </summary>
+            <returns><c>true</c> if the enumerator was successfully advanced to the next character; <c>false</c> if the enumerator has passed the end of the string.</returns>
+        </member>
+        <member name="M:Fusion.UTF32Tools.CharEnumerator.Reset">
+            <summary>
+            Sets the enumerator to its initial position, which is before the first character in the UTF-32 encoded string.
+            </summary>
+        </member>
+        <member name="T:Fusion.UTF32Tools.ConversionResult">
+            <summary>
+            Represents the result of a conversion operation, containing the number of characters and code points processed.
+            </summary>
+        </member>
+        <member name="F:Fusion.UTF32Tools.ConversionResult.CharacterCount">
+            <summary>
+            Gets the number of characters processed.
+            </summary>
+        </member>
+        <member name="F:Fusion.UTF32Tools.ConversionResult.CodePointCount">
+            <summary>
+            Gets the number of code points processed.
+            </summary>
+        </member>
+        <member name="M:Fusion.UTF32Tools.ConversionResult.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.UTF32Tools.ConversionResult"/> struct.
+            </summary>
+            <param name="words">The number of code points processed.</param>
+            <param name="characters">The number of characters processed.</param>
+        </member>
+        <member name="T:Fusion.Versioning">
+            <summary>
+            The Versioning class provides methods and properties related to versioning.
+            </summary>
+        </member>
+        <member name="F:Fusion.Versioning.InvalidVersion">
+            <summary>
+            Represents an invalid version with all components set to zero.
+            </summary>
+        </member>
+        <member name="P:Fusion.Versioning.GetCurrentVersion">
+            <summary>
+            Gets the current version of the assembly.
+            </summary>
+        </member>
+        <member name="M:Fusion.Versioning.ShortVersion(System.Version)">
+            <summary>
+            Get the short version of the version.
+            </summary>
+            <param name="version">The version to get the short version of.</param>
+        </member>
+        <member name="M:Fusion.Versioning.AssemblyFileVersion">
+            <summary>
+            Gets the assembly version as a string.
+            </summary>
+            <returns>The assembly version as a string.</returns>
+        </member>
+    </members>
+</doc>

@@ -30,16 +30,16 @@ namespace Photon.Voice.Unity.UtilityScripts
         private bool statsWindowOn = true;
 
         /// <summary>Option to turn collecting stats on or off (used in Update()).</summary>
-        private bool statsOn;
+        private bool statsOn = true;
 
         /// <summary>Shows additional "health" values of connection.</summary>
-        private bool healthStatsVisible;
+        private bool healthStatsVisible = true;
 
         /// <summary>Shows additional "lower level" traffic stats.</summary>
-        private bool trafficStatsOn;
+        private bool trafficStatsOn = true;
 
         /// <summary>Show buttons to control stats and reset them.</summary>
-        private bool buttonsOn;
+        private bool buttonsOn = true;
 
         private bool voiceStatsOn = true;
 
@@ -56,7 +56,7 @@ namespace Photon.Voice.Unity.UtilityScripts
 
         private VoiceClient voiceClient;
 
-        private void OnEnable()
+        private void Start()
         {
             VoiceConnection[] voiceConnections = this.GetComponents<VoiceConnection>();
             if (voiceConnections == null || voiceConnections.Length == 0)
@@ -175,12 +175,14 @@ namespace Photon.Voice.Unity.UtilityScripts
             if (this.voiceStatsOn)
             {
                 GUILayout.Box("Voice Frames Stats");
-                voiceStats = string.Format("received: {0}, {1:F2}/s \n\nlost: {2}, {3:F2}/s ({4:F2}%) \n\nsent: {5} ({6} bytes)",
+                voiceStats = string.Format("received: {0}, {1:F2}/s\nlost: {2}, {3:F2}/s ({4:F2}%) \nfec: {5}, frag part: {6}\nsent: {7} ({8} bytes)",
                     this.voiceClient.FramesReceived,
                     this.voiceConnection.FramesReceivedPerSecond,
                     this.voiceClient.FramesLost,
                     this.voiceConnection.FramesLostPerSecond,
                     this.voiceConnection.FramesLostPercent,
+                    this.voiceClient.FramesRecovered,
+                    this.voiceClient.FramesFragPart,
                     this.voiceClient.FramesSent,
                     this.voiceClient.FramesSentBytes);
                 GUILayout.Label(voiceStats);

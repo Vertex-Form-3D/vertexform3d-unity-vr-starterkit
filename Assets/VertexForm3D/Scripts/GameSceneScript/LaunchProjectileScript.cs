@@ -1,7 +1,7 @@
-using Photon.Pun;
+using Fusion;
 using UnityEngine;
 
-public class LaunchProjectileScript : MonoBehaviour
+public class LaunchProjectileScript : NetworkBehaviour
 {
     [SerializeField]
     [Tooltip("The projectile that's created")]
@@ -15,20 +15,16 @@ public class LaunchProjectileScript : MonoBehaviour
     [Tooltip("The speed at which the projectile is launched")]
     float m_LaunchSpeed = 1.0f;
 
-    PhotonView photonView;
-
-    private void Start()
-    {
-        photonView=GetComponent<PhotonView>();
-    }
-
     public void FireBall()
     {
-        photonView.RPC(nameof(FireRPC), RpcTarget.All);
+        if (Object.HasInputAuthority)
+        {
+            RPC_Fire();
+        }
     }
 
-    [PunRPC]
-    public void FireRPC()
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    public void RPC_Fire()
     {
         GameObject newObject = Instantiate(m_ProjectilePrefab, m_StartPoint.position, m_StartPoint.rotation, null);
 
@@ -36,6 +32,7 @@ public class LaunchProjectileScript : MonoBehaviour
         if (newObject.TryGetComponent(out Rigidbody rigidBody))
             ApplyForce(rigidBody);
     }
+
     void ApplyForce(Rigidbody rigidBody)
     {
         Vector3 force = m_StartPoint.forward * m_LaunchSpeed;

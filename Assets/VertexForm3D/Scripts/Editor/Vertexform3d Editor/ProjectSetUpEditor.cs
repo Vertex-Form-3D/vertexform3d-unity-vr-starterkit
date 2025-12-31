@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using Photon.Pun;
+using System.Linq; // Added for FirstOrDefault
 
 public class ProjectSetUpEditor : EditorWindow
 {
@@ -62,25 +62,53 @@ public class ProjectSetUpEditor : EditorWindow
 
         EditorGUILayout.Space(15);
 
-        DrawSection("Photon Setup", subHeaderStyle, boxStyle, textStyle,
+        GUILayout.BeginVertical(boxStyle);
+        GUILayout.Label("Photon Fusion 2 + Voice Setup", subHeaderStyle);
+        GUILayout.Space(5);
+        GUILayout.Label(
             "Step 1: Visit Photon Dashboard\n" +
-            "Visit dashboard.photonengine.com and set up a new app. Copy Photon PUN and Photon Voice API keys.\n\n" +
-            "Step 2: Select PhotonServerSettings\n" +
-            "Locate the 'PhotonServerSettings' asset by clicking on the button below.\n\n" +
-            "Step 3: Enter App ID\n" +
-            "Paste your Photon PUN and Photon VOICE App ID field.\n\n" +
-            "Step 4: Fixed Region\n" +
-            "Dev region and Fixed region should be set to 'eu'.",
-            "Open Photon Server Settings",
-            () =>
+            "Visit dashboard.photonengine.com and create a new Fusion application (copy Fusion App ID).\n\n" +
+            "Step 2: Import Required Packages\n" +
+            "• Photon Fusion 2 (includes networking and voice communication)\n\n" +
+            "Step 3: Configure Fusion Settings\n" +
+            "Click 'Open Fusion Hub' to configure your Fusion App ID and network settings.\n\n" +
+            "Step 4: Configure Voice in Fusion\n" +
+            "Click 'Open Fusion Settings' to configure voice settings within Fusion.\n\n" +
+            "Step 5: Network Settings\n" +
+            "Set your preferred region and configure tick rate (60 Hz recommended for VR).",
+            textStyle);
+        GUILayout.Space(8);
+
+        if (GUILayout.Button("Open Fusion Hub"))
+        {
+            bool fusionMenuExists = EditorApplication.ExecuteMenuItem("Tools/Fusion/Fusion Hub");
+            if (!fusionMenuExists)
             {
-                var serverSettings = PhotonNetwork.PhotonServerSettings;
-                if (serverSettings != null)
-                    AssetDatabase.OpenAsset(serverSettings);
-                else
-                    EditorUtility.DisplayDialog("Error", "PhotonServerSettings not found. Make sure PUN2 is imported.", "OK");
+                EditorUtility.DisplayDialog("Fusion Hub Not Found",
+                    "Photon Fusion 2 Hub not found. Please ensure Photon Fusion 2 is properly imported.\n\n" +
+                    "You can manually configure Fusion by:\n" +
+                    "1. Going to Tools > Fusion > Fusion Hub\n" +
+                    "2. Or finding the Fusion settings in your project", "OK");
             }
-        );
+        }
+
+        if (GUILayout.Button("Open Fusion App Settings"))
+        {
+            string appSettingsPath = "Assets/Photon/Fusion/Resources/PhotonAppSettings.asset";
+            var appSettings = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(appSettingsPath);
+            if (appSettings != null)
+            {
+                AssetDatabase.OpenAsset(appSettings);
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("Fusion App Settings Not Found",
+                    "PhotonAppSettings.asset not found at expected location.\n\n" +
+                    "Expected path: " + appSettingsPath + "\n\n" +
+                    "Please ensure Photon Fusion 2 is properly imported.", "OK");
+            }
+        }
+        GUILayout.EndVertical();
 
         EditorGUILayout.Space(15);
 

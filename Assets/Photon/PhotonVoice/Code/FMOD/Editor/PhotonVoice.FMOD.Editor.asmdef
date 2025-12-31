@@ -1,0 +1,21 @@
+{
+    "name": "Voice.FMOD.Editor",
+    "references": [
+        "PhotonVoice.Editor",
+        "PhotonRealtime",
+        "PhotonVoice.FMOD",
+        "PhotonVoiceApi.FMOD",
+        "PhotonVoice.API",
+        "PhotonVoice"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "versionDefines": [],
+    "noEngineReferences": false
+}

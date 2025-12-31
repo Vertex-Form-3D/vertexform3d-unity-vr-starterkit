@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 211468353}
   - component: {fileID: 211468356}
   - component: {fileID: 211468357}
+  - component: {fileID: 211468358}
   m_Layer: 0
   m_Name: Cesium World Terrain
   m_TagString: Untagged
@@ -148,7 +149,7 @@ Transform:
   m_GameObject: {fileID: 211468351}
   serializedVersion: 2
   m_LocalRotation: {x: 0.00015183713, y: -0.0000004183675, z: 0.00005585063, w: 1}
-  m_LocalPosition: {x: -0.00035632425, y: 5, z: 0.00045531755}
+  m_LocalPosition: {x: -0.00035632402, y: 5, z: 0.00045531662}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -175,6 +176,7 @@ MonoBehaviour:
   _ionAssetID: 2
   _ionAccessToken: 
   _ionServer: {fileID: 11400000, guid: 99b9b67efe3cbb241add0d2fafdca0e1, type: 2}
+  _assetOptions: 
 --- !u!114 &211468354
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -206,6 +208,7 @@ MonoBehaviour:
   _culledScreenSpaceError: 64
   _opaqueMaterial: {fileID: 0}
   _generateSmoothNormals: 0
+  _ignoreKhrMaterialsUnlit: 0
   _pointCloudShading:
     _attenuation: 0
     _geometricErrorScale: 1
@@ -232,24 +235,24 @@ MonoBehaviour:
   _detectTransformChanges: 1
   _localToGlobeFixedMatrix:
     c0:
-      x: 0.9262445254123907
-      y: -0.3769231682068636
-      z: 0.00006642646889572664
+      x: 0.926244525412397
+      y: -0.37692316820684835
+      z: 0.00006642646891360509
       w: 0
     c1:
-      x: -0.3047098296120253
-      y: -0.7486849494834104
-      z: 0.5887467759188466
+      x: -0.3047098296096639
+      y: -0.7486849494776139
+      z: 0.58874677592744
       w: 0
     c2:
-      x: 0.2218625675533976
-      y: 0.5453437188470461
-      z: 0.808317530078799
+      x: 0.22186256755661463
+      y: 0.5453437188550148
+      z: 0.8083175300725399
       w: 0
     c3:
-      x: -1946148.0746154077
-      y: -4783661.373332412
-      z: 3733973.1484982315
+      x: -1946148.0746154073
+      y: -4783661.373332411
+      z: 3733973.14849823
       w: 1
   _localToGlobeFixedMatrixIsValid: 1
 --- !u!114 &211468357
@@ -264,6 +267,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5fccc4415aebe441b78784f8058029d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &211468358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211468351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7bb0a85a0f3b79499180f301846641c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CesiumSceneHandler
 --- !u!1 &957127226
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,17 +309,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 3
   m_UsePipelineSettings: 1
   m_AdditionalLightsShadowResolutionTier: 2
-  m_LightLayerMask: 1
-  m_RenderingLayers: 1
   m_CustomShadowLayers: 0
-  m_ShadowLayerMask: 1
-  m_ShadowRenderingLayers: 1
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!108 &957127228
 Light:
   m_ObjectHideFlags: 0
@@ -448,6 +469,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -469,6 +492,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0

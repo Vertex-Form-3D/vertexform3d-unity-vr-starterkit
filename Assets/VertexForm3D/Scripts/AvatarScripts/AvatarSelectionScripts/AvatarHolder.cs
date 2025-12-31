@@ -13,12 +13,24 @@ namespace VertexFormCore
         [SerializeField] private bool initLayer;
         private void Start()
         {
-            if (initLayer) { 
-            SetAvatarLayer();
+            if (initLayer)
+            {
+                SetAvatarLayer();
+            }
+        }
+
+        public void SetAvatar(GameObject head, GameObject body, bool setLayer = false)
+        {
+            HeadTransform = head.transform;
+            BodyTransform = body.transform;
+            if (setLayer)
+            {
+                SetAvatarLayer();
             }
         }
         public void SetAvatarLayer()
         {
+            Debug.Log("-->setting avatar layer");
             //Setting the layer of avatar head to AvatarLocalHead layer so that it does not block the view of the local VR Player
             SetLayerRecursively(HeadTransform.gameObject, 7);
 

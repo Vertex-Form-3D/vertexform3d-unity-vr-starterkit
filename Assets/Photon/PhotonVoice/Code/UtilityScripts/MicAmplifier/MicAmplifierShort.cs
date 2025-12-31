@@ -2,23 +2,13 @@
 {
     public class MicAmplifierShort : IProcessor<short>
     {
-        public short AmplificationFactor { get; set; }
-        public short BoostValue { get; set; }
-
-        public short MaxBefore { get; private set; }
-        public short MaxAfter { get; private set; }
-        //public short MinBefore { get; private set; }
-        //public short MinAfter { get; private set; }
-        //public short AvgBefore { get; private set; }
-        //public short AvgAfter { get; private set; }
+        public float AmplificationFactor { get; set; }
 
         public bool Disabled { get; set; }
 
-
-        public MicAmplifierShort(short amplificationFactor, short boostValue)
+        public MicAmplifierShort(float amplificationFactor)
         {
             this.AmplificationFactor = amplificationFactor;
-            this.BoostValue = boostValue;
         }
 
         public short[] Process(short[] buf)
@@ -29,14 +19,7 @@
             }
             for (int i = 0; i < buf.Length; i++)
             {
-                short before = buf[i];
-                buf[i] *= this.AmplificationFactor;
-                buf[i] += this.BoostValue;
-                if (this.MaxBefore < before)
-                {
-                    this.MaxBefore = before;
-                    this.MaxAfter = buf[i];
-                }
+                buf[i] = (short)(buf[i] * this.AmplificationFactor);
             }
             return buf;
         }

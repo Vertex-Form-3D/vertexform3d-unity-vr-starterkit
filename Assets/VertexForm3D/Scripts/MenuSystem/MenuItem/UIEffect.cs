@@ -13,19 +13,22 @@ public class UIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     TextMeshProUGUI textButton;
     public bool IsTextButton;
     public Vector3 scale = (Vector3.one * 1.3f);
-    [SerializeField] private UnityEvent onPointerEnterEvent;
-    [SerializeField] private UnityEvent onPointerExitEvent;
+    public UnityEvent onPointerEnterEvent;
+    public UnityEvent onPointerExitEvent;
     void Start()
     {
-        if (GetComponent<TMP_InputField>()!=null)
+        if (GetComponent<TMP_InputField>() != null)
         {
             inputfield = GetComponent<TMP_InputField>();
             inputfield.onSelect.AddListener(OnSelectInputField);
             inputfield.onSubmit.AddListener(OnSubmitInputField);
             inputfield.onDeselect.AddListener(OnDeselectInputField);
         }
-        IsTextButton=GetComponent<TMP_Text>() != null;
-        GetPerchantageScale(UIEffectManager.Instance.percentageOfScaling);
+        IsTextButton = GetComponent<TMP_Text>() != null;
+        if (UIEffectManager.Instance != null)
+        {
+            GetPerchantageScale(UIEffectManager.Instance.percentageOfScaling);
+        }
     }
 
     void GetPerchantageScale(float percentage)
@@ -65,7 +68,7 @@ public class UIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!UIEffectManager.Instance.IsInputFieldSelected)
+        if (UIEffectManager.Instance != null && !UIEffectManager.Instance.IsInputFieldSelected)
         {
             gameObject.transform.DOScale(scale, .5f);
             if (IsTextButton)
@@ -81,7 +84,7 @@ public class UIEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (!UIEffectManager.Instance.IsInputFieldSelected)
+        if (UIEffectManager.Instance != null && !UIEffectManager.Instance.IsInputFieldSelected)
         {
             gameObject.transform.DOScale(Vector3.one, .5f);
             if (IsTextButton)

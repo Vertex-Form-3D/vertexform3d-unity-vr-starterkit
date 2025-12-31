@@ -1,5 +1,4 @@
 using UnityEngine;
-using Photon.Pun;
 using TMPro;
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
@@ -12,17 +11,23 @@ namespace VertexFormCore
     {
         public TMP_InputField PlayerName_InputName;
 
-
         public void ConnectAnonymously()
         {
-            ConnectToPhotonServer();
+            ConnectToServer();
         }
 
-        public void ConnectToPhotonServer()
+        public void ConnectToServer()
         {
             if (PlayerName_InputName != null)
             {
-                PhotonNetwork.LocalPlayer.NickName = !string.IsNullOrEmpty(PlayerName_InputName.text) ? PlayerName_InputName.text : ProjectManager.instance.projectDataSO.projectData.anonymousUserNamePrefix + Random.Range(1111, 9999);                
+                string playerName = !string.IsNullOrEmpty(PlayerName_InputName.text) ?
+                    PlayerName_InputName.text :
+                    ProjectManager.instance.projectDataSO.projectData.anonymousUserNamePrefix + Random.Range(1111, 9999);
+                ProjectManager.UserName = playerName;
+                // Store player name for later use in Fusion
+                PlayerPrefs.SetString("PlayerName", playerName);
+                PlayerPrefs.Save();
+
                 SceneManager.LoadScene(1);
             }
         }
@@ -30,7 +35,6 @@ namespace VertexFormCore
 }
 
 #if UNITY_EDITOR
-
 namespace VertexFormCore
 {
     [CustomEditor(typeof(LoginManager))]
@@ -39,7 +43,7 @@ namespace VertexFormCore
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
-            EditorGUILayout.HelpBox("This script in responsible for connecting to Photon Servers. ", MessageType.Info);
+            EditorGUILayout.HelpBox("This script is responsible for setting up player name and loading the main scene.", MessageType.Info);
             LoginManager loginManager = (LoginManager)target;
 
             if (GUILayout.Button("connect anonymously"))

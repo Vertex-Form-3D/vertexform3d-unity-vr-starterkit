@@ -19,7 +19,7 @@ namespace POpusCodec
         }
 
         public OpusException(OpusStatusCode statusCode, string message)
-            : base(message)
+            : base(message + " (" + statusCode + ")")
         {
             _statusCode = statusCode;
         }

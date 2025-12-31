@@ -12,11 +12,21 @@ namespace VertexFormCore
         public InputDevice _leftController;
         public InputDevice _HMD;
 
-        void Update()
+        public static InputData Instance;
+
+        private void Awake()
+        {
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+        }
+        private void Start()
         {
             if (!_rightController.isValid || !_leftController.isValid || !_HMD.isValid)
                 InitializeInputDevices();
         }
+
         private void InitializeInputDevices()
         {
 

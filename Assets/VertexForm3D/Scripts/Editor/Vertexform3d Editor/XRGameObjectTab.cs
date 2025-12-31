@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using Photon.Pun;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEditor.SceneManagement;
+using Fusion;
 
 namespace VertexFormCore.Editor
 {
@@ -218,17 +218,21 @@ namespace VertexFormCore.Editor
         {
             AttachAppropriateCollider(obj);
             if (obj.GetComponent<Rigidbody>() == null) obj.AddComponent<Rigidbody>();
-            if (obj.GetComponent<PhotonView>() == null) obj.AddComponent<PhotonView>();
+            if (obj.GetComponent<NetworkObject>() == null) obj.AddComponent<NetworkObject>();
 
-            PhotonView pv = obj.GetComponent<PhotonView>();
-            pv.OwnershipTransfer = OwnershipOption.Takeover;
-            if (obj.GetComponent<PhotonTransformView>() == null) obj.AddComponent<PhotonTransformView>();
+            NetworkObject no = obj.GetComponent<NetworkObject>();
+            no.IsSpawnable = true;
 
-            PhotonTransformView photonTransformView = obj.GetComponent<PhotonTransformView>();
-            photonTransformView.m_SynchronizePosition = true;
-            photonTransformView.m_SynchronizeRotation = true;
-            photonTransformView.m_SynchronizeScale = true;
-            photonTransformView.m_UseLocal = false;
+            // Configure NetworkObject flags - only enable AllowStateAuthorityOverride
+            no.Flags = NetworkObjectFlags.V1 | NetworkObjectFlags.AllowStateAuthorityOverride;
+
+            if (obj.GetComponent<NetworkTransform>() == null) obj.AddComponent<NetworkTransform>();
+
+            NetworkTransform networkTransform = obj.GetComponent<NetworkTransform>();
+            networkTransform.SyncScale = false;
+            networkTransform.SyncParent = false;
+            networkTransform.AutoUpdateAreaOfInterestOverride = true;
+            networkTransform.DisableSharedModeInterpolation = false;
             if (obj.GetComponent<XRGeneralGrabTransformer>() == null) obj.AddComponent<XRGeneralGrabTransformer>();
             if (obj.GetComponent<XRGrabInteractable>() == null) obj.AddComponent<XRGrabInteractable>();
             obj.GetComponent<XRGrabInteractable>().selectMode = InteractableSelectMode.Multiple;

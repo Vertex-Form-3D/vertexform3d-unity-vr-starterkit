@@ -7,9 +7,10 @@ using FMODLib = FMOD;
 namespace Photon.Voice.FMOD
 {
     // Plays back input audio via FMOD Sound
-    public class AudioOut<T> :  AudioOutDelayControl<T>
+    public class AudioOut<T> : AudioOutDelayControl<T>
     {
-        protected readonly int sizeofT = Marshal.SizeOf(default(T));
+        protected int channels;
+        protected int frequency;
 
         FMODLib.System coreSystem;
         FMODLib.Sound sound;
@@ -35,7 +36,7 @@ namespace Photon.Voice.FMOD
             else
             {
                 Error = "only float and short buffers are supported: " + typeof(T);
-                logger.LogError(logPrefix + Error);
+                logger.Log(LogLevel.Error, logPrefix + Error);
                 return;
             }
             this.coreSystem = coreSystem;
@@ -43,6 +44,9 @@ namespace Photon.Voice.FMOD
 
         override public void OutCreate(int samplingRate, int channels, int bufferSamples)
         {
+            this.channels = channels;
+            this.frequency = samplingRate;
+
             FMODLib.RESULT res;
             FMODLib.CREATESOUNDEXINFO exinfo = new FMODLib.CREATESOUNDEXINFO();
             exinfo.cbsize = Marshal.SizeOf(exinfo);
@@ -56,11 +60,11 @@ namespace Photon.Voice.FMOD
             if (res != FMODLib.RESULT.OK)
             {
                 Error = "failed to createSound: " + res;
-                logger.LogError(logPrefix + Error);
+                logger.Log(LogLevel.Error, logPrefix + Error);
                 return;
             }
 
-            logger.LogInfo(logPrefix + "Sound Created" + sound.handle);
+            logger.Log(LogLevel.Info, logPrefix + "Sound Created" + sound.handle);
         }
 
         override public void OutStart()
@@ -71,18 +75,18 @@ namespace Photon.Voice.FMOD
             if (res != FMODLib.RESULT.OK)
             {
                 Error = "failed to playSound: " + res;
-                logger.LogError(logPrefix + Error);
+                logger.Log(LogLevel.Error, logPrefix + Error);
                 return;
             }
         }
 
-        override public int OutPos 
-        { 
-            get 
+        override public long OutPos
+        {
+            get
             {
                 channel.getPosition(out uint pos, FMODLib.TIMEUNIT.PCMBYTES);
-                return (int)(pos / channels / sizeofT); 
-            } 
+                return pos / channels / sizeofT;
+            }
         }
 
         override public void OutWrite(T[] frame, int offsetSamples)
@@ -99,7 +103,7 @@ namespace Photon.Voice.FMOD
             if (res != FMODLib.RESULT.OK)
             {
                 Error = "failed to lock sound buffer: " + res;
-                logger.LogError(logPrefix + Error);
+                logger.Log(LogLevel.Error, logPrefix + Error);
                 return;
             }
 
@@ -126,8 +130,7 @@ namespace Photon.Voice.FMOD
             if (res != FMODLib.RESULT.OK)
             {
                 Error = "failed to unlock sound buffer: " + res;
-                logger.LogError(logPrefix + Error);
-                return;
+                logger.Log(LogLevel.Error, logPrefix + Error);
             }
         }
 
@@ -143,7 +146,7 @@ namespace Photon.Voice.FMOD
     }
 
     // Plays back input audio via FMOD Programmer Instrument
-    // Provide an event with looped Programmer Instrument. AudioOutEvent<T> creates a Sound, assigns it to the Event and fires it on eaxh Start() call
+    // Provide an event with looped Programmer Instrument. AudioOutEvent<T> creates a Sound, assigns it to the Event and fires it on each Start() call
     public class AudioOutEvent<T> : AudioOut<T>
     {
         FMODLib.Studio.EventInstance fmodEvent;
@@ -153,7 +156,11 @@ namespace Photon.Voice.FMOD
             this.fmodEvent = fmodEvent;
         }
 
-        override public int OutPos
+        int evLength = 0;
+        long evPrevPos = 0;
+        long evLoopCnt = 0;
+
+        override public long OutPos
         {
             get
             {
@@ -163,8 +170,14 @@ namespace Photon.Voice.FMOD
                 }
                 else
                 {
-                    fmodEvent.getTimelinePosition(out int position);
-                    return (int)(position * (long)this.frequency / 1000 % this.bufferSamples);
+                    fmodEvent.getTimelinePosition(out int tp);
+                    if (evPrevPos > tp)
+                    {
+                        evLoopCnt++;
+                    }
+                    evPrevPos = tp;
+                    long tp1 = evLength * evLoopCnt + tp;
+                    return tp1 * this.frequency / 1000;
                 }
             }
         }
@@ -181,15 +194,18 @@ namespace Photon.Voice.FMOD
                 instTable[instCnt] = this;
                 ud = new IntPtr(instCnt);
                 instCnt++;
-           }
+            }
 
             fmodEvent.setUserData(ud);
-            
+
+            fmodEvent.getDescription(out FMODLib.Studio.EventDescription d);
+            d.getLength(out evLength);
+
             fmodEvent.start();
-            logger.LogInfo(logPrefix + "Event Started");
+            logger.Log(LogLevel.Info, logPrefix + "Event Started");
         }
 
-        [AOT.MonoPInvokeCallback(typeof(FMODLib.Studio.EVENT_CALLBACK))]
+        [MonoPInvokeCallback(typeof(FMODLib.Studio.EVENT_CALLBACK))]
         static FMODLib.RESULT FMODEventCallback(FMODLib.Studio.EVENT_CALLBACK_TYPE type, IntPtr instance, IntPtr parameterPtr)
         {
             var evDummy = new FMODLib.Studio.EventInstance();
@@ -206,30 +222,31 @@ namespace Photon.Voice.FMOD
             }
             return audioOut.fmodEventCallback(type, instance, parameterPtr);
         }
+
         FMODLib.RESULT fmodEventCallback(FMODLib.Studio.EVENT_CALLBACK_TYPE type, IntPtr instance, IntPtr parameterPtr)
         {
-            logger.LogInfo(logPrefix + "EventCallback " + type);            
+            logger.Log(LogLevel.Info, logPrefix + "EventCallback " + type);
             switch (type)
             {
                 case FMODLib.Studio.EVENT_CALLBACK_TYPE.CREATE_PROGRAMMER_SOUND:
-                    {
-                        var parameter = Marshal.PtrToStructure<FMODLib.Studio.PROGRAMMER_SOUND_PROPERTIES>(parameterPtr);
-                        parameter.sound = Sound.handle;
-                        parameter.subsoundIndex = -1;
-                        Marshal.StructureToPtr(parameter, parameterPtr, false);
-                        logger.LogInfo(logPrefix + "Sound Assigned to Event Parameter");
-                    }
-                    break;
+                {
+                    var parameter = Marshal.PtrToStructure<FMODLib.Studio.PROGRAMMER_SOUND_PROPERTIES>(parameterPtr);
+                    parameter.sound = Sound.handle;
+                    parameter.subsoundIndex = -1;
+                    Marshal.StructureToPtr(parameter, parameterPtr, false);
+                    logger.Log(LogLevel.Info, logPrefix + "Sound Assigned to Event Parameter");
+                }
+                break;
                 case FMODLib.Studio.EVENT_CALLBACK_TYPE.DESTROY_PROGRAMMER_SOUND:
-                    {
-                    	// sound is released in Stop()
-                    	
-                        //var parameter = Marshal.PtrToStructure<FMODLib.Studio.PROGRAMMER_SOUND_PROPERTIES>(parameterPtr);
-                        //var sound = new FMODLib.Sound();
-                        //sound.handle = parameter.sound;
-                        //sound.release();
-                    }
-                    break;
+                {
+                    // sound is released in Stop()
+
+                    //var parameter = Marshal.PtrToStructure<FMODLib.Studio.PROGRAMMER_SOUND_PROPERTIES>(parameterPtr);
+                    //var sound = new FMODLib.Sound();
+                    //sound.handle = parameter.sound;
+                    //sound.release();
+                }
+                break;
                 case FMODLib.Studio.EVENT_CALLBACK_TYPE.DESTROYED:
                     // Now the event has been destroyed, unpin the string memory so it can be garbage collected
                     break;

@@ -2,8 +2,6 @@
 {
     using UnityEngine;
     using System.IO;
-    using CSCore;
-    using CSCore.Codecs.WAV;
 
     [RequireComponent(typeof(Recorder))]
     [DisallowMultipleComponent]
@@ -14,26 +12,21 @@
         private void PhotonVoiceCreated(PhotonVoiceCreatedParams photonVoiceCreatedParams)
         {
             VoiceInfo voiceInfo = photonVoiceCreatedParams.Voice.Info;
-            int bitsPerSample = 32;
-            if (photonVoiceCreatedParams.Voice is LocalVoiceAudioShort)
-            {
-                bitsPerSample = 16;
-            }
             string filePath = this.GetFilePath();
-            this.wavWriter = new WaveWriter(filePath, new WaveFormat(voiceInfo.SamplingRate, bitsPerSample, voiceInfo.Channels));
-            if (this.Logger.IsInfoEnabled)
-            {
-                this.Logger.LogInfo("Outgoing stream, output file path: {0}", filePath);
-            }
+
             if (photonVoiceCreatedParams.Voice is LocalVoiceAudioFloat)
             {
+                this.wavWriter = new WaveWriter(filePath, voiceInfo.SamplingRate, 32, voiceInfo.Channels);
+                this.Logger.Log(LogLevel.Info, "Outgoing 32 bit stream {0}, output file path: {1}", voiceInfo, filePath);
                 LocalVoiceAudioFloat localVoiceAudioFloat = photonVoiceCreatedParams.Voice as LocalVoiceAudioFloat;
-                localVoiceAudioFloat.AddPreProcessor(new OutgoingStreamSaverFloat(this.wavWriter));
-            } 
+                localVoiceAudioFloat.AddPostProcessor(new OutgoingStreamSaverFloat(this.wavWriter));
+            }
             else if (photonVoiceCreatedParams.Voice is LocalVoiceAudioShort)
             {
+                this.wavWriter = new WaveWriter(filePath, voiceInfo.SamplingRate, 16, voiceInfo.Channels);
+                this.Logger.Log(LogLevel.Info, "Outgoing 16 bit stream {0}, output file path: {1}", voiceInfo, filePath);
                 LocalVoiceAudioShort localVoiceAudioShort = photonVoiceCreatedParams.Voice as LocalVoiceAudioShort;
-                localVoiceAudioShort.AddPreProcessor(new OutgoingStreamSaverShort(this.wavWriter));
+                localVoiceAudioShort.AddPostProcessor(new OutgoingStreamSaverShort(this.wavWriter));
             }
         }
 
@@ -46,10 +39,7 @@
         private void PhotonVoiceRemoved()
         {
             this.wavWriter.Dispose();
-            if (this.Logger.IsInfoEnabled)
-            {
-                this.Logger.LogInfo("Recording stopped: Saving wav file.");
-            }
+            this.Logger.Log(LogLevel.Info, "Recording stopped: Saving wav file.");
         }
 
         class OutgoingStreamSaverFloat : IProcessor<float>
@@ -69,10 +59,7 @@
 
             public void Dispose()
             {
-                if (!this.wavWriter.IsDisposed && !this.wavWriter.IsDisposing)
-                {
-                    this.wavWriter.Dispose();
-                }
+                this.wavWriter.Dispose();
             }
         }
 
@@ -96,10 +83,7 @@
 
             public void Dispose()
             {
-                if (!this.wavWriter.IsDisposed && !this.wavWriter.IsDisposing)
-                {
-                    this.wavWriter.Dispose();
-                }
+                this.wavWriter.Dispose();
             }
         }
     }

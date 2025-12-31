@@ -1,0 +1,183 @@
+Photon Voice API Change Log
+
+v2.59 (May 13, 2025)
+Core:
+   CHANGED: incoming events ring buffer can be of arbitrary size to better support high bitrate video streams
+   ADDED: VoiceCreateOptions.EventBufSize property used to specify the receiver buffer size during voice creation by the sender
+   CHANGED: RemoteVoice Decoder.Input() call wrapped in try/catch: unhandled exceptions can result in a buffer element being locked and the receiveBytes thread forever trying to acquire it
+   REMOVED: unnecessary Output getter from IDecoderDirect
+   FIXED: continuous buffer allocations by audio sources with variable buffer size
+   BREAKING: added IAudioPusher<T>.SetCallback() 'optimalFrameSize' parameter, hinting the preferable frame size to the source (actually used only in AndroidAudioInAEC)
+   ADDED: VoiceClient.SetRemoteVoiceDelayFrames() overload setting the delay for Codec enum elements that matches the condition specified in the predicate function (1 call for multiple codecs)
+   ADDED: ByteStreamEncoder and ByteStreamDecoder for steaming byte buffers without processing
+   ADDED: Custom1 - Custom9 items in Codec enum for user codec implementations
+WebGL:
+   BREAKING: panner node rolloff parameters removed from WebAudioAudioOut() constructor and set via new SetRefDistance() and SetMaxDistance() methods from Update() (similar to volume parameter)
+   FIXED: TimeWorker crash during stop() call
+
+v2.58 (March 03, 2025)
+Core:
+   ADDED: Codec enum extension methods IsAudio() and IsVideo() in a new Voice.Utility static class
+   ADDED: AudioOutDelayControl.Delay property: a simplified delay API
+   FIXED: LocalVoice did not save the contents of the 1st config frame and failed to decode video streams with non-repeating config frame
+   FIXED: noticeable audio playback start delay when resuming transmission after intentional pause (by sender or with Interest Groups): RemoteVoice considers an incoming frame as current rather than late if the gap with the previous frame is large and continues playback instead of waiting for a "valid" frame
+   FIXED: possible noisy logging before the 1st packet arrives caused by useless ring buffer scan: decodeQueue() call moved after the synchronization wait call in decodeThread
+   FIXED: AudioOutDelayControl.Service() clears the buffer correctly even if it's called rarely (once per sec. for WebGl)
+   CHANGED: AudioOutDelayControl buffer size is at least 2 sec. (for WebGL)
+   FIXED: AudioOutDelayControl buffer minimal size check used the wrong value and never worked
+Unity:
+   FIXED: UnityAudioOut zeroes the clip after creation because it may contain non-zero data (e.g. from previously created clip initialized with pcmreadercallback).
+Android:
+   CHANGED: audio capture session is initialized and destroyed asynchronously to prevent ui freezes
+   FIXED: occasional freeze of decoded video display: DecoderTexture surfaceTexture OnFrameAvailableListener stopped being called if there was more than 1 such call between updateTexImage() calls
+   ADDED: Camera and Encoder implementations using NDK APIs
+   FIXED: Java APIs based Camera implementation is not compatible with Unity's GameActivity
+   CHANGED: Platform.CreateDefaultVideoRecorder() uses new AndroidNDKVideoRecorderSurfaceView()
+   CHANGED: Platform.CreateVideoRecorderUnityTexture() uses new AndroidNDKVideoRecorderUnityTexture()
+   NOTE: define PHOTON_VOICE_VIDEO_ANDROID_JAVA_API to use old implementations
+   BREAKING: minSdkVersion is 28
+WebGL:
+   ADDED: TimerWorker utility module calling the given callback with the given interval from a worker message handler to workaround browser js execution throttling on a background page
+   FIXED: audio plays without interruption in background browser page due to Photon Realtime update to v4.1.8.14 and the following change
+   CHANGED: VoiceConnection incoming packet dispatch call is triggered frequently enough by TimerWorker, not in FixedUpdate() which is called only once per sec. in background browser page
+iOS and Mac:
+   CHANGED: AudioIn libraries set other apps ducking mode to minimum
+
+v2.57 (December 13, 2024)
+WebGL:
+   ADDED: WebAudioAudioOut spatial ref and max distances control via AudioSource min and max distances
+FMOD:
+   FIXED: FMOD always used device 0 for recording
+
+v2.56 (August 19, 2024)
+WebGL:
+   FIXED: WebGL Emscripten Malloc._malloc and Malloc._free replaced with _malloc and _free as these symbols were removed from Module in Emscripten 3.1.31
+   CHANGED: deprecated Emscripten Module.dynCall_... replaced with makeDynCall macro
+
+v2.55 (February 26, 2024)
+Core:
+   ADDED: visionOS support (Opus and WebRTC Audio libraries)
+   BREAKING: ILogger.Log*() methods replaced with LogLevel enum and single Log() method accepting logging level
+   BREAKING: added ILogger.Level property, that Voice code can check to avoid unnecessary Log() methods calls
+   ADDED: LogLevel.Trace logging level
+   BREAKING: LoadBalancingTransport is no longer ILogger, user code must provide Voice components with ILogger implementation (like Unity.Logger)
+   ADDED: LoadBalancingTransport (and VoiceCLient created by the transport) uses private LBCLogger relying on LoadBalancingClient.DebugReturn() if not provided with an external ILogger
+   FIXED: frameReadPos advance and lost frames detection resulted in false lost frames reports and null frames input to the decoder
+   FIXED: read to write delay was 1 frame larger than set; now if DelayFrames is 0 in unfragmented mode, just written frame can be read immediately
+   FIXED: config frames also put in the normal frame queue to avoid processing it as a lost frame
+   BREAKING: removed VoiceClient.FramesMiss (it's hard to count and not very useful) and FramesLateUsed
+   BREAKING: added IPreviewManager.Has() that allows a ui builder to skip objects that do not have a preview but would otherwise take space in the layout
+Android:
+   CHANGED: AndroidVideoEncoder: Dispose() called for buffer objects in data callback to release resources earlier
+   FIXED: without objects disposal, the app crashed with 'JNI ERROR (app bug): global reference table overflow' error after a few minutes of running (probably a regression bug)
+FMOD:
+   FIXED: FMOD.AudioOutEvent playback (OutPos returns the position not wrapped by the event length)
+
+v2.54 (January 08, 2024)
+Core:
+   FIXED: Set() was called sometimes on closed RemoteVoice.frameQueueReady AutoResetEvent
+   FIXED: LoadBalancingTransport sets LoadBalancingClient.ClientType to Voice
+   FIXED: VoiceClient.onVoiceRemove() referenced null in a log message if the voice was not found
+   CHANGED: LoadBalancingTransport.LoadBalancingPeer.ChannelCount is set to at least 4 instead of length of Codec enum + 1 (the enum may be large while we normally do no need more than 4 channels)
+iOS
+   FIXED: AudioIn: routing audio out to earpiece (receiver) instead of loudspeaker since iOS 17 (and earlier versions for new iPad Pro) due to wrong initialization order (regression): session category is now set after AudioUnit creation
+   CHANGED: AudioIn: when stopping recording, session category is set to its previous values instead of Ambient
+PS4/PS5:
+   FIXED: the locking in PlayStationAudioOut.cs
+FMOD:
+   BREAKING: FMOD.AudioInReader no longer replaces -1 device id with 0 assuming that -1 is Voice API default mic: callers should always pass FMOD-specific device id
+
+v2.53 (September 06, 2023)
+Core:
+   FIXED: LoadBalancingTransport: config frame delivery mode is Reliable, the same as for VoiceInfo event, otherwise config frame can be delivered earlier than VoiceInfo
+   FIXED: RemoteVoice: config frames are processed in a separate queue to guarantee that they are decoded: when put in the common queue, they could be dropped if their neighbors have been delivered faster and already processed
+   CHANGED: VoiceClient.ThreadingEnabled is always false for UNITY_WEBGL, setter is ignored
+   ADDED: IDeviceEnumerator.OnReady callback (asynchronous API, required by WebGL): both sync and async implementations call it when the device list is ready
+   CHANGED: all DeviceEnumeratorBase inheritors call OnReady when the list is updated
+WebGL:
+   ADDED: WebGL video streaming support: video capture, screen capture, rendering to texture, WebCodecs API based encoding and decoding: WebCodecsCameraRecorderUnityTexture, WebCodecsScreenRecorderUnityTexture and WebCodecsVideoPlayerUnityTexture based on WebCodecsCamera, WebCodecsScreenShare, WebCodecsVideoEncoder, WebCodecsVideoDecoderUnityTexture
+   NOTE: browsers supported by WebGL video: Chrome, Opera, Edge
+   ADDED: VideoSourceSizeMode struct with VideoSourceSizeMode.Mode enum controlling the resize of the video source before passing it to the encoder if supported by the source: Fixed (given sizes), Constrained (set to <= given sizes, aspect ratio is preserved) and Source; boolean VideoSourceSizeMode.Update controlling whether the sizes are updated if the source sizes change after initialization (ignored for Fixed)
+   NOTE: VideoSourceSizeMode is currently used only by WebCodecsCameraRecorderUnityTexture / WebCodecsScreenShare
+   ADDED: Platform WebGL video recorder, player and preview factories, 'UnityTexture' methods are 'native' for WebGL
+   ADDED: video input device enumeration: WebVideoInEnumerator
+   FIXED: WebGL Audio AudioWorkletProcessor canceled processing if the first process() call buffer had no data that might happen during initialization, the remote voice did not play in this case
+   ADDED: audio input device enumeration: WebAudioInEnumerator, returns the result asynchronously
+   ADDED: audio input device selection: WebAudioMicIn() accepts 'deviceId' parameter
+Android:
+   CHANGED: Android native video: KEY_PREPEND_HEADER_TO_SYNC_FRAMES format flag set for h264 (and h265) codec: now every keyframe has vital codec info, unique config frame processing is no longer required
+   CHANGED: AndroidVideoEncoder decoupled from the camera wrapper (ADDED: AndroidCameraVideoEncoder extending AndroidVideoEncoder) and can be used standalone
+   ADDED: AndroidVideoEncoder.Surface property returning the surface to which the input component should write
+   BREAKING: AndroidVideoEncoderSurfaceView -> AndroidCameraVideoEncoderSurfaceView, AndroidVideoEncoderTexture -> AndroidCameraVideoEncoderTexture
+
+v2.52 (May 23, 2023)
+Core:
+   CHANGED: incoming stream events queue reworked to a ring buffer allowing events order restoring (useful for Unsequenced transmission modes), fragmented frames assembly and event cross-referencing for FEC.
+   NOTE: the higher LocalVoice.DelayFrames value, the more chances to use late frames (though saving these frames does not help much Opus while we use quite high 30% PacketLossPercentage value)
+   CHANGED: frame number is added to every event, it's used to run events processing queue instead of event number
+   NOTE: this is the only way to correctly count dropped frames when fragmentation is enabled, which is important for codecs that recover dropped frames, such as Opus (although Opus never uses fragmentation, event and frame numbers are always the same for it)
+   NOTE: advancing at the frame pace is more natural, it allows to keep given frame delay and catch up with bursts of fragmented frames events in time
+   BREAKING: 'frNumber' parameter added to IVoiceTransport.SendFrame(), it can be ignored by SendFrame() implamentation if fragmentation is not used
+   ADDED: FrameBuffer.FrameNum property
+Fragmentation:
+   ADDED: LocalVoice.Fragment: if true, large frames are fragmented to multiple events by LocalVoice and assembled by RemoteVoice
+   BREAKING: added IVoiceTransport.GetPayloadFragmentSize(): returns the maximum length of the frame data array that fits into one network packet
+   CHANGED: if a fragment is missing, the resulting buffer segment for this fragment is filled with zeroes instead of discarding the entire frame (1st fragment, if delivered, always produces a frame for the decoder, possibly corrupted)
+   CHANGED: Config and KeyFrame are no longer forced to transmit reliably during regular frame sending (but Config is still sent reliable along with voice info when required)
+FEC:
+   ADDED: LocalVoice.FEC: if > 0, after LocalVoice.FEC outgoing events, a Forward Error Correction event (with the xor of the previous events) is sent
+Target Players:
+   ADDED: LocalVoice.TargetPlayers: if not null, sending voice info and streaming only to the clients having their player number specified in the array (if supported by the transport), voice info and voice remove are also sent to remote clients on this property update
+   BREAKING: IVoiceTransport.SendFrame(): 'targetMe' and 'targetPlayers' parameters instead of 'targetPlayerId', added SendFrameParams struct parameter holding additional parameters, reference to LocalVoice instance no longer passed ('targetMe' and SendFrameParams are used instead)
+   BREAKING: IVoiceTransport.SendVoicesInfo() -> SendVoiceInfo(): only 1 voice info sending is supported, 'targetMe' and 'targetPlayers' parameters instead of 'targetPlayerId'
+   BREAKING: IVoiceTransport.SendVoiceRemove(): 'targetMe' and 'targetPlayers' parameters instead of 'targetPlayerId'
+   NOTE: 'targetMe' is required because VoiceClient does not know local player number (we could get it from transport but the number is valid only after join)
+   ADDED: transport state change callbacks w/o 'channelId' parameter: VoiceClient.onJoinAllChannels(), onPlayerJoin(int playerId), onPlayerLeave(int playerId)
+LoadBalancingTransport:
+   CHANGED: stream events delivery mode in SendFrame() changed to ReliableUnsequenced and UnreliableUnsequenced
+   ADDED:  'Voice C++ API compatibility' mode enabled by an optional parameter in constructor: if true, the transport uses sequenced versions (Reliable and Unreliable) of delivery modes in SendFrame()
+   BREAKING: LoadBalancingTransport uses (previously ignored) LocalVoice channelId as Enet channel instead of assigning Enet channel per media type automatically: user must set channelId parameter during LocalVoice creation if channel separation is required
+Other:
+   BREAKING: removed unused 'channelId' parameter from VoiceClient.onVoiceRemove() and onFrame()
+   BREAKING: LocalVoice parameters set via properties (InterestGroup, TargetPlayers, DebugEchoMode, Reliable, Encrypt, Fragment, FEC) also can be set in LocalVoice constructors and creation methods (LocalVoiceAudio<T>.Create, VoiceClient.CreateLocalVoice, CreateLocalVoiceAudio, CreateLocalVoiceAudioFromSource, CreateLocalVoiceVideo) via new VoiceCreateOptions struct, it's also used to assign Encoder for convenience
+   BREAKING: removed VoiceClient.GlobalInterestGroup, LoadBalancingTransport.GlobalInterestGroup and obsolete LoadBalancingTransport.GlobalAudioGroup, use LocalVoice.InterestGroup and LoadBalancingTransport.OpChangeGroups() to change groups
+   ADDED: LocalVoice.FramesFragmentedSent, FramesFragmentsSent counters
+   ADDED: VoiceClient.FramesRecovered is the number of frames recovered with FEC
+   CHANGED: VoiceClient.FramesLost is the number of empty frames sent to the decoder
+   ADDED: VoiceClient.FramesMiss is the number of slots between correctly ordered frames (how FramesLost was calculated previously)
+   ADDED: VoiceClient.FramesLate is the number of late (incorrectly ordered) frames
+   ADDED: VoiceClient.FramesLateUsed = FramesMiss - FramesLost, the number of late but still used frames
+   NOTE: VoiceClient.FramesLate and VoiceClient.FramesLateUsed are 0 and VoiceClient.FramesMiss == VoiceClient.FramesLost while Unreliable mode is used, they make sense only in UnreliableUnsequences
+Audio:
+   ADDED: FramerResampler derived from Framer: resamples input data by given ratio before framing it, optional resampling interpolation is available which theoretically improves upsampling quality (in practice noticeable only on tone signal)
+   CHANGED: AudioOutDelayControl delay steps automatic settings are based on Service() call interval (i) instead of frame size, so the state is not changed until playSamplePos is updated in Service(): target is at least i, upper is at least target + i; the resulting delta between steps is not less than set by user
+   CHANGED: default AudioOutDelayControl.PlayDelayConfig.High is 200, the same as Low, this enables automatic tolerance setting
+   NOTE: smaller tolerance prevents significant delay drift from the target value, automatic adjustments set reasonable steps working good in an ideal network even if 0 delays set by user
+   CHANGED: AudioOutDelayControl protected members holding playback parameters made private, implementations should cache them in OutCreate(), now implementations extend AudioOutDelayControl only to implement Out*() interface, they do not use the base class in any other way
+   CHANGED: AudioOutDelayControl.zeroFrame made private, public IsZeroFrame() added
+   CHANGED: AudioOutDelayControl.IsPlaying play detection interval to 120 (60 ms max packet length + some jitter)
+   CHANGED: AudioSyncBuffer rewritten to AudioOutDelayControl implementation
+   CHANGED: WebAudioAudioOut: AudioOutDelayControl.processInService set to false (a frame processed directly in Push()) because Unity API is not used
+Video:
+   ADDED: ImageBufferNativeGCHandleBytes creating and maintaining byte[] and GHandle per image plane, it replaces obsolete ImageBufferNativeGCHandleSinglePlan
+Windows:
+   CHANGED: video: MFTVideoEncode sets MF_MT_MAX_KEYFRAME_SPACING encoder output attribute according to Photon_Video_CreateEncoder() 'keyFrameInt' parameter
+UWP Video Decoder:
+   FIXED: input FrameBuffers are no longer released in MediaStreamSample.Processed which seems to skip some of the samples passed to MediaStreamSource, leading to leaks: we copy the input byte array instead and rely on GC
+   CHANGED: sampleQueue contains byte arrays instead of FrameBuffers
+   FIXED: if sampleQueue is too large, it's cleared and filled with the current frame if it's a keyframe, otherwise the frame is ignored and the queue remains intact (previously it could grow above the limit)
+   CHANGED: sampleQueue max size is 5 to avoid playback delays
+   FIXED: incorrect call order of buffer Retain() prevented buffers from being reused
+iOS:
+   FIXED: audio capture on iPhone 14: InputCallback is added and used for capture, RenderCallback still exists in the pipeline but does not do anything
+   FIXED: Video: VTCompressionSession ignored bitrate and possibly other properties in recent iOS versions because null timestamp were passed to VTCompressionSessionEncodeFrame(), now the timestamp retrieved from the captured CMSampleBuffer instance is used
+Mac:
+   CHANGED: Video: current time is used as the timestamp in VTCompressionSessionEncodeFrame() call which looks more reasonable than the previously used frame counter divided by fps (a CMSampleBuffer instance is not available because a byte buffer from an external capture module is passed to the encoder)
+Android:
+   CHANGED: audio library: all permissions removed from the manifest, it's up to user to set permissions correctly in the application manifest
+   CHANGED: AndroidAudioInParameters turned into struct (with static Default property for default value) and [System.Serializable] attribute added to it to support Unity components fields serialization
+   CHANGED: all AndroidAudioInParameters fields are true by default
+WebGL:
+   CHANGED: Platform.CreateAudioInEnumerator() returns an instance of the new DeviceEnumeratorSingleDevice calss with the device named 'Default' instead of AudioInEnumeratorNotSupported for Unity WebGL platform
+   CHANGED: Unity.AudioInEnumerator and UnityMicrophone rely on Unity Microphone API in Editor even if the platform is WebGL
+ 

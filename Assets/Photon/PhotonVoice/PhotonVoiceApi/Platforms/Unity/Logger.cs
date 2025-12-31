@@ -2,11 +2,25 @@
 
 namespace Photon.Voice.Unity
 {
+    // Unity logger implementation of ILogger for use where VoiceComponent.Logger is not available
     public class Logger : ILogger
     {
-        public void LogError(string fmt, params object[] args) { Debug.LogErrorFormat(fmt, args); }
-        public void LogWarning(string fmt, params object[] args) { Debug.LogWarningFormat(fmt, args); }
-        public void LogInfo(string fmt, params object[] args) { Debug.LogFormat(fmt, args); }
-        public void LogDebug(string fmt, params object[] args) { Debug.LogFormat(fmt, args); }
+        public Logger(LogLevel level = LogLevel.Debug) // Before introducing Trace, it logged everything without the ability to change the level.
+        {
+            this.Level = level;
+        }
+
+        public LogLevel Level { get; set; }
+
+        public void Log(LogLevel level, string fmt, params object[] args)
+        {
+            if (this.Level >= level)
+            {
+                if (level >= LogLevel.Info) Debug.LogFormat(fmt, args);
+                else if (level == LogLevel.Warning) Debug.LogWarningFormat(fmt, args);
+                // anything else is an error
+                else Debug.LogErrorFormat(fmt, args);
+            }
+        }
     }
 }

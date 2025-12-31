@@ -1,0 +1,772 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Fusion.Unity</name>
+    </assembly>
+    <members>
+        <member name="F:Fusion.NetworkRunnerVisibilityExtensions.RecognizedBehaviourNames">
+            <summary>
+            Types that fusion.runtime isn't aware of, which need to be found using names instead.
+            </summary>
+        </member>
+        <member name="M:Fusion.NetworkRunnerVisibilityExtensions.AddVisibilityNodes(Fusion.NetworkRunner,UnityEngine.GameObject)">
+            <summary>
+            Find all component types that contribute to a scene rendering, and associate them with a <see cref="T:Fusion.RunnerVisibilityLink"/> component, 
+            and add them to the runner's list of visibility nodes.
+            </summary>
+            <param name="go"></param>
+            <param name="runner"></param>
+        </member>
+        <member name="M:Fusion.NetworkRunnerVisibilityExtensions.RefreshRunnerVisibility(Fusion.NetworkRunner,System.Boolean)">
+            <summary>
+            Reapplies a runner's IsVisibile setting to all of its registered visibility nodes.
+            </summary>
+            <param name="runner"></param>
+            <param name="refreshCommonObjects"></param>
+        </member>
+        <member name="F:Fusion.NetworkRunnerVisibilityExtensions.CommonObjectLookup">
+            <summary>
+            Dictionary lookup for manually added visibility nodes (which indicates only one instance should be visible at a time), 
+            which returns a list of nodes for a given LocalIdentifierInFile.
+            </summary>
+        </member>
+        <member name="P:Fusion.Statistics.FusionNetworkObjectStatsGraphCombine.NetworkObjectID">
+            <summary>
+            Gets the unique identifier of the network object.
+            </summary>
+            <value>
+            The network object identifier.
+            </value>
+        </member>
+        <member name="T:Fusion.Statistics.CanvasAnchor">
+            <summary>
+            The side to attach the statistics panel anchor.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.FusionStatistics._statsEnabled">
+            <summary>
+            Flags controlling which Mecanim data will be synced.
+            </summary>
+        </member>
+        <member name="P:Fusion.Statistics.FusionStatistics.IsPanelActive">
+            <summary>
+            Gets a value indicating whether the statistics panel is active.
+            </summary>
+        </member>
+        <member name="M:Fusion.Statistics.FusionStatistics.SetStatsCustomConfig(System.Collections.Generic.List{Fusion.Statistics.FusionStatistics.FusionStatisticsStatCustomConfig})">
+            <summary>
+            Sets the custom configuration for Fusion Statistics.
+            </summary>
+            <param name="customConfig">The list of custom configurations for Fusion Statistics.</param>
+        </member>
+        <member name="M:Fusion.Statistics.FusionStatistics.SetCanvasAnchor(Fusion.Statistics.CanvasAnchor)">
+            <summary>
+            Sets the anchor position of the Fusion Statistics canvas.
+            </summary>
+            <param name="anchor">The anchor position of the canvas (TopLeft or TopRight).</param>
+        </member>
+        <member name="M:Fusion.Statistics.FusionStatistics.OnEditorChange">
+            <summary>
+            Called from a custom editor script.
+            Will update any editor information into the fusion statistics.
+            </summary>
+        </member>
+        <member name="M:Fusion.Statistics.FusionStatistics.SetupStatisticsPanel">
+            <summary>
+            Sets up the statistics panel for Fusion statistic tracking.
+            </summary>
+        </member>
+        <member name="M:Fusion.Statistics.FusionStatistics.SetWorldAnchor(Fusion.Statistics.FusionStatsWorldAnchor,System.Single)">
+            <summary>
+            Sets the world anchor for Fusion Statistics. Set null to return to screen space overlay.
+            </summary>
+            <param name="anchor">The FusionStatsWorldAnchor component that defines the anchor object. Null to return to screen space overlay.</param>
+            <param name="scale">The scale of the statistics panel.</param>
+        </member>
+        <member name="M:Fusion.Statistics.FusionStatistics.DestroyStatisticsPanel">
+            <summary>
+            Destroys the statistics panel.
+            </summary>
+        </member>
+        <member name="T:Fusion.Statistics.RenderSimStats">
+            <summary>
+            List of all simulation stats able to render on a graph.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InPackets">
+            <summary>
+            Incoming packets.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.OutPackets">
+            <summary>
+            Outgoing packets.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.RTT">
+            <summary>
+            Round Trip Time.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InBandwidth">
+            <summary>
+            In Bandwidth in Bytes.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.OutBandwidth">
+            <summary>
+            Out Bandwidth in Bytes.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.Resimulations">
+            <summary>
+            Amount of re-simulation ticks executed.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.ForwardTicks">
+            <summary>
+            Amount of forward ticks executed.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InputReceiveDelta">
+            <summary>
+            Average measured time between two input/state packets (from same client) received by the server.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.TimeResets">
+            <summary>
+            Time sync abruptly reset count.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.StateReceiveDelta">
+            <summary>
+            Average measured time between two state packets (from server) received by the client.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.SimulationTimeOffset">
+            <summary>
+            Average buffering for prediction.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.SimulationSpeed">
+            <summary>
+            How much the simulation is currently sped up / slowed down.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InterpolationOffset">
+            <summary>
+            Average buffering for interpolation.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InterpolationSpeed">
+            <summary>
+            How much interpolation is currently sped up / slowed down.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InputInBandwidth">
+            <summary>
+            Input in bandwidth.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InputOutBandwidth">
+            <summary>
+            Input out bandwidth.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.AverageInPacketSize">
+            <summary>
+            Average size for received packet.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.AverageOutPacketSize">
+            <summary>
+            Average size for sent packet.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.InObjectUpdates">
+            <summary>
+            Amount of object updates received.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.OutObjectUpdates">
+            <summary>
+            Amount of object updates sent.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.ObjectsAllocatedMemoryInUse">
+            <summary>
+            Memory in use for the object allocator.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.GeneralAllocatedMemoryInUse">
+            <summary>
+            Memory in use for the general allocator.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.ObjectsAllocatedMemoryFree">
+            <summary>
+            Memory free for the object allocator.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.GeneralAllocatedMemoryFree">
+            <summary>
+            Memory free for the general allocator.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.WordsWrittenCount">
+            <summary>
+            Amount of written words. How many networked changes are being sent.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.WordsWrittenSize">
+            <summary>
+            Size of all last written words in Bytes.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.WordsReadCount">
+            <summary>
+            Amount of read words. How many networked changes are being received.
+            </summary>
+        </member>
+        <member name="F:Fusion.Statistics.RenderSimStats.WordsReadSize">
+            <summary>
+            Size of all last read words in Bytes.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionBasicBillboard">
+            <summary>
+            Component which automatically faces this GameObject toward the supplied Camera. If Camera == null, will face towards Camera.main.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBasicBillboard.Camera">
+            <summary>
+            Force a particular camera to billboard this object toward. Leave null to use Camera.main.
+            </summary>
+        </member>
+        <member name="T:Fusion.EnableOnSingleRunner">
+            <summary>
+            Automatically adds a <see cref="T:Fusion.RunnerVisibilityLink"/> for each indicated component. 
+            These indicated components will be limited to no more than one enabled instance when running in Multi-Peer mode.
+            </summary>
+        </member>
+        <member name="F:Fusion.EnableOnSingleRunner.PreferredRunner">
+            <summary>
+            If more than one runner instance is visible, this indicates which peer's clone of this entity should be visible.
+            </summary>
+        </member>
+        <member name="F:Fusion.EnableOnSingleRunner.Components">
+            <summary>
+            Collection of components that will be marked for Multi-Peer mode as objects that should only have one enabled instance.
+            </summary>
+        </member>
+        <member name="F:Fusion.EnableOnSingleRunner._guid">
+            <summary>
+            Prefix for the GUIDs of <see cref="T:Fusion.RunnerVisibilityLink"/> components which are added at runtime.
+            </summary>
+        </member>
+        <member name="M:Fusion.EnableOnSingleRunner.AddNodes(System.Collections.Generic.List{Fusion.RunnerVisibilityLink})">
+            <summary>
+            At runtime startup, this adds a <see cref="T:Fusion.RunnerVisibilityLink"/> for each component reference to this GameObject.
+            </summary>
+        </member>
+        <member name="M:Fusion.EnableOnSingleRunner.FindRecognizedTypes">
+            <summary>
+            Finds visual/audio components on this GameObject, and adds them to the Components collection.
+            </summary>
+        </member>
+        <member name="M:Fusion.EnableOnSingleRunner.FindNestedRecognizedTypes">
+            <summary>
+            Finds visual/audio nested components on this GameObject and its children, and adds them to the Components collection.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.UseGlobalPrefix">
+            <summary>
+            If true, all messages will be prefixed with [Fusion] tag
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.UseColorTags">
+            <summary>
+            If true, some parts of messages will be enclosed with &lt;color&gt; tags.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.AddHashCodePrefix">
+            <summary>
+            If true, each log message that has a source parameter will be prefixed with a hash code of the source object. 
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.GlobalPrefixColor">
+            <summary>
+            Color of the global prefix (see <see cref="F:Fusion.FusionUnityLogger.UseGlobalPrefix"/>).
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.MinRandomColor">
+            <summary>
+            Min Random Color
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.MaxRandomColor">
+            <summary>
+            Max Random Color
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLogger.ServerColor">
+            <summary>
+            Server Color
+            </summary>
+        </member>
+        <member name="T:Fusion.RunnerEnableVisibility">
+            <summary>
+              When running in Multi-Peer mode, this component automatically will register the associated
+              <see cref="T:Fusion.NetworkRunner" /> with <see cref="T:Fusion.NetworkRunnerVisibilityExtensions" />,
+              and will automatically attach loaded scene objects and spawned objects with the peers visibility handling.
+            </summary>
+        </member>
+        <member name="T:Fusion.RunnerAOIGizmos">
+            <summary>
+            Add this Component to the NetworkRunner Prefab or GameObject. If Interest Management is enabled in NetworkProjectConfig ReplicationFeatures,
+            gizmos will be shown that indicate active Area Of Interest cells. These gizmos are currently NOT applicable to Shared Mode and will only
+            render for the Server/Host peer.
+            </summary>
+        </member>
+        <member name="T:Fusion.RunnerVisibilityLinksRoot">
+            <summary>
+            Flag component which indicates a NetworkObject has already been factored into a Runner's VisibilityNode list.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionMppmStatus">
+            <summary>
+            The current status of MPPM. If the package is not enabled, this will always be <see cref="F:Fusion.FusionMppmStatus.Disabled"/>.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionMppmStatus.Disabled">
+            <summary>
+            MPPM is not installed.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionMppmStatus.MainInstance">
+            <summary>
+            This instance is the main instance. Can use <see cref="M:Fusion.FusionMppm.Send``1(``0)"/> to send commands.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionMppmStatus.VirtualInstance">
+            <summary>
+            This instance is a virtual instance. Will receive commands from the main instance.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionMppm">
+            <summary>
+            Support for Multiplayer Play Mode (MPPM). It uses named pipes
+            to communicate between the main Unity instance and virtual instances.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionMppm.Status">
+            <summary>
+            The current status of MPPM.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionMppm.MainEditor">
+            <summary>
+            If <see cref="F:Fusion.FusionMppm.Status"/> is <see cref="F:Fusion.FusionMppmStatus.MainInstance"/>, this static field can be used to send commands.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionMppm.Send``1(``0)">
+            <summary>
+            Sends a command to all virtual instances. Use as:
+            <code>FusionMppm.MainEditor?.Send</code>
+            </summary>
+            <param name="data"></param>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Fusion.FusionMppmCommand">
+            <summary>
+            The base class for all Fusion MPPM commands.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionMppmCommand.Execute">
+            <summary>
+            Execute the command on a virtual instance.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionMppmCommand.NeedsAck">
+            <summary>
+            Does the main instance need to wait for an ack?
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionMppmCommand.PersistentKey">
+            <summary>
+            If the command is persistent (i.e. needs to be executed on each domain reload), this key is used to store it.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionBootstrapDebugGUI">
+            <summary>
+            Companion component for <see cref="T:Fusion.FusionBootstrap"/>. Automatically added as needed for rendering in-game networking IMGUI.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrapDebugGUI.EnableHotkeys">
+            <summary>
+            When enabled, the in-game user interface buttons can be activated with the keys H (Host), S (Server) and C (Client).
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrapDebugGUI.BaseSkin">
+            <summary>
+            The GUISkin to use as the base for the scalable in-game UI.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionUnitySceneManagerUtils.GetComponents``1(UnityEngine.SceneManagement.Scene,System.Boolean)">
+            <summary>
+            Finds all components of type <typeparam name="T"/> in the scene.
+            </summary>
+            <param name="scene"></param>
+            <param name="includeInactive"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionUnitySceneManagerUtils.GetComponents``1(UnityEngine.SceneManagement.Scene,System.Boolean,UnityEngine.GameObject[]@)">
+            <summary>
+            Finds all components of type <typeparam name="T"/> in the scene.
+            </summary>
+            <param name="scene"></param>
+            <param name="includeInactive"></param>
+            <param name="rootObjects"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionUnitySceneManagerUtils.GetComponents``1(UnityEngine.SceneManagement.Scene,System.Collections.Generic.List{``0},System.Boolean)">
+            <summary>
+            Finds all components of type <typeparam name="T"/> in the scene.
+            </summary>
+            <param name="scene"></param>
+            <param name="results"></param>
+            <param name="includeInactive"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionUnitySceneManagerUtils.FindComponent``1(UnityEngine.SceneManagement.Scene,System.Boolean)">
+            <summary>
+            Finds the first instance of type <typeparam name="T"/> in the scene. Returns null if no instance found.
+            </summary>
+            <param name="scene"></param>
+            <param name="includeInactive"></param>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault.IsSceneTakeOverEnabled">
+            <summary>
+            If enabled and there is an already loaded scene that matches what the scene manager has intended to load,
+            that scene will be used instead and load will be avoided.
+            </summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault.LogSceneLoadErrors">
+            <summary>
+            Should all scene load errors be logged into the console? If disabled, errors can still be retrieved via the
+            <see cref="P:Fusion.NetworkSceneAsyncOp.Error"/> or <see cref="M:Fusion.NetworkSceneAsyncOp.AddOnCompleted(System.Action{Fusion.NetworkSceneAsyncOp})"/>.
+            </summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault._allOwnedScenes">
+            <summary>
+            All the scenes loaded by all the managers. Used when <see cref="F:Fusion.NetworkSceneManagerDefault.IsSceneTakeOverEnabled"/> is enabled.
+            </summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault._multiPeerSceneRoots">
+            <summary>
+            In multiple peer mode, each runner maintains its own scene where all the newly loaded scenes
+            are moved to. This is to make sure physics are properly sandboxed.
+            </summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault._runningCoroutines">
+            <summary>
+            List of running coroutines. Only one is actually executed at a time.
+            </summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault._tempUnloadScene">
+            <summary>
+            For remote clients, this manager first unloads old scenes then loads the new ones. It might happen that all
+            the current scenes need to be unloaded and in such case a temp scene needs to be created to ensure at least one
+            scene loaded at all times. 
+            </summary>
+        </member>
+        <member name="P:Fusion.NetworkSceneManagerDefault.MultiPeerScene">
+            <summary>
+            Scene used when Multiple Peer mode is used. Each loaded scene is merged into this one, allowing
+            for multiple runners to have separate cross-scene physics.
+            </summary>
+        </member>
+        <member name="P:Fusion.NetworkSceneManagerDefault.MultiPeerDontDestroyOnLoadRoot">
+            <summary>
+            Root for DontDestroyOnLoad objects. Instantiated on <see cref="P:Fusion.NetworkSceneManagerDefault.MultiPeerScene"/>.
+            </summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneManagerDefault.AddressableScenesLabel">
+            <summary>
+            A label by which addressable scenes can be discovered.
+            </summary>
+        </member>
+        <member name="M:Fusion.NetworkSceneManagerDefault.GetAddressableScenes">
+            <summary>
+            Creates a task that resolves addressable scene paths. By default, this method locates all the addressable scenes with
+            <see cref="F:Fusion.NetworkSceneManagerDefault.AddressableScenesLabel"/> label. Override this method to provide a custom implementation. For example, user
+            might want to have a pre-defined set of addressable scenes to avoid the wait:
+            <example><code>
+            protected override GetAddressableScenesResult GetAddressableScenes() {
+              return Task.FromResult(new string[] {
+                "Assets/Scenes/AddressableScene1.unity",
+                "Assets/Scenes/AddressableScene2.unity",
+              });
+            }
+            </code></example>
+            </summary>
+            <returns>A task representing resolve operation and optionally a delegate to be invoked before the task is going to be
+            awaited synchronously</returns>
+        </member>
+        <member name="M:Fusion.NetworkSceneManagerDefault.GetAddressableScenePathsTimeout">
+            <summary>
+            Returns the timeout for addressable scene paths to be resolved. By default, this method returns 10 seconds.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Fusion.FusionBootstrap">
+            <summary>
+            A Fusion prototyping class for starting up basic networking. Add this component to your startup scene, and supply a <see cref="F:Fusion.FusionBootstrap.RunnerPrefab"/>.
+            Can be set to automatically startup the network, display an in-game menu, or allow simplified start calls like <see cref="M:Fusion.FusionBootstrap.StartHost"/>.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionBootstrap.StartModes">
+            <summary>
+            Selection for how <see cref="T:Fusion.FusionBootstrap"/> will behave at startup.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionBootstrap.Stage">
+            <summary>
+            The current stage of connection or shutdown.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.RunnerPrefab">
+            <summary>
+            Supply a Prefab or a scene object which has the <see cref="T:Fusion.NetworkRunner"/> component on it, 
+            as well as any runner dependent components which implement <see cref="T:Fusion.INetworkRunnerCallbacks"/>, 
+            such as <see cref="T:Fusion.NetworkEvents"/> or your own custom INetworkInput implementations.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.StartMode">
+            <summary>
+            Select how network startup will be triggered. Automatically, by in-game menu selection, or exclusively by script.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.AutoStartAs">
+            <summary>
+            When <see cref="F:Fusion.FusionBootstrap.StartMode"/> is set to <see cref="F:Fusion.FusionBootstrap.StartModes.Automatic"/>, this option selects if the <see cref="T:Fusion.NetworkRunner"/> 
+            will be started as a dedicated server, or as a host (which is a server with a local player).
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.AutoHideGUI">
+            <summary>
+            <see cref="T:Fusion.FusionBootstrapDebugGUI"/> will not render GUI elements while <see cref="P:Fusion.FusionBootstrap.CurrentStage"/> == <see cref="F:Fusion.FusionBootstrap.Stage.AllConnected"/>.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.AutoClients">
+            <summary>
+            The number of client <see cref="T:Fusion.NetworkRunner"/> instances that will be created if running in Mulit-Peer Mode. 
+            When using the Select start mode, this number will be the default value for the additional clients option box.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.ClientStartDelay">
+            <summary>
+            How long to wait after starting a peer before starting the next one.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.ServerPort">
+            <summary>
+            The port that server/host <see cref="T:Fusion.NetworkRunner"/> will use.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.DefaultRoomName">
+            <summary>
+            The default room name to use when connecting to photon cloud.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.InitialScenePath">
+            <summary>
+            The Scene that will be loaded after network shutdown completes (all peers have disconnected). 
+            If this field is null or invalid, will be set to the current scene when <see cref="T:Fusion.FusionBootstrap"/> runs Awake().
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap._currentStage">
+            <summary>
+            Indicates which step of the startup process <see cref="T:Fusion.FusionBootstrap"/> is currently in.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.AutoConnectVirtualInstances">
+            <summary>
+            Requires Multiplayer Play Mode (MPPM) to be installed. If enabled, <see cref="T:Fusion.FusionBootstrap"/> will automatically join the virtual instance.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionBootstrap.VirtualInstanceConnectDelay">
+            <summary>
+            How much to wait before the main instance lets the virtual instances connect.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionBootstrap.CurrentStage">
+            <summary>
+            Indicates which step of the startup process <see cref="T:Fusion.FusionBootstrap"/> is currently in.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionBootstrap.LastCreatedClientIndex">
+            <summary>
+            The index number used for the last created peer.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionBootstrap.CurrentServerMode">
+            <summary>
+            The server mode that was used for initial startup. Used to inform UI which client modes should be available.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartSinglePlayer">
+            <summary>
+            Start a single player instance.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartServer">
+            <summary>
+            Start a server instance.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartHost">
+            <summary>
+            Start a host instance. This is a server instance, with a local player.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartClient">
+            <summary>
+            Start a client instance.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartServerPlusClients">
+            <summary>
+            Start a Fusion server instance, and the number of client instances indicated by <see cref="F:Fusion.FusionBootstrap.AutoClients"/>. 
+            InstanceMode must be set to Multi-Peer mode, as this requires multiple <see cref="T:Fusion.NetworkRunner"/> instances.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartHostPlusClients">
+            <summary>
+            Start a Fusion host instance, and the number of client instances indicated by <see cref="F:Fusion.FusionBootstrap.AutoClients"/>. 
+            InstanceMode must be set to Multi-Peer mode, as this requires multiple <see cref="T:Fusion.NetworkRunner"/> instances.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartServerPlusClients(System.Int32)">
+            <summary>
+            Start a Fusion server instance, and the indicated number of client instances. 
+            InstanceMode must be set to Multi-Peer mode, as this requires multiple <see cref="T:Fusion.NetworkRunner"/> instances.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartHostPlusClients(System.Int32)">
+            <summary>
+            Start a Fusion host instance (server with local player), and the indicated number of additional client instances. 
+            InstanceMode must be set to Multi-Peer mode, as this requires multiple <see cref="T:Fusion.NetworkRunner"/> instances.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartMultipleClients(System.Int32)">
+            <summary>
+            Start a Fusion host instance (server with local player), and the indicated number of additional client instances. 
+            InstanceMode must be set to Multi-Peer mode, as this requires multiple <see cref="T:Fusion.NetworkRunner"/> instances.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionBootstrap.StartMultipleSharedClients(System.Int32)">
+            <summary>
+            Start as Room on the Photon cloud, and connects as one or more clients.
+            </summary>
+            <param name="clientCount"></param>
+        </member>
+        <member name="P:Fusion.FusionBootstrap.ShouldShowGUI">
+            <summary>
+            Only show the GUI if the StartMode is set to UserInterface and not being run in a Virtual Instance (MPPM).
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionScalableIMGUI">
+            <summary>
+            In-Game IMGUI style used for the <see cref="T:Fusion.FusionBootstrapDebugGUI"/> interface.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionScalableIMGUI.GetScaledSkin(UnityEngine.GUISkin,System.Single@,System.Single@,System.Int32@,System.Int32@,System.Single@)">
+            <summary>
+            Get the custom scalable skin, already resized to the current screen. Provides the height, width, padding and margin used.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionScalableIMGUI.ScaleGuiSkinToScreenHeight">
+            <summary>
+            Modifies a skin to make it scale with screen height.
+            </summary>
+            <param name="skin"></param>
+            <returns>Returns (height, width, padding, top-margin, left-box-margin) values applied to the GuiSkin</returns>
+        </member>
+        <member name="F:Fusion.NetworkObjectProviderDefault.DelayIfSceneManagerIsBusy">
+            <summary>
+            If enabled, the provider will delay acquiring a prefab instance if the scene manager is busy.
+            </summary>
+        </member>
+        <member name="T:Fusion.IRunnerVisibilityRecognizedType">
+            <summary>
+            Flags a MonoBehaviour class as a RunnerVisibilityControl recognized type. 
+            Will be included in runner visibility handling, and will be found by <see cref="T:Fusion.EnableOnSingleRunner"/> component finds.
+            </summary>
+        </member>
+        <member name="T:Fusion.RunnerVisibilityLink">
+            <summary>
+            Identifies visible/audible components (such as renderers, canvases, lights) that should be enabled/disabled by runner visibility handling.
+            Automatically added to scene objects and spawned objects during play if running in <see cref="F:Fusion.NetworkProjectConfig.PeerModes.Multiple"/>. 
+            Additionally this component can be added manually at development time to identify specific Behaviours or Renderers you would like to restrict to one enabled copy at a time.
+            </summary>
+        </member>
+        <member name="T:Fusion.RunnerVisibilityLink.PreferredRunners">
+            <summary>
+            The peer runner that will be used if more than one runner is visible, and this node was manually added by developer (indicating only one instance should be visible at a time).
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.PreferredRunners.Auto">
+            <summary>
+            The first visible runner will be used.
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.PreferredRunners.Server">
+            <summary>
+            The server peer/runner will be used if visible.
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.PreferredRunners.Client">
+            <summary>
+            The first client peer/runner will be used if visible.
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.PreferredRunners.InputAuthority">
+            <summary>
+            The components will only be enabled on the instance that has input authority over the NetworkObject. Unlike the other options, this expects a NetworkObject to work and it will search its children and parents for it. 
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.PreferredRunner">
+            <summary>
+            If more than one runner instance is visible, this indicates which peer's clone of this entity should be visible.
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.Component">
+            <summary>
+            The associated component with this node. This Behaviour or Renderer will be enabled/disabled when its NetworkRunner.IsVisible value is changed.
+            </summary>
+        </member>
+        <member name="F:Fusion.RunnerVisibilityLink.Guid">
+            <summary>
+            Guid is used for common objects (user flagged components that should only run in one instance), to identify matching clones.
+            </summary>
+        </member>
+        <member name="P:Fusion.RunnerVisibilityLink.DefaultState">
+            <summary>
+            Set to false to indicate that this object should remain disabled even when <see cref="!:NetworkRunner.IsVisible"/> is set to true.
+            </summary>
+        </member>
+        <member name="M:Fusion.RunnerVisibilityLink.SetEnabled(System.Boolean)">
+            <summary>
+            Sets the visibility state of this node.
+            </summary>
+            <param name="enabled"></param>
+        </member>
+    </members>
+</doc>

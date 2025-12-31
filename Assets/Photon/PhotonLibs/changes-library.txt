@@ -3,6 +3,16 @@ Photon C# Client Library - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 4.1.8.16 (31. July 2025 - rev8016)
+    Added: SupportClass overload for CalculateCrc() with offset.
+    Changed: CalculateCrc() without offset is now obsolete.
+    Note: Minimal release to make a small update (see above) available for the Voice SDK.
+
+Version 4.1.8.15 (08. May 2025 - rev7931)
+    Updated: WebSocket.jslib to use a new Emscripten macro for callbacks to Unity. This fixes issues of v4.1.8.14 with logs like "Module.dynCall_viii is not a function". These fixes update the jslib to newer Emcripten versions used by Unity.
+    Note: Due to changes above, this library now requires Unity 2020+. You could use the previous version if you need support for Unity 2019 or older.
+    Added: Support for SharedArrayBuffer sending. This is used when Unity 6 is set to use experimental C/C++ Threading Support in WebAssembly export.
+
 Version 4.1.8.14 (11. March 2025 - rev7866)
     Changed: WebSocket implementation for Unity WebGL/JS exports and WebSocket-sharp based implementation (in PhotonLibs\WebSocket\).
     Note: The goal is to process incoming messages in WebGL (and with WebSocket-sharp) more directly. This specifically helps the Voice SDK on WebGL to process the stream while in background.

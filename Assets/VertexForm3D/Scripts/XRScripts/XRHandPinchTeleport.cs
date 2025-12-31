@@ -6,7 +6,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Hands.Samples.GestureSample;
-using Photon.Pun;
+using Fusion;
 
 public class XRHandPinchTeleport : MonoBehaviour
 {
@@ -16,16 +16,15 @@ public class XRHandPinchTeleport : MonoBehaviour
     public StaticHandGesture teleportHandGesture;
     public XRInteractorLineVisual lineVisual;
     public float pinchThreshold = 0.02f;
-    public PhotonView PV;
     bool canTeleport;
     private XRHandSubsystem handSubsystem;
     private bool teleportQueued = false;
-
+    public NetworkObject networkObject;
     void Start()
     {
-        if (PV != null)
+        if (networkObject != null)
         {
-            if (!PV.IsMine)
+            if (!networkObject.HasInputAuthority)
             {
                 Destroy(teleportHandGesture);
                 Destroy(rayInteractor.gameObject);

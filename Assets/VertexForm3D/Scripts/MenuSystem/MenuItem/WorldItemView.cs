@@ -10,6 +10,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     [SerializeField] GameObject downloadPanel;
     [SerializeField] Image downloadLoader;
     [SerializeField] TMPro.TMP_Text DownloadTextTxt;
+    [SerializeField] TMPro.TMP_Text playerCountTxt;
     [SerializeField] Button clikedBtn;
     [SerializeField] Button infoBtn;
     [SerializeField] Button downloadBtn;
@@ -26,6 +27,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         infoBtn.onClick.AddListener(ShowInfo);
         downloadBtn.onClick.AddListener(OnDownloadCliked);
         starBtn.onClick.AddListener(OnTapStar);
+        InvokeRepeating(nameof(SetPlayerCountText), 0, 1);
         if (InitalizeInStart)
         {
             UpdateView(worlddata);
@@ -51,8 +53,27 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     {
         SceneLoader.Instance.isCesiumScene = false;
         SceneLoader.Instance.isFlyModeEnabled = worlddata.flyMode;
+        if (RoomManager.Instance != null)
+        {
+            RoomManager.Instance.SetAddressableSceneVisuals(true);
+        }
         SceneLoader.Instance.LoadScnene(worlddata.worldKey);
     }
+
+    public void SetPlayerCountText()
+    {
+        int playersInSession = 0;
+        int maxPlayersInSession = 100; // Default value if session info is not available
+        if (NetworkLobby.Instance != null)
+        {
+            SessionInfoData ssid = NetworkLobby.Instance.Sessions.Find(s => s.SessionID == worlddata.worldKey);
+            playersInSession = ssid != null ? ssid.PlayerCount : 0;
+            maxPlayersInSession = ssid != null ? ssid.MaxPlayers : 100;
+        }
+        maxPlayersInSession = 10; //for now making 100 as max players
+        playerCountTxt.text = $"{playersInSession}/{maxPlayersInSession}";
+    }
+
     public void UpdateView(WorldData t)
     {
         this.worlddata = t;

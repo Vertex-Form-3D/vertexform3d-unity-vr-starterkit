@@ -1,27 +1,35 @@
-using Photon.Pun;
-using Photon.Realtime;
+using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MultiplayerMessageHandler : MonoBehaviourPunCallbacks
+public class MultiplayerMessageHandler : MonoBehaviour, IPlayerJoined, IPlayerLeft
 {
     public GameObject messagePrefab;
+
     void Start()
     {
 
     }
 
-    public override void OnPlayerEnteredRoom(Player newPlayer)
+    public void PlayerJoined(PlayerRef player)
     {
-        ShowMessage(newPlayer.NickName + "Joined the World.", "#93FF00");
+        // Get player name from Fusion player data or use default
+        string playerName = "Player " + player.PlayerId;
+
+        // Try to get stored player name if available
+
+        ShowMessage(playerName + " Joined the World.", "#93FF00");
     }
 
-    public override void OnPlayerLeftRoom(Player otherPlayer)
+    public void PlayerLeft(PlayerRef player)
     {
-        ShowMessage(otherPlayer.NickName + "Left the World.", "#FF0000");
+        // Get player name from Fusion player data or use default
+        string playerName = "Player " + player.PlayerId;
+        ShowMessage(playerName + " Left the World.", "#FF0000");
     }
-    public void ShowMessage(string message,string colorCode = "#FF0000")
+
+    public void ShowMessage(string message, string colorCode = "#FF0000")
     {
         GameObject m = Instantiate(messagePrefab, transform);
         m.GetComponent<MessageScript>().ShowMessage(message, GetColorFromCode(colorCode));
@@ -29,7 +37,7 @@ public class MultiplayerMessageHandler : MonoBehaviourPunCallbacks
 
     Color GetColorFromCode(string colorCode)
     {
-        Color colorFromHex=Color.black;
+        Color colorFromHex = Color.black;
         ColorUtility.TryParseHtmlString(colorCode, out colorFromHex);
         return colorFromHex;
     }

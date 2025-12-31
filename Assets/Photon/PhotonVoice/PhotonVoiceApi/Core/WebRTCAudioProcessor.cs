@@ -1,4 +1,4 @@
-﻿#if (UNITY_IOS && !UNITY_EDITOR) || __IOS__
+﻿#if ((UNITY_IOS || UNITY_VISIONOS) && !UNITY_EDITOR) || __IOS__
 #define DLL_IMPORT_INTERNAL
 #endif
 
@@ -28,7 +28,7 @@ namespace Photon.Voice
         bool reverseStreamThreadRunning = false;
         Queue<short[]> reverseStreamQueue = new Queue<short[]>();
         AutoResetEvent reverseStreamQueueReady = new AutoResetEvent(false);
-        FactoryPrimitiveArrayPool<short> reverseBufferFactory;
+        ArrayPool<short> reverseBufferFactory;
 
         public int AECStreamDelayMs { set { if (reverseStreamDelayMs != value) { reverseStreamDelayMs = value; if (proc != IntPtr.Zero) setParam(Param.REVERSE_STREAM_DELAY_MS, value); } } }
         public bool AEC
@@ -72,10 +72,10 @@ namespace Photon.Voice
                 {
                     if (value < 0 || value > 90)
                     {
-                        logger.LogError("[PV] WebRTCAudioProcessor: new AGCCompressionGain value {0} not in range [0..90]", value);
+                        logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor: new AGCCompressionGain value {0} not in range [0..90]", value);
                     }
-                    else 
-                    { 
+                    else
+                    {
                         agcCompressionGain = value;
                         if (proc != IntPtr.Zero)
                         {
@@ -93,7 +93,7 @@ namespace Photon.Voice
                 {
                     if (value > 31 || value < 0)
                     {
-                        logger.LogError("[PV] WebRTCAudioProcessor: new AGCTargetLevel value {0} not in range [0..31]", value);
+                        logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor: new AGCTargetLevel value {0} not in range [0..31]", value);
                     }
                     else
                     {
@@ -110,7 +110,7 @@ namespace Photon.Voice
         {
             set
             {
-                if (bypass != value) logger.LogInfo("[PV] WebRTCAudioProcessor: setting bypass=" + value);
+                if (bypass != value) logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor: setting bypass=" + value);
                 bypass = value;
             }
             private get { return bypass; }
@@ -146,7 +146,7 @@ namespace Photon.Voice
             }
             if (!ok)
             {
-                logger.LogError("[PV] WebRTCAudioProcessor: input sampling rate ({0}) must be 8000, 16000, 32000 or 48000", samplingRate);
+                logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor: input sampling rate ({0}) must be 8000, 16000, 32000 or 48000", samplingRate);
                 disposed = true;
                 return;
             }
@@ -156,7 +156,7 @@ namespace Photon.Voice
             this.processFrameSize = samplingRate * supportedFrameLenMs / 1000;
             if (this.inFrameSize / this.processFrameSize * this.processFrameSize != this.inFrameSize)
             {
-                logger.LogError("[PV] WebRTCAudioProcessor: input frame size ({0} samples / {1} ms) must be equal to or N times more than webrtc processing frame size ({2} samples / 10 ms)", this.inFrameSize, 1000f * this.inFrameSize / samplingRate, processFrameSize);
+                logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor: input frame size ({0} samples / {1} ms) must be equal to or N times more than webrtc processing frame size ({2} samples / 10 ms)", this.inFrameSize, 1000f * this.inFrameSize / samplingRate, processFrameSize);
                 disposed = true;
                 return;
             }
@@ -166,7 +166,7 @@ namespace Photon.Voice
             this.reverseChannels = reverseChannels;
             this.proc = webrtc_audio_processor_create(samplingRate, channels, this.processFrameSize, samplingRate /* reverseSamplingRate to be converted */, reverseChannels);
             webrtc_audio_processor_init(this.proc);
-            logger.LogInfo("[PV] WebRTCAudioProcessor create sampling rate {0}, channels{1}, frame size {2}, frame samples {3}, reverseChannels {4}", samplingRate, channels, this.processFrameSize, this.inFrameSize / this.channels, this.reverseChannels);
+            logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor create sampling rate {0}, channels{1}, frame size {2}, frame samples {3}, reverseChannels {4}", samplingRate, channels, this.processFrameSize, this.inFrameSize / this.channels, this.reverseChannels);
         }
 
         bool aecInited;
@@ -181,11 +181,18 @@ namespace Photon.Voice
                         return;
                     }
 
-                    int size = processFrameSize * reverseSamplingRate / samplingRate * reverseChannels;
-                    reverseFramer = new Framer<float>(size);
-                    reverseBufferFactory = new FactoryPrimitiveArrayPool<short>(REVERSE_BUFFER_POOL_CAPACITY, "WebRTCAudioProcessor Reverse Buffers", this.inFrameSize);
+                    int size = processFrameSize * reverseChannels;
+                    if (samplingRate != reverseSamplingRate)
+                    {
+                        reverseFramer = new FramerResampler<float>(size, reverseChannels, samplingRate, reverseSamplingRate, true);
+                    }
+                    else
+                    {
+                        reverseFramer = new Framer<float>(size);
+                    }
+                    reverseBufferFactory = new ArrayPool<short>(REVERSE_BUFFER_POOL_CAPACITY, "WebRTCAudioProcessor Reverse Buffers", size);
 
-                    logger.LogInfo("[PV] WebRTCAudioProcessor Init reverse stream: frame size {0}, reverseSamplingRate {1}, reverseChannels {2}", size, reverseSamplingRate, reverseChannels);
+                    logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor Init reverse stream: frame size {0}, reverseSamplingRate {1}, reverseChannels {2}", size, reverseSamplingRate, reverseChannels);
 
                     if (!reverseStreamThreadRunning)
                     {
@@ -197,13 +204,13 @@ namespace Photon.Voice
 #else
                         var t = new Thread(ReverseStreamThread);
                         t.Start();
-                        t.Name = "WebRTCAudioProcessor reverse stream";
+                        Util.SetThreadName(t, "[PV] WebRTCProcRevStream");
 #endif
                     }
 
                     if (reverseSamplingRate != samplingRate)
                     {
-                        logger.LogWarning("[PV] WebRTCAudioProcessor AEC: output sampling rate {0} != {1} capture sampling rate. For better AEC, set audio source (microphone) and audio output samping rates to the same value.", reverseSamplingRate, samplingRate);
+                        logger.Log(LogLevel.Warning, "[PV] WebRTCAudioProcessor AEC: output sampling rate {0} != {1} capture sampling rate. For better AEC, set audio source (microphone) and audio output samping rates to the same value.", reverseSamplingRate, samplingRate);
                     }
                     aecInited = true;
                 }
@@ -218,20 +225,21 @@ namespace Photon.Voice
 
             if (buf.Length != this.inFrameSize)
             {
-                this.logger.LogError("[PV] WebRTCAudioProcessor Process: frame size expected: {0}, passed: {1}", this.inFrameSize, buf);
+                this.logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor Process: frame size expected: {0}, passed: {1}", this.inFrameSize, buf.Length);
                 return buf;
             }
             bool voiceDetected = false;
             for (int offset = 0; offset < inFrameSize; offset += processFrameSize)
             {
-                bool vd = true;
-                int err = webrtc_audio_processor_process(proc, buf, offset, out vd);
+                int err = webrtc_audio_processor_process(proc, buf, offset, out bool vd);
                 if (vd)
+                {
                     voiceDetected = true;
+                }
                 if (lastProcessErr != err)
                 {
                     lastProcessErr = err;
-                    this.logger.LogError("[PV] WebRTCAudioProcessor Process: webrtc_audio_processor_process() error {0}", err);
+                    this.logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor Process: webrtc_audio_processor_process() error {0}", err);
                     return buf;
                 }
             }
@@ -251,18 +259,12 @@ namespace Photon.Voice
         public void OnAudioOutFrameFloat(float[] data)
         {
             if (disposed) return;
+            if (!aecInited) return;
             if (proc == IntPtr.Zero) return;
             foreach (var reverseBufFloat in reverseFramer.Frame(data))
             {
                 var reverseBuf = reverseBufferFactory.New();
-                if (reverseBufFloat.Length != reverseBuf.Length)
-                {
-                    AudioUtil.ResampleAndConvert(reverseBufFloat, reverseBuf, reverseBuf.Length, this.reverseChannels);
-                }
-                else
-                {
-                    AudioUtil.Convert(reverseBufFloat, reverseBuf, reverseBuf.Length);
-                }
+                AudioUtil.Convert(reverseBufFloat, reverseBuf, reverseBuf.Length);
 
                 lock (reverseStreamQueue)
                 {
@@ -273,7 +275,7 @@ namespace Photon.Voice
                     }
                     else
                     {
-                        this.logger.LogError("[PV] WebRTCAudioProcessor Reverse stream queue overflow");
+                        this.logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor Reverse stream queue overflow");
                         this.reverseBufferFactory.Free(reverseBuf);
                     }
                 }
@@ -282,17 +284,13 @@ namespace Photon.Voice
 
         private void ReverseStreamThread()
         {
-            logger.LogInfo("[PV] WebRTCAudioProcessor: Starting reverse stream thread");
+            logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor: Starting reverse stream thread");
             reverseStreamThreadRunning = true;
             try
             {
                 while (!disposed)
                 {
                     reverseStreamQueueReady.WaitOne(); // Wait until data is pushed to the queue or Dispose signals.
-
-                    //#if UNITY_5_3_OR_NEWER
-                    //                    UnityEngine.Profiling.Profiler.BeginSample("Encoder");
-                    //#endif
 
                     while (true) // Dequeue and process while the queue is not empty
                     {
@@ -311,7 +309,7 @@ namespace Photon.Voice
                             if (lastProcessReverseErr != err)
                             {
                                 lastProcessReverseErr = err;
-                                this.logger.LogError("[PV] WebRTCAudioProcessor: OnAudioOutFrameFloat: webrtc_audio_processor_process_reverse() error {0}", err);
+                                this.logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor: OnAudioOutFrameFloat: webrtc_audio_processor_process_reverse() error {0}", err);
                             }
                         }
                         else
@@ -323,18 +321,19 @@ namespace Photon.Voice
             }
             catch (Exception e)
             {
-                this.logger.LogError("[PV] WebRTCAudioProcessor: ReverseStreamThread Exceptions: " + e);
+                this.logger.Log(LogLevel.Error, "[PV] WebRTCAudioProcessor: ReverseStreamThread Exceptions: " + e);
             }
             finally
             {
-                logger.LogInfo("[PV] WebRTCAudioProcessor: Exiting reverse stream thread");
+                logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor: Exiting reverse stream thread");
                 reverseStreamThreadRunning = false;
             }
         }
 
         private int setParam(Param param, int v)
         {
-            logger.LogInfo("[PV] WebRTCAudioProcessor: setting param " + param + "=" + v);
+            if (disposed) return 0;
+            logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor: setting param " + param + "=" + v);
             return webrtc_audio_processor_set_param(proc, (int)param, v);
         }
 
@@ -345,7 +344,7 @@ namespace Photon.Voice
                 if (!disposed)
                 {
                     disposed = true;
-                    logger.LogInfo("[PV] WebRTCAudioProcessor: destroying...");
+                    logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor: destroying...");
                     reverseStreamQueueReady.Set();
                     if (proc != IntPtr.Zero)
                     {
@@ -358,7 +357,7 @@ namespace Photon.Voice
 #endif
                         }
                         webrtc_audio_processor_destroy(proc);
-                        logger.LogInfo("[PV] WebRTCAudioProcessor: destroyed");
+                        logger.Log(LogLevel.Info, "[PV] WebRTCAudioProcessor: destroyed");
                     }
                 }
             }
@@ -425,7 +424,7 @@ namespace Photon.Voice
             NS_LEVEL = 42,
 
             AGC = 51,
-//            AGC_MODE = 52,
+            // AGC_MODE = 52,
             AGC_TARGET_LEVEL_DBFS = 55,
             AGC_COMPRESSION_GAIN = 56,
             AGC_LIMITER = 57,

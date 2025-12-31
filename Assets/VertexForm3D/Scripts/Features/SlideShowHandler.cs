@@ -1,27 +1,26 @@
-using Photon.Pun;
+using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using VertexFormCore;
 
-public class SlideShowHandler : MonoBehaviour
+public class SlideShowHandler : NetworkBehaviour
 {
     public List<GameObject> slides = new List<GameObject>();
     public int currentSlideIndex = 0;
     public Button previousButton;
     public Button nextButton;
-    public PhotonView photonView;
     public bool isNetworked = true;
+
     void Start()
     {
-        photonView = GetComponent<PhotonView>();
         previousButton.onClick.AddListener(OnTapPreviousButton);
         nextButton.onClick.AddListener(OnTapNextButton);
         UpdateButtonStates();
     }
 
-    [PunRPC]
-    public void HandleSlide(int index)
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void RPC_HandleSlide(int index)
     {
         foreach (GameObject slide in slides)
         {
@@ -33,28 +32,34 @@ public class SlideShowHandler : MonoBehaviour
 
     public void OnTapNextButton()
     {
-        NextSlide();
+        if (Object.HasInputAuthority)
+        {
+            NextSlide();
+        }
     }
 
     public void OnTapPreviousButton()
     {
-        PreviousSlide();
+        if (Object.HasInputAuthority)
+        {
+            PreviousSlide();
+        }
     }
 
-    [PunRPC]
     public void NextSlide()
     {
         if (currentSlideIndex < (slides.Count - 1))
         {
             currentSlideIndex++;
         }
-        if (VirtualRoomManager.Instance!=null)
+
+        if (VirtualRoomManager.Instance != null && isNetworked)
         {
-            photonView.RPC(nameof(HandleSlide), RpcTarget.AllBuffered, currentSlideIndex);
+            RPC_HandleSlide(currentSlideIndex);
         }
         else
         {
-            HandleSlide(currentSlideIndex);
+            HandleSlideLocal(currentSlideIndex);
         }
     }
 
@@ -64,15 +69,27 @@ public class SlideShowHandler : MonoBehaviour
         {
             currentSlideIndex--;
         }
-        if (VirtualRoomManager.Instance != null)
+
+        if (VirtualRoomManager.Instance != null && isNetworked)
         {
-            photonView.RPC(nameof(HandleSlide), RpcTarget.AllBuffered, currentSlideIndex);
+            RPC_HandleSlide(currentSlideIndex);
         }
         else
         {
-            HandleSlide(currentSlideIndex);
+            HandleSlideLocal(currentSlideIndex);
         }
     }
+
+    private void HandleSlideLocal(int index)
+    {
+        foreach (GameObject slide in slides)
+        {
+            slide.gameObject.SetActive(false);
+        }
+        slides[index].SetActive(true);
+        UpdateButtonStates();
+    }
+
     private void UpdateButtonStates()
     {
         // Disable Previous button if at first slide
@@ -82,3 +99,4 @@ public class SlideShowHandler : MonoBehaviour
         nextButton.interactable = (currentSlideIndex < slides.Count - 1);
     }
 }
+

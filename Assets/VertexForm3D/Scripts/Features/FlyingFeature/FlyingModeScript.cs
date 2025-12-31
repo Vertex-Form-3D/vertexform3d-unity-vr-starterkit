@@ -1,4 +1,4 @@
-using Photon.Pun;
+using Fusion;
 using UnityEngine;
 using UnityEngine.XR;
 using VertexFormCore;
@@ -16,26 +16,24 @@ public class FlyingModeScript : MonoBehaviour
     public float normalSensitivity = 2;
     public float intensity = .3f;
     public bool isFlying;
-    [SerializeField] PhotonView PV;
+    [SerializeField] NetworkObject networkObject;
     [SerializeField] private bool testingInEditor;
 
     private CharacterController characterController;
     public float groundCheckDistance = 0.1f;
     public bool isGrounded;
 
-
     void Start()
     {
-        if (PV != null)
+        if (networkObject != null)
         {
-            if (!PV.IsMine)
+            if (!networkObject.HasInputAuthority)
             {
                 Destroy(this);
             }
         }
         characterController = GetComponent<CharacterController>();
         _inputData = GetComponent<InputData>();
-
     }
 
     void Update()
@@ -59,30 +57,17 @@ public class FlyingModeScript : MonoBehaviour
         }
         Fly();
     }
+
     private void Fly()
     {
         if (isFlying || testingInEditor)
         {
             flydirection = leftHand.transform.forward;
-            characterController.transform.position += flydirection.normalized * flyingSpeed;
+            characterController.Move(flydirection.normalized * flyingSpeed * Time.deltaTime);
         }
         else
         {
             flyingSensitivity = normalSensitivity;
         }
-    }
-
-    bool CheckGroundWithRaycast()
-    {
-        // Perform a raycast from the character's position downwards
-        RaycastHit hit;
-        Vector3 rayOrigin = transform.position;
-        rayOrigin.y += characterController.center.y - characterController.height / 2 + characterController.skinWidth;
-
-        if (Physics.Raycast(rayOrigin, Vector3.down, out hit, groundCheckDistance))
-        {
-            return true;
-        }
-        return false;
     }
 }

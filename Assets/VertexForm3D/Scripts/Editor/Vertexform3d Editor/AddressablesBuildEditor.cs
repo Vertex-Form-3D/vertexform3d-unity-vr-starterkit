@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
@@ -15,6 +15,10 @@ public class AddressablesBuildEditor : EditorWindow
     private bool useOnlyLocalBundles = true;
     private Vector2 scrollPosition;
     private const string DEFAULT_CATALOG_PATH = "https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json";
+
+    // Label Creator constants
+    private const string LABEL_PREFIX = ""; // e.g., "Level_" → "Level_MainMenu"
+    private const string FUSION_SCENES_LABEL = "FusionScenes"; // Label for Photon Fusion scenes
 
     public static void ShowWindow()
     {
@@ -106,9 +110,33 @@ public class AddressablesBuildEditor : EditorWindow
             OpenCatalogFolder();
         }
         GUILayout.EndHorizontal();
+
+        // Asset Labeling Section
+        EditorGUILayout.Space(15);
+        EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
+        GUILayout.Label("Asset Labeling", sectionStyle);
+        EditorGUILayout.HelpBox(
+            "Select one or more assets (scenes, prefabs, etc.) in the Project window, then click the button below.\n\n" +
+            "This will:\n" +
+            "• Make each asset Addressable\n" +
+            "• Set its Address to the asset's name\n" +
+            "• Create and assign a unique label matching the asset name\n" +
+            "• Automatically add the 'FusionScenes' label to any selected scene assets (for Photon Fusion loading)",
+            MessageType.Info);
+
+        if (GUILayout.Button(new GUIContent("Assign Labels to Selected Assets",
+            "Creates a label based on each selected asset's name, sets its address, and adds 'FusionScenes' label to scenes."),
+            buttonStyle, GUILayout.Height(40)))
+        {
+            AssignLabelsToSelectedAssets();
+        }
+
+        EditorGUILayout.Space(5);
+        EditorGUILayout.EndVertical();
+
         EditorGUILayout.Space(10);
 
-        // Delivery Mode Section
+        // Bundle Delivery Mode
         EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
         GUILayout.Label("Bundle Delivery Mode", sectionStyle);
         EditorGUILayout.HelpBox("Choose whether to use local bundles (included in the .apk) or remote bundles (hosted on a cloud server). Changing this setting requires clearing the build cache to avoid issues.", MessageType.Info);
@@ -121,7 +149,7 @@ public class AddressablesBuildEditor : EditorWindow
         EditorGUILayout.Space(10);
         EditorGUILayout.EndVertical();
 
-        // Local Delivery Section
+        // Local Delivery
         EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
         GUILayout.Label("Local Delivery", sectionStyle);
         EditorGUILayout.HelpBox(
@@ -136,7 +164,7 @@ public class AddressablesBuildEditor : EditorWindow
         EditorGUILayout.Space(5);
         EditorGUILayout.EndVertical();
 
-        // Remote Delivery Section
+        // Remote Delivery
         EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
         GUILayout.Label("Remote Delivery", sectionStyle);
         EditorGUILayout.HelpBox(
@@ -150,7 +178,7 @@ public class AddressablesBuildEditor : EditorWindow
         EditorGUILayout.Space(5);
         EditorGUILayout.EndVertical();
 
-        // Catalog Settings Section
+        // Catalog Settings
         EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
         GUILayout.Label("Catalog Settings", sectionStyle);
         EditorGUILayout.HelpBox(
@@ -166,7 +194,7 @@ public class AddressablesBuildEditor : EditorWindow
         EditorGUILayout.Space(5);
         EditorGUILayout.EndVertical();
 
-        // Clear Cache Section
+        // Cache Management
         EditorGUILayout.BeginVertical("box", GUILayout.ExpandWidth(true));
         GUILayout.Label("Cache Management", sectionStyle);
         EditorGUILayout.HelpBox(
@@ -182,6 +210,98 @@ public class AddressablesBuildEditor : EditorWindow
         EditorGUILayout.Space(10);
         EditorGUILayout.EndScrollView();
     }
+
+    // ===================================================================
+    // Integrated Label Creator Method - FIXED TO AVOID FUSION CRASH
+    // ===================================================================
+    private void AssignLabelsToSelectedAssets()
+    {
+        var selectedObjects = Selection.objects;
+        if (selectedObjects == null || selectedObjects.Length == 0)
+        {
+            EditorUtility.DisplayDialog("No Selection", "Please select one or more assets in the Project window before using this function.", "OK");
+            return;
+        }
+
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null)
+        {
+            EditorUtility.DisplayDialog("Error", "Addressable Asset Settings not found. Please initialize Addressables first.", "OK");
+            return;
+        }
+
+        // Ensure FusionScenes label exists
+        if (!settings.GetLabels().Contains(FUSION_SCENES_LABEL))
+        {
+            settings.AddLabel(FUSION_SCENES_LABEL);
+            UnityEngine.Debug.Log($"Created missing label: '{FUSION_SCENES_LABEL}'");
+        }
+
+        int successCount = 0;
+
+        foreach (Object selectedObject in selectedObjects)
+        {
+            string assetPath = AssetDatabase.GetAssetPath(selectedObject);
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                UnityEngine.Debug.LogWarning($"Invalid asset: {selectedObject.name}");
+                continue;
+            }
+
+            string guid = AssetDatabase.AssetPathToGUID(assetPath);
+            if (string.IsNullOrEmpty(guid)) continue;
+
+            string assetName = selectedObject.name;
+            string customLabel = $"{LABEL_PREFIX}{assetName}";
+            string address = assetName;
+
+            // Create or find entry
+            var entry = settings.FindAssetEntry(guid) ?? CreateEntry(settings, guid, assetPath);
+
+            if (entry == null)
+            {
+                UnityEngine.Debug.LogError($"Failed to create Addressable entry for {assetName}");
+                continue;
+            }
+
+            // Add custom label
+            if (!settings.GetLabels().Contains(customLabel))
+                settings.AddLabel(customLabel);
+
+            entry.SetLabel(customLabel, true, true);
+            entry.address = address;
+
+            // Special handling for scenes
+            if (assetPath.EndsWith(".unity"))
+            {
+                entry.SetLabel(FUSION_SCENES_LABEL, true, true);
+                UnityEngine.Debug.Log($"Scene detected: Added '{FUSION_SCENES_LABEL}' label to '{assetName}'");
+            }
+
+            UnityEngine.Debug.Log($"Addressable updated: {assetName} → Address: '{address}', Labels: {string.Join(", ", entry.labels)}");
+            successCount++;
+        }
+
+        // SAFE SAVE: Avoids triggering Photon Fusion's internal monitor bug
+        EditorUtility.SetDirty(settings);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        EditorUtility.DisplayDialog("Success",
+            $"Successfully processed {successCount}/{selectedObjects.Length} assets.\nScene assets were also tagged with '{FUSION_SCENES_LABEL}'.", "OK");
+    }
+
+    private AddressableAssetEntry CreateEntry(AddressableAssetSettings settings, string guid, string assetPath)
+    {
+        var defaultGroup = settings.DefaultGroup ?? settings.CreateGroup("Default Local Group", false, false, true, null);
+        var entry = settings.CreateOrMoveEntry(guid, defaultGroup, false, false);
+        entry.address = Path.GetFileNameWithoutExtension(assetPath);
+        return entry;
+    }
+
+    // ===================================================================
+    // Existing methods (unchanged)
+    // ===================================================================
 
     private void CreateRemoteGroup()
     {
@@ -231,7 +351,7 @@ public class AddressablesBuildEditor : EditorWindow
             pso.projectData.addressableCatalogFilePath = string.IsNullOrEmpty(addressableCatalogFilePath) ? DEFAULT_CATALOG_PATH : addressableCatalogFilePath;
             pso.projectData.catalogFileName = string.IsNullOrEmpty(catalogFileName) ? "VertexForm3DAddressablesCatalog" : catalogFileName;
             EditorUtility.SetDirty(pso);
-            UnityEngine.Debug.Log($" Mischief managed! Catalog settings saved: Path = {pso.projectData.addressableCatalogFilePath}, Name = {pso.projectData.catalogFileName}");
+            UnityEngine.Debug.Log($"Mischief managed! Catalog settings saved: Path = {pso.projectData.addressableCatalogFilePath}, Name = {pso.projectData.catalogFileName}");
         }
         else
         {
@@ -299,7 +419,6 @@ public class AddressablesBuildEditor : EditorWindow
         foreach (var file in files)
         {
             string directory = Path.GetDirectoryName(file);
-            string extension = Path.GetExtension(file);
             if (file.Contains(".hash"))
             {
                 File.Move(file, Path.Combine(directory, $"{newCatalogName}.hash"));
@@ -349,7 +468,8 @@ public class AddressablesBuildEditor : EditorWindow
     {
         Caching.ClearCache();
         PlayerPrefs.DeleteAll();
-        Addressables.CleanBundleCache().Completed += handle => UnityEngine.Debug.Log("Cache cleared.");
+        Addressables.ClearResourceLocators();
+        UnityEngine.Debug.Log("Cache cleared.");
     }
 
     private void OpenCatalogFolder()

@@ -11,82 +11,108 @@
 
 namespace Photon.Voice.Unity
 {
-    using ExitGames.Client.Photon;
     using UnityEngine;
 
+    // All Voice components should inherit this class. If this is not possible, reimplenet it directly in the component.
     [HelpURL("https://doc.photonengine.com/en-us/voice/v2")]
-    public abstract class VoiceComponent : MonoBehaviour, ILoggableDependent
+    public abstract class VoiceComponent : MonoBehaviour
     {
-        private VoiceLogger logger;
-
-        public VoiceLogger Logger
-        {
-            get
-            {
-                if (this.logger == null)
-                {
-                    this.logger = new VoiceLogger(this, string.Format("{0}.{1}", this.name, this.GetType().Name), this.logLevel);
-                }
-                return this.logger;
-            }
-            protected set { this.logger = value; }
-        }
-
-        [SerializeField]
-        protected DebugLevel logLevel = DebugLevel.INFO;
-        public DebugLevel LogLevel
-        {
-            get
-            {
-                if (this.Logger != null)
-                {
-                    this.logLevel = this.Logger.LogLevel;
-                }
-                return this.logLevel;
-            }
-            set
-            {
-                this.logLevel = value;
-                if (this.Logger == null)
-                {
-                    return;
-                }
-                this.Logger.LogLevel = this.logLevel;
-            }
-        }
-
-        [SerializeField, HideInInspector]
-        private bool ignoreGlobalLogLevel;
-
-        public bool IgnoreGlobalLogLevel
-        {
-            get { return this.ignoreGlobalLogLevel; }
-            set { this.ignoreGlobalLogLevel = value; }
-        }
-
-        private static string currentPlatform;
-        public static string CurrentPlatform
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(currentPlatform))
-                {
-                    #if UNITY_EDITOR
-                    currentPlatform = System.Enum.GetName(typeof(UnityEditor.BuildTarget), UnityEditor.EditorUserBuildSettings.activeBuildTarget);
-                    #else
-                    currentPlatform = System.Enum.GetName(typeof(RuntimePlatform), Application.platform);
-                    #endif
-                }
-                return currentPlatform;
-            }
-        }
+        VoiceComponentImpl impl = new VoiceComponentImpl();
 
         protected virtual void Awake()
         {
-            if (this.logger == null)
+            impl.Awake(this);
+        }
+
+        protected Voice.ILogger Logger => impl.Logger;
+
+        // to set logging level from code
+        public VoiceLogger VoiceLogger => impl.VoiceLogger;
+
+        public string Name
+        {
+            set
             {
-                this.logger = new VoiceLogger(this, string.Format("{0}.{1}", this.name, this.GetType().Name), this.logLevel);
+                name = value;
+                impl.Name = value;
             }
+        }
+    }
+
+    // Voice.ILogger implementation logging via static UnityLogger or VoiceLogger instance if the latter is set by VoiceComponent in Awake()
+    public class VoiceComponentImpl
+    {
+        class LoggerImpl : Voice.ILogger
+        {
+            VoiceLogger voiceLogger;
+            LogLevel voiceLoggerLastLevel; // used if voiceLogger is already destroyed during scene unload
+            Object obj;
+            // name cache required because obj.name is available only on the main thread
+            string objName;
+            string tag = "INIT";
+
+            public void SetVoiceLogger(VoiceLogger voiceLogger, Object obj, string tag)
+            {
+                this.voiceLogger = voiceLogger;
+                this.voiceLoggerLastLevel = voiceLogger.LogLevel;
+                this.obj = obj;
+                this.tag = tag;
+            }
+
+            public void SetObjName(string n)
+            {
+                objName = n;
+            }
+
+            public LogLevel Level => voiceLogger ? voiceLogger.LogLevel : voiceLoggerLastLevel;
+            public void Log(LogLevel level, string fmt, params object[] args)
+            {
+                if (voiceLogger != null)
+                {
+                    if (voiceLogger.LogLevel >= level)
+                    {
+                        UnityLogger.Log(level, obj, tag, objName, fmt, args);
+                    }
+                    voiceLoggerLastLevel = voiceLogger.LogLevel;
+                }
+                else
+                {
+                    if (voiceLoggerLastLevel >= level)
+                    {
+                        UnityLogger.Log(level, obj, tag, objName, fmt, args);
+                    }
+                }
+            }
+        }
+
+        private VoiceLogger voiceLogger;
+
+        private LoggerImpl logger = new LoggerImpl();
+
+        public Voice.ILogger Logger => logger;
+
+        public VoiceLogger VoiceLogger => voiceLogger;
+
+        public string Name
+        {
+            set
+            {
+                logger.SetObjName(value);
+            }
+        }
+
+        public void Awake(MonoBehaviour mb)
+        {
+            voiceLogger = VoiceLogger.FindLogger(mb.gameObject);
+            if (voiceLogger == null)
+            {
+                // logging this message with just created voiceLogger produces confusing items relevant to mb only
+                logger.Log(LogLevel.Warning, "VoiceLogger object is not found in the scene. Creating one.");
+                voiceLogger = VoiceLogger.CreateRootLogger();
+            }
+
+            logger.SetVoiceLogger(voiceLogger, mb, mb.GetType().Name);
+            logger.SetObjName(mb.name);
         }
     }
 }

@@ -12,18 +12,10 @@ public class CesiumWorldManager : MonoBehaviour
 
     void Start()
     {
-        cesiumWorld = SceneLoader.Instance.cesiumWorldClass;
-        SetLatLong();
+        
     }
 
-    /*void Update()
-    {
-        if (changeLatLong)
-        {
-            SetLatLong();
-            changeLatLong = false;
-        }
-    }*/
+
     public void SetLatLong()
     {
         georeference.latitude = cesiumWorld.latitude;

@@ -1,4 +1,4 @@
-using Photon.Pun;
+using Fusion;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using VertexFormCore;
@@ -25,20 +25,23 @@ public class SceneSwitcherTeleport : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponent<PhotonView>() != null)
+        // Check for Fusion NetworkObject
+        if (other.GetComponent<NetworkObject>() != null)
         {
-            if (other.GetComponent<PlayerNetworkSetup>() != null&& other.GetComponent<PhotonView>().IsMine)
+            var networkObject = other.GetComponent<NetworkObject>();
+            if (other.GetComponent<PlayerNetworkSetup>() != null && networkObject.HasInputAuthority)
             {
                 Invoke(nameof(SwitchScene), 1f);
             }
         }
         else
         {
-            if (other.GetComponent<XROrigin>()!=null)
+            // Fallback for non-networked XR Origin (local play)
+            if (other.GetComponent<XROrigin>() != null)
             {
                 Invoke(nameof(SwitchScene), 1f);
             }
         }
-        
+
     }
 }

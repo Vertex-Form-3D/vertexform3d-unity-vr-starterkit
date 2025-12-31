@@ -67,6 +67,12 @@ namespace VertexFormCore.Editor
                 "Add XR Device Simulator",
                 "To do testing in unity editor",
                 AddXRDeviceSimulator));
+            
+            items.Add(new ToolkitItem(
+                "Local XR Rig",
+                "Add Local XR Rig",
+                "To do testing in unity editor",
+                AddLocalXRRig));
 
             items.Add(new ToolkitItem(
                 "Create Network Sync Event",
@@ -133,6 +139,12 @@ namespace VertexFormCore.Editor
             EditorGUIUtility.PingObject(g);
         }
 
+        public void AddLocalXRRig()
+        {
+            GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/Complete XR Origin"));
+            g.name = "LocalXRRig";
+            EditorGUIUtility.PingObject(g);
+        }
         public void MakeThisHomeScene()
         {
             GameObject homescene = GameObject.Find("HomeSceneComponent");

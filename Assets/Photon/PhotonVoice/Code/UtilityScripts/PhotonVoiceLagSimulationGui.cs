@@ -33,7 +33,7 @@ namespace Photon.Voice.Unity.UtilityScripts
 
         private float debugLostPercent;
 
-        public void OnEnable()
+        public void Start()
         {
             VoiceConnection[] voiceConnections = this.GetComponents<VoiceConnection>();
             if (voiceConnections == null || voiceConnections.Length == 0)

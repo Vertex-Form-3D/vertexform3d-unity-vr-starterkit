@@ -1,12 +1,11 @@
 using System.Collections;
 using UnityEngine;
-using Photon.Pun;
-using Photon.Realtime;
 using VertexFormCore;
+using UnityEngine.SceneManagement;
 
 namespace VertexFormCore
 {
-    public class VirtualRoomManager : MonoBehaviourPunCallbacks
+    public class VirtualRoomManager : MonoBehaviour
     {
         public static VirtualRoomManager Instance;
 
@@ -22,43 +21,48 @@ namespace VertexFormCore
 
         public void LeaveRoomAndLoadHomeScene()
         {
-            SpawnManager.Instance.ShowLoaclTempVRPlayer(true);
-            if (PhotonNetwork.InRoom)
+            RoomManager.Instance.ShowLocalTempVRPlayer(true);
+
+            // Use Fusion RoomManager to leave room
+            if (RoomManager.Instance != null)
             {
-                PhotonNetwork.LeaveRoom();
+                RoomManager.Instance.LeaveRoom();
             }
-            StartCoroutine(WaitToLeve());
+
+            StartCoroutine(WaitToLeave());
         }
 
-        IEnumerator WaitToLeve()
+        IEnumerator WaitToLeave()
         {
-            Debug.Log("0-> left room");
+            Debug.Log("0-> Leaving Fusion room");
 
-            while (PhotonNetwork.InRoom)
+            // Wait for Fusion runner to shutdown
+            while (RoomManager.Instance != null && RoomManager.Instance.Runner != null && RoomManager.Instance.Runner.IsClient)
             {
-                Debug.Log("0-> cannot leave room");
-
+                Debug.Log("0-> Waiting for Fusion room to disconnect");
                 yield return new WaitForSeconds(1f);
             }
-            PhotonNetwork.Disconnect();
+
+            Debug.Log("1-> Successfully left Fusion room");
+            LoadHomeScene();
         }
 
-        #region Photon Callback Methods
-        public override void OnPlayerEnteredRoom(Player newPlayer)
+        private void LoadHomeScene()
         {
-            Debug.Log(newPlayer.NickName + " joined to: " + PhotonNetwork.CurrentRoom.PlayerCount);
+            Debug.Log("2-> Loading home scene");
+            SceneManager.LoadScene(1); // Load scene at index 1 (home scene)
         }
 
-        public override void OnLeftRoom()
+        // Method to handle when a player joins (can be called by RoomManager)
+        public void OnPlayerJoinedRoom(string playerName, int totalPlayers)
         {
-            Debug.Log("1-> left room");
+            Debug.Log($"{playerName} joined room. Total players: {totalPlayers}");
         }
 
-        public override void OnDisconnected(DisconnectCause cause)
+        // Method to handle when a player leaves (can be called by RoomManager)
+        public void OnPlayerLeftRoom(int remainingPlayers)
         {
-            Debug.Log("2-> disconnected");
-            PhotonNetwork.LoadLevel(1);
+            Debug.Log($"Player left room. Remaining players: {remainingPlayers}");
         }
-        #endregion!
     }
 }

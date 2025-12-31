@@ -1,10 +1,9 @@
-using Photon.Pun;
 using UnityEngine;
 
 public class ProjectManager : MonoBehaviour
 {
     public ProjectDataScriptableObject projectDataSO;
-
+    public static string UserName;
     public static ProjectManager instance;
 
     private void Awake()
@@ -19,11 +18,11 @@ public class ProjectManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
     void Start()
     {
         SetUpLogSetting();
     }
-
 
     public void SetUpLogSetting()
     {

@@ -1,5 +1,6 @@
-﻿using Photon.Pun;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 namespace VertexFormCore
 {
@@ -8,12 +9,40 @@ namespace VertexFormCore
         [SerializeField]
         GameObject AvatarSelectionPlatformGameobject;
 
-
+        public Button RPMButton;
+        public Button customAvatarButton;
+        public Button previousButton;
+        public Button nextButton;
         public GameObject[] selectableAvatarModels;
         public GameObject[] loadableAvatarModels;
 
+        [Header("Custom Avatar Properties")]
+        public Transform headTransform;
+        public Transform bodyTransform;
+        public Transform leftHandTransform;
+        public Transform rightHandTransform;
+        public Transform headParent;
+        public Transform bodyParent;
+        public Transform leftHandParent;
+        public Transform rightHandParent;
+        public CustomAvatarScriptable customAvatarScriptable;
+        public GameObject customAvatarSelection;
+        public GameObject customAvatarSelectionUI;
+        public AvatarHolder customavatarloader;
+        [Header("Custom Avatar Properties")]
+        public string defaultRPMAvatarURL = "https://models.readyplayer.me/68e20ad9263ebdf61cfa83e2.glb";
+        public LoadRPMAvatar RPMAvatarLoader;
+        public GameObject readyPlayerMeSelection;
+        public GameObject readyPlayerMeSelectionUI;
+        public bool isRPM;
+        public XRInputModalityManager XRIMM;
         public int avatarSelectionNumber = 0;
-
+        public Renderer leftHandVisual;
+        public Renderer rightHandVisual;
+        public GameObject AvatarButtonParent;
+        public GameObject bottomButtonParent;
+        public GameObject avatarSelectionCanvas;
+        public GameObject mainUICanvas;
         public AvatarInputConverter avatarInputConverter;
 
 
@@ -24,41 +53,175 @@ namespace VertexFormCore
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance == null)
             {
-                Destroy(this.gameObject);
-                return;
+                Instance = this;
             }
+        }
 
-            Instance = this;
+
+        public void OnTapChangeAvatar()
+        {
+            AvatarButtonParent.SetActive(true);
+            bottomButtonParent.SetActive(false);
+            mainUICanvas.SetActive(false);
+            avatarSelectionCanvas.SetActive(true);
+        }
+
+        public void OnCloseAvatarSelection()
+        {
+            AvatarButtonParent.SetActive(false);
+            bottomButtonParent.SetActive(true);
+            mainUICanvas.SetActive(true);
+            avatarSelectionCanvas.SetActive(false);
         }
 
         private void Start()
         {
             ////Initially, de-activating the Avatar Selection Platform.
             //AvatarSelectionPlatformGameobject.SetActive(false);
-
-            object storedAvatarSelectionNumber;
-            if (PhotonNetwork.LocalPlayer.CustomProperties.TryGetValue(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER, out storedAvatarSelectionNumber))
+            previousButton.onClick.AddListener(() =>
             {
-                Debug.Log("Stored avatar selection number: " + (int)storedAvatarSelectionNumber);
-                avatarSelectionNumber = (int)storedAvatarSelectionNumber;
-                ActivateAvatarModelAt(avatarSelectionNumber);
-                LoadAvatarModelAt(avatarSelectionNumber);
+                PreviousAvatar();
+            });
+
+            nextButton.onClick.AddListener(() =>
+            {
+                NextAvatar();
+            });
+
+            RPMButton.onClick.AddListener(() =>
+            {
+                OnTapReadyPlayerMeAvatarSelection();
+            });
+
+            customAvatarButton.onClick.AddListener(() =>
+            {
+                OnTapCustomAvatarSelection();
+            });
+            InitializeAvatarSystem();
+            HandAndControllerSync();
+        }
+
+        private void HandAndControllerSync()
+        {
+            XRIMM.trackedHandModeStarted.AddListener(OnTrackedHandModeStarted);
+            XRIMM.trackedHandModeEnded.AddListener(OnTrackedHandModeEnded);
+            XRIMM.motionControllerModeStarted.AddListener(OnMotionControllerModeStarted);
+            XRIMM.motionControllerModeEnded.AddListener(OnMotionControllerModeEnded);
+            if (XRIMM.leftController.activeInHierarchy || XRIMM.rightController.activeInHierarchy)
+            {
+                OnMotionControllerModeStarted();
             }
             else
             {
-                avatarSelectionNumber = 0;
-                ActivateAvatarModelAt(avatarSelectionNumber);
-                LoadAvatarModelAt(avatarSelectionNumber);
+                OnTrackedHandModeStarted();
             }
+        }
 
+
+        private void OnMotionControllerModeStarted()
+        {
+            leftHandParent.gameObject.SetActive(!isRPM);
+            rightHandParent.gameObject.SetActive(!isRPM);
+        }
+
+        private void OnMotionControllerModeEnded()
+        {
 
         }
 
-        public void ActivateAvatarSelectionPlatform()
+        private void OnTrackedHandModeEnded()
         {
-            AvatarSelectionPlatformGameobject.SetActive(true);
+
+        }
+
+        private void OnTrackedHandModeStarted()
+        {
+            if (!isRPM)
+            {
+                leftHandVisual.enabled = rightHandVisual.enabled = true;
+            }
+            else
+            {
+                leftHandVisual.enabled = rightHandVisual.enabled = false;
+            }
+            leftHandParent.gameObject.SetActive(false);
+            rightHandParent.gameObject.SetActive(false);
+        }
+
+        public void InitializeAvatarSystem()
+        {
+            isRPM = PlayerPrefs.GetString("IS_RPM") == "true";
+            if (isRPM)
+            {
+                if (!string.IsNullOrEmpty(PlayerPrefs.GetString("RPM_AVATAR_ID")))
+                {
+
+                    RPMAvatarLoader.LoadAvatar(PlayerPrefs.GetString("RPM_AVATAR_ID"));
+                }
+                else
+                {
+                    RPMAvatarLoader.LoadAvatar(defaultRPMAvatarURL);
+                }
+                OnTapReadyPlayerMeAvatarSelection();
+            }
+            else
+            {
+                OnTapCustomAvatarSelection();
+            }
+        }
+        public void OnTapCustomAvatarSelection()
+        {
+            PlayerPrefs.SetString("IS_RPM", "false");
+            isRPM = false;
+            avatarSelectionNumber = PlayerPrefs.GetInt(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER);
+            ActivateAvatarModelAt(avatarSelectionNumber);
+            customAvatarButton.gameObject.SetActive(false);
+            RPMButton.gameObject.SetActive(true);
+            RPMButton.gameObject.SetActive(true);
+            customAvatarSelection.SetActive(true);
+            customAvatarSelectionUI.SetActive(true);
+            readyPlayerMeSelection.SetActive(false);
+            readyPlayerMeSelectionUI.SetActive(false);
+            if (customAvatarSelectionUI.activeInHierarchy)
+            {
+                leftHandVisual.enabled = rightHandVisual.enabled = true;
+            }
+            else
+            {
+                leftHandVisual.enabled = rightHandVisual.enabled = false;
+            }
+            leftHandParent.gameObject.SetActive(XRIMM.leftController.activeInHierarchy);
+            rightHandParent.gameObject.SetActive(XRIMM.rightController.activeInHierarchy);
+        }
+
+        public void OnTapReadyPlayerMeAvatarSelection()
+        {
+            if (PlayerPrefs.GetString("IS_RPM") == "false")
+            {
+                string defaultURL = RPMAvatarLoader.defaultAvatarUrl;
+                PlayerPrefs.SetString("RPM_AVATAR_ID", defaultURL);
+                Debug.Log("Loading Default RPM Avatar:" + RPMAvatarLoader.defaultAvatarUrl);
+                RPMAvatarLoader.LoadAvatar(defaultRPMAvatarURL);
+                PlayerPrefs.SetString("IS_RPM", "true");
+            }
+            customAvatarButton.gameObject.SetActive(true);
+            RPMButton.gameObject.SetActive(false);
+            isRPM = true;
+            leftHandVisual.enabled = rightHandVisual.enabled = false;
+            customAvatarSelection.SetActive(false);
+            customAvatarSelectionUI.SetActive(false);
+            readyPlayerMeSelection.SetActive(true);
+            readyPlayerMeSelectionUI.SetActive(true);
+            if (customAvatarSelectionUI.activeInHierarchy)
+            {
+                leftHandVisual.enabled = rightHandVisual.enabled = true;
+            }
+            else
+            {
+                leftHandVisual.enabled = rightHandVisual.enabled = false;
+            }
         }
 
         public void DeactivateAvatarSelectionPlatform()
@@ -70,10 +233,13 @@ namespace VertexFormCore
         public void NextAvatar()
         {
             avatarSelectionNumber += 1;
-            if (avatarSelectionNumber >= selectableAvatarModels.Length)
+            if (avatarSelectionNumber >= customAvatarScriptable.avatarDatas.Count)
             {
                 avatarSelectionNumber = 0;
             }
+
+            PlayerPrefs.SetInt(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER, avatarSelectionNumber);
+            PlayerPrefs.SetString("IS_RPM", "false");
             ActivateAvatarModelAt(avatarSelectionNumber);
 
         }
@@ -84,8 +250,10 @@ namespace VertexFormCore
 
             if (avatarSelectionNumber < 0)
             {
-                avatarSelectionNumber = selectableAvatarModels.Length - 1;
+                avatarSelectionNumber = customAvatarScriptable.avatarDatas.Count - 1;
             }
+            PlayerPrefs.SetInt(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER, avatarSelectionNumber);
+            PlayerPrefs.SetString("IS_RPM", "false");
             ActivateAvatarModelAt(avatarSelectionNumber);
 
         }
@@ -96,39 +264,29 @@ namespace VertexFormCore
         /// <param name="avatarIndex"></param>
         private void ActivateAvatarModelAt(int avatarIndex)
         {
-            foreach (GameObject selectableAvatarModel in selectableAvatarModels)
-            {
-                selectableAvatarModel.SetActive(false);
-            }
+            ClearChildren(headParent);
+            ClearChildren(headTransform);
+            ClearChildren(bodyTransform);
+            ClearChildren(bodyParent);
+            GameObject body = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].body);
+            body.transform.SetParent(bodyParent, false);
+            GameObject head = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].head);
+            head.transform.SetParent(headParent, false);
 
-            selectableAvatarModels[avatarIndex].SetActive(true);
-            Debug.Log(avatarSelectionNumber);
-
-            LoadAvatarModelAt(avatarSelectionNumber);
+            GameObject body1 = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].body);
+            body1.transform.SetParent(bodyTransform, false);
+            GameObject head1 = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].head);
+            head1.transform.SetParent(headTransform, false);
+            body.transform.localPosition = body1.transform.localPosition = head.transform.localPosition = head1.transform.localPosition = Vector3.zero;
+            customavatarloader.SetAvatar(head1, body1, true);
         }
 
-        /// <summary>
-        /// Loads the Avatar Model and integrates into the VR Player Controller gameobject
-        /// </summary>
-        /// <param name="avatarIndex"></param>
-        private void LoadAvatarModelAt(int avatarIndex)
+        void ClearChildren(Transform tr)
         {
-            foreach (GameObject loadableAvatarModel in loadableAvatarModels)
+            foreach (Transform child in tr)
             {
-                loadableAvatarModel.SetActive(false);
+                Destroy(child.gameObject);
             }
-
-            loadableAvatarModels[avatarIndex].SetActive(true);
-
-            avatarInputConverter.MainAvatarTransform = loadableAvatarModels[avatarIndex].GetComponent<AvatarHolder>().MainAvatarTransform;
-
-            avatarInputConverter.AvatarBody = loadableAvatarModels[avatarIndex].GetComponent<AvatarHolder>().BodyTransform;
-            avatarInputConverter.AvatarHead = loadableAvatarModels[avatarIndex].GetComponent<AvatarHolder>().HeadTransform;
-            avatarInputConverter.AvatarHand_Left = loadableAvatarModels[avatarIndex].GetComponent<AvatarHolder>().HandLeftTransform;
-            avatarInputConverter.AvatarHand_Right = loadableAvatarModels[avatarIndex].GetComponent<AvatarHolder>().HandRightTransform;
-
-            ExitGames.Client.Photon.Hashtable playerSelectionProp = new ExitGames.Client.Photon.Hashtable() { { MultiplayerVRConstants.AVATAR_SELECTION_NUMBER, avatarSelectionNumber } };
-            PhotonNetwork.LocalPlayer.SetCustomProperties(playerSelectionProp);
         }
     }
 }

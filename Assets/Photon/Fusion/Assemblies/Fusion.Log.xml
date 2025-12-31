@@ -1,0 +1,1553 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Fusion.Log</name>
+    </assembly>
+    <members>
+        <member name="T:Fusion.FilteringLogStream">
+            <summary>
+            A proxy log streams that allows for filtering messages. Note that filtering is applied after the message is formatted,
+            so it is really mostly suitable for Unit tests.
+            </summary>
+        </member>
+        <member name="M:Fusion.FilteringLogStream.#ctor(System.String,Fusion.LogStream)">
+            <param name="filter">If a message contains this, it will not be logged</param>
+            <param name="actualLogStream">The actual log stream that will consume filtered messages</param>
+        </member>
+        <member name="M:Fusion.FilteringLogStream.Log(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Fusion.FilteringLogStream.Log(System.String,System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Fusion.FilteringLogStream.Log(System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Fusion.FilteringLogStream.Log(Fusion.ILogSource,System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Fusion.FilteringLogStream.Log(Fusion.ILogSource,System.String,System.Exception)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Fusion.FusionEditorLog">
+            <summary>
+            A logger that writes logs to the Unity console with the purpose of being used in the Unity Editor.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceConfig(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE is defined. Use in the Config context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.WarnConfig(System.String)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined. Use in the Config context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.LogConfig(System.String)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined. Use in the Config context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.ErrorConfig(System.String)">
+            <summary>
+            Logs an errpr to the Unity console if UNITY_EDITOR is defined. Use in the Config context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceInstaller(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE is defined. Use in the Installer context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.WarnInstaller(System.String)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined. Use in the Installer context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.LogInstaller(System.String)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined. Use in the Installer context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.ErrorInstaller(System.String)">
+            <summary>
+            Logs an errpr to the Unity console if UNITY_EDITOR is defined. Use in the Installer context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.SetPrefixColor(UnityEngine.Color32)">
+            <summary>
+            Sets the color of the prefix.
+            </summary>
+            <param name="c"></param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Initialize(System.Boolean)">
+            <summary>
+            Ensures the logger is initialized. Call in the main thread if you want to log from a different thread.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Assert(System.Boolean,System.String)">
+            <summary>
+            Logs an assertion with a message if the condition is <c>><see langword="false"/></c> and UNITY_ASSERTIONS is defined.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="message">An error message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Assert(System.Boolean)">
+            <summary>
+            Logs an assertion if the condition is <c>><see langword="false"/></c> and UNITY_ASSERTIONS is defined.
+            </summary>
+            <param name="condition">Value to check</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceImport(System.String,System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE is defined. Used in the import process.
+            </summary>
+            <param name="assetPath">Asset being imported</param>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.WarnImport(System.String,System.String)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined. Used in the import process.
+            </summary>
+            <param name="assetPath">Asset being imported</param>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.LogImport(System.String,System.String)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined. Used in the import process.
+            </summary>
+            <param name="assetPath">Asset being imported</param>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.ErrorImport(System.String,System.String)">
+            <summary>
+            Logs an error to the Unity console if UNITY_EDITOR is defined. Used in the import process.
+            </summary>
+            <param name="assetPath">Asset being imported</param>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceImport(System.String,UnityEngine.Object)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE is defined. Used in the import process.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="asset">Asset being imported</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.WarnImport(System.String,UnityEngine.Object)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined. Used in the import process.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="asset">Asset being imported</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.LogImport(System.String,UnityEngine.Object)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined. Used in the import process.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="asset">Asset being imported</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.ErrorImport(System.String,UnityEngine.Object)">
+            <summary>
+            Logs an error to the Unity console if UNITY_EDITOR is defined. Used in the import process.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="asset">Asset being imported</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Warn(System.String,UnityEngine.Object)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="obj">The source of the message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Log(System.String,UnityEngine.Object)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="obj">The source of the message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Error(System.String,UnityEngine.Object)">
+            <summary>
+            Logs an error to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="msg">A message</param>
+            <param name="obj">The source of the message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Exception(System.String,System.Exception)">
+            <summary>
+            Logs an exception to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="message">A message to log before the exception.</param>
+            <param name="ex">The exception to log</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Exception(System.Exception)">
+            <summary>
+            Logs an exception to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="ex">The exception to log</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Trace(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE is defined.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Warn(System.String)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Log(System.String)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.Error(System.String)">
+            <summary>
+            Logs an errpr to the Unity console if UNITY_EDITOR is defined.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceImport(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE_IMPORT is defined. Use in the Import context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.WarnImport(System.String)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined. Use in the Import context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.LogImport(System.String)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined. Use in the Import context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.ErrorImport(System.String)">
+            <summary>
+            Logs an errpr to the Unity console if UNITY_EDITOR is defined. Use in the Import context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceInspector(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE_INSPECTOR is defined. Use in the Inspector context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.WarnInspector(System.String)">
+            <summary>
+            Logs a warning to the Unity console if UNITY_EDITOR is defined. Use in the Inspector context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.LogInspector(System.String)">
+            <summary>
+            Logs a message to the Unity console if UNITY_EDITOR is defined. Use in the Inspector context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.ErrorInspector(System.String)">
+            <summary>
+            Logs an errpr to the Unity console if UNITY_EDITOR is defined. Use in the Inspector context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceTest(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE_TEST is defined. Use in the Test context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="M:Fusion.FusionEditorLog.TraceMppm(System.String)">
+            <summary>
+            Logs a message to the Unity console if FUSION_EDITOR_TRACE_MPPM is defined. Use in the Mppm context.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="T:Fusion.AssertException">
+            <summary>
+            An exception that is thrown when an assertion fails.
+            </summary>
+        </member>
+        <member name="M:Fusion.AssertException.#ctor">
+            <summary>
+            Creates a new instance of the exception.
+            </summary>
+        </member>
+        <member name="M:Fusion.AssertException.#ctor(System.String)">
+            <summary>
+            Creates a new instance of the exception with a message.
+            </summary>
+            <param name="msg">A message</param>
+        </member>
+        <member name="T:Fusion.Assert">
+            <summary>
+            Provides methods for asserting conditions. Throws an AssertException when a condition is not met. Methods are only invoked in DEBUG builds unless otherwise specified.
+            </summary>
+        </member>
+        <member name="M:Fusion.Assert.Fail">
+            <summary>
+            Always throws an AssertException.
+            </summary>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Fail(System.String)">
+            <summary>
+            Always throws an AssertException with a message.
+            </summary>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Fail(System.String,System.Object[])">
+            <summary>
+            Always throws an AssertException with a message.
+            </summary>
+            <param name="format">An error message format</param>
+            <param name="args"></param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check(System.Object,System.String)">
+            <summary>
+            Throws an AssertException if the <paramref name="condition"/> is <c>null</c>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check(System.Void*,System.String)">
+            <summary>
+            Throws an AssertException if the <paramref name="condition"/> is <c>null</c>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check(System.Boolean,System.String)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``1(System.Boolean,System.String,``0)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``2(System.Boolean,System.String,``0,``1)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``3(System.Boolean,System.String,``0,``1,``2)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``4(System.Boolean,System.String,``0,``1,``2,``3)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``1(System.Boolean,``0)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>. The message is composed from additional arguments.
+            </summary>
+            <typeparam name="T0"></typeparam>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``2(System.Boolean,``0,``1)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``3(System.Boolean,``0,``1,``2)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``4(System.Boolean,``0,``1,``2,``3)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Check``5(System.Boolean,``0,``1,``2,``3,``4)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.AlwaysFail">
+            <summary>
+            Throws an AssertException, even in non-DEBUG builds.
+            </summary>
+        </member>
+        <member name="M:Fusion.Assert.AlwaysFail(System.String)">
+            <summary>
+            Throws an AssertException with a message, even in non-DEBUG builds.
+            </summary>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.AlwaysFail(System.Object)">
+            <summary>
+            Throws an AssertException with a message, even in non-DEBUG builds.
+            </summary>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.AlwaysFail``1(``0)">
+            <summary>
+            Throws an AssertException with a message, even in non-DEBUG builds.
+            </summary>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always(System.Boolean,System.String)">
+            <summary>
+            Throws an AssertException with a message if <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="error">An error message</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``1(System.Boolean,System.String,``0)">
+            <summary>
+            Throws an AssertException with a message if <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``2(System.Boolean,System.String,``0,``1)">
+            <summary>
+            Throws an AssertException with a message if <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``3(System.Boolean,System.String,``0,``1,``2)">
+            <summary>
+            Throws an AssertException with a message if <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``4(System.Boolean,System.String,``0,``1,``2,``3)">
+            <summary>
+            Throws an AssertException with a message if <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format">An error message format</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``1(System.Boolean,``0)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``2(System.Boolean,``0,``1)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``3(System.Boolean,``0,``1,``2)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Always``4(System.Boolean,``0,``1,``2,``3)">
+            <summary>
+            Throws an AssertException with a message if the <paramref name="condition"/> is <see langword="false"/>, even in non-DEBUG builds. The message is composed from additional arguments.
+            </summary>
+            <param name="condition">Value to check</param>
+            <exception cref="T:Fusion.AssertException"></exception>
+        </member>
+        <member name="M:Fusion.Assert.Log(System.Boolean,System.String)">
+            <summary>
+            Logs an assertion if the <paramref name="condition"/> is <see langword="false"/>. For Unity builds, log goes straight to UnityEngine.Debug. Otherwise, log goes to LogError stream.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="message"></param>
+        </member>
+        <member name="M:Fusion.Assert.Log``1(System.Boolean,System.String,``0)">
+            <summary>
+            Logs an assertion if the <paramref name="condition"/> is <see langword="false"/>. For Unity builds, log goes straight to UnityEngine.Debug. Otherwise, log goes to LogError stream.
+            </summary>
+            <param name="condition">Value to check</param>
+        </member>
+        <member name="M:Fusion.Assert.Log``2(System.Boolean,System.String,``0,``1)">
+            <summary>
+            Logs an assertion if the <paramref name="condition"/> is <see langword="false"/>. For Unity builds, log goes straight to UnityEngine.Debug. Otherwise, log goes to LogError stream.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format"></param>
+        </member>
+        <member name="M:Fusion.Assert.Log``3(System.Boolean,System.String,``0,``1,``2)">
+            <summary>
+            Logs an assertion if the <paramref name="condition"/> is <see langword="false"/>. For Unity builds, log goes straight to UnityEngine.Debug. Otherwise, log goes to LogError stream.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format"></param>
+        </member>
+        <member name="M:Fusion.Assert.Log``4(System.Boolean,System.String,``0,``1,``2,``3)">
+            <summary>
+            Logs an assertion if the <paramref name="condition"/> is <see langword="false"/>. For Unity builds, log goes straight to UnityEngine.Debug. Otherwise, log goes to LogError stream.
+            </summary>
+            <param name="condition">Value to check</param>
+            <param name="format"></param>
+        </member>
+        <member name="T:Fusion.ConsoleLogStream">
+            <summary>
+            A log stream that writes log messages to the console with a specified color.
+            </summary>
+        </member>
+        <member name="M:Fusion.ConsoleLogStream.#ctor(System.ConsoleColor,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.ConsoleLogStream"/> class.
+            </summary>
+            <param name="color">The console color to use for log messages.</param>
+            <param name="prefix">An optional prefix to prepend to each log message.</param>
+        </member>
+        <member name="M:Fusion.ConsoleLogStream.Log(Fusion.ILogSource,System.String)">
+            <summary>
+            Logs a message with a source.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="message">The log message.</param>
+        </member>
+        <member name="M:Fusion.ConsoleLogStream.Log(Fusion.ILogSource,System.String,System.Exception)">
+            <summary>
+            Logs a message with a source and an exception.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="message">The log message.</param>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="T:Fusion.DebugLogStream">
+            <summary>
+            Represents a debug log stream that supports logging to different streams.
+            </summary>
+        </member>
+        <member name="F:Fusion.DebugLogStream.InfoStream">
+            <summary>Stream for logging informational messages.</summary>
+        </member>
+        <member name="F:Fusion.DebugLogStream.WarnStream">
+            <summary>Stream for logging warning messages.</summary>
+        </member>
+        <member name="F:Fusion.DebugLogStream.ErrorStream">
+            <summary>Stream for logging error messages.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.#ctor(Fusion.LogStream,Fusion.LogStream,Fusion.LogStream)">
+            <summary>
+            Initializes a new instance of the DebugLogStream class.
+            </summary>
+            <param name="innerStream">The stream for informational messages.</param>
+            <param name="warnStream">The stream for warning messages.</param>
+            <param name="errorStream">The stream for error messages.</param>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Log(Fusion.ILogSource,System.String)">
+            <summary>Logs a message with a source to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Log(System.String)">
+            <summary>Logs a message to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Info(Fusion.ILogSource,System.String)">
+            <summary>Logs an info message with a source to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Info(System.String)">
+            <summary>Logs an info message to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Error(Fusion.ILogSource,System.String)">
+            <summary>Logs an error message with a source to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Error(System.String)">
+            <summary>Logs an error message to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Error(System.Exception)">
+            <summary>Logs an exception to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Exception(System.Exception)">
+            <summary>Logs an exception to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Warn(Fusion.ILogSource,System.String)">
+            <summary>Logs a warning message with a source to the WarnStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Warn(System.String)">
+            <summary>Logs a warning message to the WarnStream.</summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.If(System.Boolean)">
+            <summary>
+            Returns self if <paramref name="condition"/> is true.
+            </summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Once(System.Boolean@)">
+            <summary>
+            Returns self if <paramref name="flag"/> is false and then sets it to true.
+            </summary>
+        </member>
+        <member name="M:Fusion.DebugLogStream.Dispose">
+            <summary>Disposes the DebugLogStream and its underlying streams.</summary>
+        </member>
+        <member name="T:Fusion.ILogSource">
+            <summary>
+            An interface for log sources. Implement this interface to be able to pass a custom context to Log methods.
+            </summary>
+        </member>
+        <member name="M:Fusion.ILogSource.GetUnityObject">
+            <summary>
+            Unity object that is the source of the log message.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Fusion.InternalLogStreams">
+            <summary>
+            Provides static log streams for different log levels.
+            </summary>
+            <summary>Internal log streams</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogDebug">
+            <summary>Debug log stream.</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogInfo">
+            <summary>Info log stream.</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogWarn">
+            <summary>Warning log stream.</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogError">
+            <summary>Error log stream.</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogException">
+            <summary>Exception log stream.</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTrace">
+            <summary>LogTrace stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceStun">
+            <summary>LogTraceStun stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceObject">
+            <summary>LogTraceObject stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceNetwork">
+            <summary>LogTraceNetwork stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTracePrefab">
+            <summary>LogTracePrefab stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceSceneInfo">
+            <summary>LogTraceSceneInfo stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceSceneManager">
+            <summary>LogTraceSceneManager stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceSimulationMessage">
+            <summary>LogTraceSimulationMessage stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceHostMigration">
+            <summary>LogTraceHostMigration stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceEncryption">
+            <summary>LogTraceEncryption stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceDummyTraffic">
+            <summary>LogTraceDummyTraffic stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceRealtime">
+            <summary>LogTraceRealtime stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceMemoryTrack">
+            <summary>LogTraceMemoryTrack stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceSnapshots">
+            <summary>LogTraceSnapshots stream</summary>
+        </member>
+        <member name="F:Fusion.InternalLogStreams.LogTraceTime">
+            <summary>LogTraceTime stream</summary>
+        </member>
+        <member name="T:Fusion.Log">
+            <summary>
+            Global logging class. Needs to be initialized before use. When in Unity, "FusionLogInitializer" takes care of that.
+            All static methods have conditional compilation directives:
+            <list type="bullet">
+            <item><c>FUSION_LOGLEVEL_DEBUG</c> enables <c>"Debug"</c> methods</item>
+            <item><c>FUSION_LOGLEVEL_INFO</c> enables all the above and <c>Info</c> methods</item>
+            <item><c>FUSION_LOGLEVEL_WARN</c> enables all the above and <c>Warn</c> methods</item>
+            <item><c>FUSION_LOGLEVEL_ERROR</c> enables all the above and <c>Error</c> methods</item>
+            </list>
+            Trace channels are enabled separately with <c>FUSION_TRACE_*</c> directives.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.Dispose">
+            <summary>
+            Uninitializes the logger. All log streams are disposed.
+            </summary>
+        </member>
+        <member name="T:Fusion.Log.CreateLogStreamDelegate">
+            <summary>
+            A delegate to create a log stream.
+            </summary>
+        </member>
+        <member name="P:Fusion.Log.IsInitialized">
+            <summary>
+            Whether the logger is initialized.
+            </summary>
+        </member>
+        <member name="P:Fusion.Log.Settings">
+            <summary>
+            Current log settings.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.Initialize(Fusion.LogLevel,Fusion.Log.CreateLogStreamDelegate,Fusion.TraceChannels)">
+            <summary>
+            Initializes the logger with the specified log level and trace channels.
+            </summary>
+            <param name="logLevel">The minimal log level. All messages with lower level are not going to be reported, regardless
+            of <c>FUSION_LOGLEVEL</c> defines.</param>
+            <param name="traceChannels">Trace channels to activate. Trace channels not included will not get reported, regardless
+            of <c>FUSION_TRACE</c> defines.</param>
+            <param name="streamFactory"></param>
+        </member>
+        <member name="M:Fusion.Log.Initialize(Fusion.LogSettings,Fusion.Log.CreateLogStreamDelegate)">
+            <summary>
+            <see cref="M:Fusion.Log.Initialize(Fusion.LogLevel,Fusion.Log.CreateLogStreamDelegate,Fusion.TraceChannels)"/>
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.InitializeForConsole(Fusion.LogSettings)">
+            <summary>
+            Initializes the logger to log to the console.
+            </summary>
+            <param name="settings"></param>
+        </member>
+        <member name="M:Fusion.Log.InitializeForConsole(Fusion.LogLevel,Fusion.TraceChannels)">
+            <summary>
+            Initializes the logger to log to the console.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.Debug(System.String)">
+            <summary>Logs a debug message. At least <c>FUSION_LOGLEVEL_DEBUG</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Debug"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.DebugWarn(System.String)">
+            <summary>Logs a debug warning message. At least <c>FUSION_LOGLEVEL_DEBUG</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Debug"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.DebugError(System.String)">
+            <summary>Logs a debug error message. At least <c>FUSION_LOGLEVEL_DEBUG</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Debug"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Info(System.String)">
+            <summary>Logs a message. At least <c>FUSION_LOGLEVEL_INFO</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Info"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Info(Fusion.ILogSource,System.String)">
+            <summary>Logs a message. At least <c>FUSION_LOGLEVEL_INFO</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Info"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Warn(System.String)">
+            <summary>Logs a warning message. At least <c>FUSION_LOGLEVEL_WARN</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Warn"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Warn(Fusion.ILogSource,System.String)">
+            <summary>Logs a warning message. At least <c>FUSION_LOGLEVEL_WARN</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Warn"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Error(System.String)">
+            <summary>Logs an error message. At least <c>FUSION_LOGLEVEL_ERROR</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Error"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Error(Fusion.ILogSource,System.String)">
+            <summary>Logs an error message. At least <c>FUSION_LOGLEVEL_ERROR</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Error"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Exception(System.Exception)">
+            <summary>Logs an exception message. At least <c>FUSION_LOGLEVEL_ERROR</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Error"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Exception(System.String,System.Exception)">
+            <summary>Logs an exception message. At least <c>FUSION_LOGLEVEL_ERROR</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Error"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="M:Fusion.Log.Exception(Fusion.ILogSource,System.String,System.Exception)">
+            <summary>Logs an exception message. At least <c>FUSION_LOGLEVEL_ERROR</c> needs to be defined and at least <see cref="F:Fusion.LogLevel.Error"/> must have been used to initialize the logger.</summary>
+        </member>
+        <member name="P:Fusion.Log.Initialized">
+            <summary>
+            Use <see cref="P:Fusion.Log.IsInitialized"/> instead.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.InitForConsole">
+            <summary>
+            Use <see cref="M:Fusion.Log.InitializeForConsole(Fusion.LogSettings)"/> instead.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.InitForConsole(Fusion.LogType)">
+            <summary>
+            Use <see cref="M:Fusion.Log.InitializeForConsole(Fusion.LogSettings)"/> instead.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.Init(System.Action{System.String},System.Action{System.String},System.Action{System.String},System.Action{System.Exception})">
+            <summary>
+            Use <see cref="M:Fusion.Log.Initialize(Fusion.LogLevel,Fusion.Log.CreateLogStreamDelegate,Fusion.TraceChannels)"/> instead.
+            </summary>
+        </member>
+        <member name="M:Fusion.Log.Trace(System.Object)">
+            <summary>Logs a message if TRACE is defined.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.TraceWarn(System.Object)">
+            <summary>Logs a warning if TRACE is defined.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.TraceError(System.Object)">
+            <summary>Logs an error if TRACE is defined.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Trace``1(``0,System.Object)">
+            <summary>Logs a message if TRACE is defined.</summary>
+            <param name="source">The message source.</param>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.TraceWarn``1(``0,System.Object)">
+            <summary>Logs a warning if TRACE is defined.</summary>
+            <param name="source">The message source.</param>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.TraceError``1(``0,System.Object)">
+            <summary>Logs an error if TRACE is defined.</summary>
+            <param name="source">The message source.</param>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Debug(System.Object)">
+            <summary>Logs a message if DEBUG is defined.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.DebugWarn(System.Object)">
+            <summary>Logs a warning if DEBUG is defined.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.DebugError(System.Object)">
+            <summary>Logs an error if DEBUG is defined.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Debug``1(``0,System.Object)">
+            <summary>Logs a message if DEBUG is defined.</summary>
+            <param name="source">The message source.</param>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.DebugWarn``1(``0,System.Object)">
+            <summary>Logs a warning if DEBUG is defined.</summary>
+            <param name="source">The message source.</param>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.DebugError``1(``0,System.Object)">
+            <summary>Logs an error if DEBUG is defined.</summary>
+            <param name="source">The message source.</param>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Info(System.Object)">
+            <summary>Logs a message of Info type.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Warn(System.Object)">
+            <summary>Logs a message of Warn type.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Error(System.Object)">
+            <summary>Logs a message of Error type.</summary>
+            <param name="msg">The message to log.</param>
+        </member>
+        <member name="M:Fusion.Log.Trace(System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_GLOBAL</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceWarn(System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_GLOBAL</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceError(System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_GLOBAL</c></summary>
+        </member>
+        <member name="M:Fusion.Log.Trace``1(``0,System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_GLOBAL</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceWarn``1(``0,System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_GLOBAL</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceError``1(``0,System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_GLOBAL</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceSceneManager(System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_SCENEMANAGER</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceSceneManagerWarn(System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_SCENEMANAGER</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceSceneManagerError(System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_SCENEMANAGER</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceSceneManager``1(``0,System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_SCENEMANAGER</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceSceneManagerWarn``1(``0,System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_SCENEMANAGER</c></summary>
+        </member>
+        <member name="M:Fusion.Log.TraceSceneManagerError``1(``0,System.String)">
+            <summary>Enabled by <c>FUSION_TRACE_SCENEMANAGER</c></summary>
+        </member>
+        <member name="T:Fusion.LogType">
+            <summary>
+            Log type.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogType.Error">
+            <summary>
+            Error log type.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogType.Warn">
+            <summary>
+            Warning log type.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogType.Info">
+            <summary>
+            Information log type.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogType.Debug">
+            <summary>
+            Debug log type.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogType.Trace">
+            <summary>
+            Trace log type.
+            </summary>
+        </member>
+        <member name="T:Fusion.LogFlags">
+            <summary>
+            Flags for logging.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogFlags.Debug">
+            <summary>
+            This is a debug stream.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogFlags.Trace">
+            <summary>
+            This is a trace stream.
+            </summary>
+        </member>
+        <member name="T:Fusion.LogLevel">
+            <summary>
+            The log level. Messages with a lower level than the current LogLevel will be ignored.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogLevel.Debug">
+            <summary>
+            Debug messages. Dlls will only output Debug messages if compiled with DEBUG symbol.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogLevel.Info">
+            <summary>
+            General info messages.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogLevel.Warn">
+            <summary>
+            Warning messages.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogLevel.Error">
+            <summary>
+            Error messages.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogLevel.None">
+            <summary>
+            No messages will be output.
+            </summary>
+        </member>
+        <member name="T:Fusion.LogLevelExtensions">
+            <summary>
+            Extensions for <see cref="T:Fusion.LogLevel"/> 
+            </summary>
+        </member>
+        <member name="M:Fusion.LogLevelExtensions.GetDefine(Fusion.LogLevel)">
+            <summary>
+            Returns a define used for a given log level.
+            </summary>
+        </member>
+        <member name="T:Fusion.LogSettings">
+            <summary>
+            Settings for the logging system.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogSettings.Level">
+            <summary>
+            The minimum log level to output.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogSettings.TraceChannels">
+            <summary>
+            Mask of log channels to output.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogSettings.#ctor(Fusion.LogLevel,Fusion.TraceChannels)">
+            <summary>
+            Creates a new instance of LogSettings.
+            </summary>
+        </member>
+        <member name="T:Fusion.LogStream">
+            <summary>
+            Interface for logging streams.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogStream.Log(Fusion.ILogSource,System.String)">
+            <summary>
+            Logs a message with a source.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="message">The log message.</param>
+        </member>
+        <member name="M:Fusion.LogStream.Log(System.String)">
+            <summary>
+            Logs a message.
+            </summary>
+            <param name="message">The log message.</param>
+        </member>
+        <member name="M:Fusion.LogStream.Log(Fusion.ILogSource,System.String,System.Exception)">
+            <summary>
+            Logs a message with a source and an exception.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="message">The log message.</param>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.LogStream.Log(Fusion.ILogSource,System.Exception)">
+            <summary>
+            Logs a message with an exception.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.LogStream.Log(System.String,System.Exception)">
+            <summary>
+            Logs a message with an exception.
+            </summary>
+            <param name="message">The log message.</param>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.LogStream.Log(System.Exception)">
+            <summary>
+            Logs an exception.
+            </summary>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.LogStream.If(System.Boolean)">
+            <summary>
+            Returns self if <paramref name="condition"/> is true.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogStream.Once(System.Boolean@)">
+            <summary>
+            Returns self if <paramref name="flag"/> is false and then sets it to true.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogStream.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:Fusion.FusionUnityLoggerBase">
+            <summary>
+            A logger that outputs messages to the Unity console.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.AddHashCodePrefix">
+            <summary>
+              If true, each log message that has a source parameter will be prefixed with a hash code of the source object.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.GlobalPrefix">
+            <summary>
+              A prefix tag added to each log.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.GlobalPrefixColor">
+            <summary>
+              Color of the global prefix (see <see cref="F:Fusion.FusionUnityLoggerBase.UseGlobalPrefix" />).
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.MaxRandomColor">
+            <summary>
+              Max Random Color
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.MinRandomColor">
+            <summary>
+              Min Random Color
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.NameUnavailableInWorkerThreadLabel">
+            <summary>
+              Customize logged object names from other threads.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.NameUnavailableObjectDestroyedLabel">
+            <summary>
+              Customize logged object names for destroyed objects.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.UseColorTags">
+            <summary>
+              If true, some parts of messages will be enclosed with &lt;color&gt; tags.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.UseGlobalPrefix">
+            <summary>
+              If true, all messages will be prefixed with [Fusion] tag
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.#ctor(System.Threading.Thread,System.Boolean)">
+            <summary>
+              Create unity logger instance.
+            </summary>
+            <param name="mainThread">
+              The thread used by <see cref="P:Fusion.FusionUnityLoggerBase.IsInMainThread" /> or <see langword="null" /> to use the current
+              thread.
+            </param>
+            <param name="isDarkMode">Should the logger use colors suited for Unity Editor dark mode</param>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.Dispose">
+            <summary>
+            Clean up resources.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.CreateLogStream(Fusion.LogLevel,Fusion.LogFlags,Fusion.TraceChannels)">
+            <summary>
+            Create a log stream using Unity logger.
+            </summary>
+            <param name="logLevel"></param>
+            <param name="flags"></param>
+            <param name="channel"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.CreateMessage(Fusion.FusionUnityLoggerBase.LogContext@)">
+            <summary>
+            
+            </summary>
+            <param name="context"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.GetThreadSafeStringBuilder(System.Boolean@)">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.AppendPrefix(System.Text.StringBuilder,Fusion.LogFlags,System.String)">
+            <summary>
+            Append prefix to the log message.
+            </summary>
+            <param name="sb"></param>
+            <param name="flags"></param>
+            <param name="prefix"></param>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.AppendNameThreadSafe(System.Text.StringBuilder,UnityEngine.Object)">
+            <summary>
+            Append object name to the log message in a thread-safe way.
+            </summary>
+            <param name="builder"></param>
+            <param name="obj"></param>
+            <exception cref="T:System.ArgumentNullException"></exception>
+        </member>
+        <member name="T:Fusion.FusionUnityLoggerBase.LogContext">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionUnityLoggerBase.LogContext.#ctor(System.String,System.String,Fusion.ILogSource,Fusion.LogFlags)">
+            <summary>
+            
+            </summary>
+            <param name="message"></param>
+            <param name="source"></param>
+            <param name="prefix"></param>
+            <param name="flags"></param>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.LogContext.Message">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.LogContext.Source">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.LogContext.Prefix">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.LogContext.Flags">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionUnityLoggerBase.DefaultLightPrefixColor">
+            <summary>
+            Default prefix color for light theme.
+            </summary>
+        </member>
+        <member name="P:Fusion.FusionUnityLoggerBase.DefaultDarkPrefixColor">
+            <summary>
+            Default prefix color for dark theme.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.DebugPrefix">
+            <summary>
+            Prefix for debug messages.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionUnityLoggerBase.TracePrefix">
+            <summary>
+            Prefix for trace messages.
+            </summary>
+        </member>
+        <member name="T:Fusion.TextWriterLogStream">
+            <summary>
+            A log stream that writes log messages to a <see cref="T:System.IO.TextWriter"/>.
+            </summary>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.#ctor(System.IO.TextWriter,System.Boolean,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Fusion.TextWriterLogStream"/> class.
+            </summary>
+            <param name="writer">The <see cref="T:System.IO.TextWriter"/> to write log messages to.</param>
+            <param name="disposeWriter">If set to <c>true</c>, the writer will be disposed when this instance is disposed.</param>
+            <param name="prefix">An optional prefix to prepend to each log message.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown if <paramref name="writer"/> is <c>null</c>.</exception>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.Log(Fusion.ILogSource,System.String)">
+            <summary>
+            Logs a message with a source.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="message">The log message.</param>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.Log(System.String)">
+            <summary>
+            Logs a message.
+            </summary>
+            <param name="message">The log message.</param>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.Log(Fusion.ILogSource,System.String,System.Exception)">
+            <summary>
+            Logs a message with a source and an exception.
+            </summary>
+            <param name="source">The source of the log message.</param>
+            <param name="message">The log message.</param>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.Log(System.String,System.Exception)">
+            <summary>
+            Logs a message with an exception.
+            </summary>
+            <param name="message">The log message.</param>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.Log(System.Exception)">
+            <summary>
+            Logs an exception.
+            </summary>
+            <param name="error">The exception to log.</param>
+        </member>
+        <member name="M:Fusion.TextWriterLogStream.Dispose">
+            <summary>
+            Disposes the <see cref="T:Fusion.TextWriterLogStream"/> instance and optionally disposes the underlying <see cref="T:System.IO.TextWriter"/>.
+            </summary>
+        </member>
+        <member name="T:Fusion.TraceLogStream">
+            <summary>
+            Represents a trace log stream that supports logging to different streams.
+            </summary>
+        </member>
+        <member name="F:Fusion.TraceLogStream.InfoStream">
+            <summary>Stream for logging informational messages.</summary>
+        </member>
+        <member name="F:Fusion.TraceLogStream.WarnStream">
+            <summary>Stream for logging warning messages.</summary>
+        </member>
+        <member name="F:Fusion.TraceLogStream.ErrorStream">
+            <summary>Stream for logging error messages.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.#ctor(Fusion.LogStream,Fusion.LogStream,Fusion.LogStream)">
+            <summary>
+            Initializes a new instance of the TraceLogStream class.
+            </summary>
+            <param name="innerStream">The stream for informational messages.</param>
+            <param name="warnStream">The stream for warning messages.</param>
+            <param name="errorStream">The stream for error messages.</param>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Log(Fusion.ILogSource,System.String)">
+            <summary>Logs a message with a source to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Log(System.String)">
+            <summary>Logs a message to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Info(Fusion.ILogSource,System.String)">
+            <summary>Logs an info message with a source to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Info(System.String)">
+            <summary>Logs an info message to the InfoStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Error(Fusion.ILogSource,System.String)">
+            <summary>Logs an error message with a source to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Error(System.String)">
+            <summary>Logs an error message to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Error(System.Exception)">
+            <summary>Logs an exception to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Exception(System.Exception)">
+            <summary>Logs an exception to the ErrorStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Warn(Fusion.ILogSource,System.String)">
+            <summary>Logs a warning message with a source to the WarnStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Warn(System.String)">
+            <summary>Logs a warning message to the WarnStream.</summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.If(System.Boolean)">
+            <summary>
+            Returns self if <paramref name="condition"/> is true.
+            </summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Once(System.Boolean@)">
+            <summary>
+            Returns self if <paramref name="flag"/> is false and then sets it to true.
+            </summary>
+        </member>
+        <member name="M:Fusion.TraceLogStream.Dispose">
+            <summary>Disposes the TraceLogStream and its underlying streams.</summary>
+        </member>
+        <member name="T:Fusion.ILogDumpable">
+            <summary>
+            Interface for objects that can be dumped to a StringBuilder.
+            </summary>
+        </member>
+        <member name="M:Fusion.ILogDumpable.Dump(System.Text.StringBuilder)">
+            <summary>
+            Dumps the object to the provided StringBuilder.
+            </summary>
+            <param name="builder">The StringBuilder to dump the object to.</param>
+        </member>
+        <member name="T:Fusion.ConsoleLogger">
+            <summary> Console logger </summary>
+        </member>
+        <member name="M:Fusion.ConsoleLogger.#ctor">
+            <summary> Constructor </summary>
+        </member>
+        <member name="M:Fusion.ConsoleLogger.Log(Fusion.LogType,System.Object,Fusion.LogContext@)">
+            <summary> Logs a message with the specified log type and context. </summary>
+        </member>
+        <member name="M:Fusion.ConsoleLogger.LogException(System.Exception,Fusion.LogContext@)">
+            <summary> Logs an exception with the specified context. </summary>
+        </member>
+        <member name="T:Fusion.ILogger">
+            <summary> Obsolete interface for logging operations. </summary>
+        </member>
+        <member name="M:Fusion.ILogger.Log(Fusion.LogType,System.Object,Fusion.LogContext@)">
+            <summary> Logs a message with the specified log type and context. </summary>
+        </member>
+        <member name="M:Fusion.ILogger.LogException(System.Exception,Fusion.LogContext@)">
+            <summary> Logs an exception with the specified context. </summary>
+        </member>
+        <member name="T:Fusion.ILogSourceProxy">
+            <summary> Obsolete interface for log source proxy. </summary>
+        </member>
+        <member name="P:Fusion.ILogSourceProxy.LogSource">
+            <summary> Gets the log source. </summary>
+        </member>
+        <member name="T:Fusion.LogContext">
+            <summary> Obsolete struct for log context information. </summary>
+        </member>
+        <member name="F:Fusion.LogContext.Prefix">
+            <summary> The prefix for the log message. </summary>
+        </member>
+        <member name="F:Fusion.LogContext.Source">
+            <summary> The source of the log message. </summary>
+        </member>
+        <member name="M:Fusion.LogContext.#ctor(System.String,System.Object)">
+            <summary> Initializes a new instance of the <see cref="T:Fusion.LogContext"/> struct. </summary>
+        </member>
+        <member name="T:Fusion.TextWriterLogger">
+            <summary> Obsolete class for logging to a TextWriter. </summary>
+        </member>
+        <member name="M:Fusion.TextWriterLogger.#ctor(System.IO.TextWriter,System.Boolean)">
+            <summary> Initializes a new instance of the <see cref="T:Fusion.TextWriterLogger"/> class. </summary>
+        </member>
+        <member name="M:Fusion.TextWriterLogger.Dispose">
+            <summary> Disposes the TextWriterLogger instance. </summary>
+        </member>
+        <member name="M:Fusion.TextWriterLogger.Log(Fusion.LogType,System.Object,Fusion.LogContext@)">
+            <summary> Logs a message with the specified log type and context. </summary>
+        </member>
+        <member name="M:Fusion.TextWriterLogger.LogException(System.Exception,Fusion.LogContext@)">
+            <summary> Logs an exception with the specified context. </summary>
+        </member>
+        <member name="T:Fusion.TraceChannels">
+            <summary>Trace channels</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Global">
+            <summary>Global</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Stun">
+            <summary>Stun</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Object">
+            <summary>Object</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Network">
+            <summary>Network</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Prefab">
+            <summary>Prefab</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.SceneInfo">
+            <summary>SceneInfo</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.SceneManager">
+            <summary>SceneManager</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.SimulationMessage">
+            <summary>SimulationMessage</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.HostMigration">
+            <summary>HostMigration</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Encryption">
+            <summary>Encryption</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.DummyTraffic">
+            <summary>DummyTraffic</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Realtime">
+            <summary>Realtime</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.MemoryTrack">
+            <summary>MemoryTrack</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Snapshots">
+            <summary>Snapshots</summary>
+        </member>
+        <member name="F:Fusion.TraceChannels.Time">
+            <summary>Time</summary>
+        </member>
+        <member name="T:Fusion.LogUtils">
+            <summary>
+            Utility class for logging operations.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogUtils.GetDump``1(``0*)">
+            <summary>
+            Gets a deferred dump of a pointer to an unmanaged object.
+            </summary>
+            <typeparam name="T">The type of the unmanaged object.</typeparam>
+            <param name="ptr">Pointer to the unmanaged object.</param>
+            <returns>A deferred dump of the pointer.</returns>
+        </member>
+        <member name="M:Fusion.LogUtils.GetDump``1(``0)">
+            <summary>
+            Gets a deferred dump of a class object.
+            </summary>
+            <typeparam name="T">The type of the class object.</typeparam>
+            <param name="obj">The class object.</param>
+            <returns>A deferred dump of the class object.</returns>
+        </member>
+        <member name="T:Fusion.LogUtils.DumpDeferredPtr`1">
+            <summary>
+            Represents a deferred dump of a pointer to an unmanaged object.
+            </summary>
+            <typeparam name="T">The type of the unmanaged object.</typeparam>
+        </member>
+        <member name="M:Fusion.LogUtils.DumpDeferredPtr`1.#ctor(`0*)">
+            <summary>
+            Represents a deferred dump of a pointer to an unmanaged object.
+            </summary>
+            <typeparam name="T">The type of the unmanaged object.</typeparam>
+        </member>
+        <member name="M:Fusion.LogUtils.DumpDeferredPtr`1.ToString">
+            <summary>ToString</summary>
+        </member>
+        <member name="T:Fusion.LogUtils.DumpDeferredStruct`1">
+            <summary>
+            Represents a deferred dump of an unmanaged object.
+            </summary>
+            <typeparam name="T">The type of the unmanaged object.</typeparam>
+        </member>
+        <member name="M:Fusion.LogUtils.DumpDeferredStruct`1.#ctor(`0)">
+            <summary>
+            Represents a deferred dump of an unmanaged object.
+            </summary>
+            <typeparam name="T">The type of the unmanaged object.</typeparam>
+        </member>
+        <member name="M:Fusion.LogUtils.DumpDeferredStruct`1.ToString">
+            <summary>ToString</summary>
+        </member>
+        <member name="T:Fusion.LogUtils.DumpDeferredClass">
+            <summary>
+            Represents a deferred dump of a class object.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogUtils.DumpDeferredClass.#ctor(Fusion.ILogDumpable)">
+            <summary>
+            Represents a deferred dump of a class object.
+            </summary>
+        </member>
+        <member name="F:Fusion.LogUtils.DumpDeferredClass.Obj">
+            <summary>
+            Object to dump.
+            </summary>
+        </member>
+        <member name="M:Fusion.LogUtils.DumpDeferredClass.ToString">
+            <summary>ToString</summary>
+        </member>
+    </members>
+</doc>

@@ -176,7 +176,12 @@ public class AddressablesDownloader : MonoBehaviour
     }
     private IEnumerator GetLastModifiedTime(string url)
     {
-        UnityWebRequest request = UnityWebRequest.Head(url);
+        string fullUrl = url + "?nocache=" + DateTime.UtcNow.Ticks;
+
+        UnityWebRequest request = UnityWebRequest.Head(fullUrl);
+        request.SetRequestHeader("Cache-Control", "no-cache");
+        request.SetRequestHeader("Pragma", "no-cache");
+
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)

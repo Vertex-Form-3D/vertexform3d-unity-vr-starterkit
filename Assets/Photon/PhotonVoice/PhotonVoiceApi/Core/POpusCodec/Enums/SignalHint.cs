@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace POpusCodec.Enums
+﻿namespace POpusCodec.Enums
 {
     public enum SignalHint : int
     {
         /// <summary>
-        /// (default) 
+        /// (default)
         /// </summary>
         Auto = -1000,
         /// <summary>
@@ -16,7 +11,7 @@ namespace POpusCodec.Enums
         /// </summary>
         Voice = 3001,
         /// <summary>
-        /// Bias thresholds towards choosing MDCT modes. 
+        /// Bias thresholds towards choosing MDCT modes.
         /// </summary>
         Music = 3002
     }

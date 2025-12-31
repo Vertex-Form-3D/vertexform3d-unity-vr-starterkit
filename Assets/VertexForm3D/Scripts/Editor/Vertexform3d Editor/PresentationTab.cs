@@ -73,7 +73,7 @@ namespace VertexFormCore.Editor
             var handler = g.GetComponent<SlideShowHandler>();
             handler.isNetworked = isNetworked;
             handler.slides[0].SetActive(true);
-            handler.HandleSlide(0);
+            handler.RPC_HandleSlide(0);
         }
 
         public void CreateVideoPlayer()

@@ -314,7 +314,7 @@ namespace Photon.Voice
                     return endFloat(s as float[]);
                 }
             }
-            
+
             int processFloat(float[] s, float[] d)
             {
                 int dPos = 0;
@@ -627,7 +627,7 @@ namespace Photon.Voice
         }
 
         /// <summary>Sample-rate conversion Audio Processor.</summary>
-        /// This processor converts the sample-rate of the source stream. Internally, it uses <see cref="AudioUtil.Resample"></see>.
+        /// This processor converts the sample-rate of the source stream. Internally, it uses <see cref="AudioUtil.Resample{T}(T[], T[], int, int)"></see>.
         public class Resampler<T> : IProcessor<T>
         {
             protected T[] frameResampled;
@@ -852,7 +852,7 @@ namespace Photon.Voice
             /// <param name="voiceDetector">Voice Detector to calibrate.</param>
             /// <param name="levelMeter">Level Meter to look at for calibration.</param>
             /// <param name="samplingRate">Sampling rate of the audio signal (in Hz).</param>
-            /// <param name="numChannels">Number of channels in the audio signal.</param>
+            /// <param name="channels">Number of channels in the audio signal.</param>
             public VoiceDetectorCalibration(IVoiceDetector voiceDetector, ILevelMeter levelMeter, int samplingRate, int channels)
             {
                 this.valuesPerSec = samplingRate * channels;
@@ -862,9 +862,12 @@ namespace Photon.Voice
 
             /// <summary>Start calibration.</summary>
             /// <param name="durationMs">Duration of the calibration procedure (in milliseconds).</param>
-            /// This activates the Calibration process. 
+            /// <param name="onCalibrated">Optional callback that is called after calibration is complete.</param>
+            /// <remarks>
+            /// This activates the Calibration process.
             /// It will reset the given LevelMeter's AccumAvgPeakAmp (accumulated average peak amplitude),
             /// and when the duration has passed, use it for the VoiceDetector's detection threshold.
+            /// </remarks>
             public void Calibrate(int durationMs, Action<float> onCalibrated = null)
             {
                 this.calibrateCount = valuesPerSec * durationMs / 1000;
@@ -1065,7 +1068,7 @@ namespace Photon.Voice
 
             /// <summary>Create new VoiceLevelDetectCalibrate instance</summary>
             /// <param name="samplingRate">Sampling rate of the audio signal (in Hz).</param>
-            /// <param name="numChannels">Number of channels in the audio signal.</param>
+            /// <param name="channels">Number of channels in the audio signal.</param>
             public VoiceLevelDetectCalibrate(int samplingRate, int channels)
             {
                 var x = new T[1];
@@ -1089,7 +1092,7 @@ namespace Photon.Voice
             /// <summary>Start calibration</summary>
             /// <param name="durationMs">Duration of the calibration procedure (in milliseconds).</param>
             /// <param name="onCalibrated">Called when calibration is complete. Parameter is new threshold value.</param>
-            /// This activates the Calibration process. 
+            /// This activates the Calibration process.
             /// It will reset the given LevelMeter's AccumAvgPeakAmp (accumulated average peak amplitude),
             /// and when the duration has passed, use it for the VoiceDetector's detection threshold.
             public void Calibrate(int durationMs, Action<float> onCalibrated = null)

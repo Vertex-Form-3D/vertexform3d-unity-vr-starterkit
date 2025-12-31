@@ -16,5 +16,12 @@ MonoBehaviour:
     DebugEnabled: 1
     anonymousUserNamePrefix: Mystery Guest_
     onlyLocalBundles: 1
-    addressableCatalogFilePath: https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json
+    addressableCatalogFilePath: 
     catalogFileName: VertexForm3DAddressablesCatalog
+    defaultSetting:
+      standDefault: 0
+      micType: 0
+      grabMode: 0
+      flyMode: 1
+      megaphone: 1
+  mode: 0

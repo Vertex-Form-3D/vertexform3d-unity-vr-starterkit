@@ -1,4 +1,4 @@
-﻿#if (UNITY_IOS && !UNITY_EDITOR) || __IOS__
+﻿#if ((UNITY_IOS || UNITY_VISIONOS) && !UNITY_EDITOR) || __IOS__
 using System;
 using System.Threading;
 using System.Runtime.InteropServices;
@@ -42,7 +42,7 @@ namespace Photon.Voice.IOS
                         {
                             Error = "Exception in AudioInReader constructor";
                         }
-                        logger.LogError("[PV] AudioInReader: " + Error);
+                        logger.Log(LogLevel.Error, "[PV] AudioInReader: " + Error);
                     }
                     finally
                     {
@@ -50,7 +50,7 @@ namespace Photon.Voice.IOS
                     }
                 }
             });
-            t.Name = "IOS AudioInReader ctr";
+            Util.SetThreadName(t, "[PV] IOSAudioInReaderCtr");
             t.Start();
         }
         public int Channels { get { return 1; } }
@@ -62,7 +62,7 @@ namespace Photon.Voice.IOS
         public void Reset()
         {
             lock (this)
-             {
+            {
                 if (audioIn != IntPtr.Zero)
                 {
                     Photon_Audio_In_Reset(audioIn);

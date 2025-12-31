@@ -1,5 +1,5 @@
 using UnityEngine;
-#if PLATFORM_ANDROID
+#if UNITY_ANDROID
 using UnityEngine.Android;
 #endif
 namespace VertexFormCore
@@ -8,7 +8,7 @@ namespace VertexFormCore
     {
         void Start()
         {
-#if PLATFORM_ANDROID
+#if UNITY_ANDROID
             if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
             {
                 Permission.RequestUserPermission(Permission.Microphone);

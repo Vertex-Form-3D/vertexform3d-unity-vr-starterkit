@@ -53,7 +53,7 @@ public class MenuManager : MonoBehaviour
     void Start()
     {
         LoadWorldData();
-        Invoke(nameof(InitCatagory),.5f);
+        Invoke(nameof(InitCatagory), .5f);
     }
 
     public void OnTapHome()
@@ -69,7 +69,7 @@ public class MenuManager : MonoBehaviour
     {
         HandleScreen(worldScreen);
     }
-    
+
     public void OpenGuideScreen()
     {
         HandleScreen(GuideScreen);
@@ -130,7 +130,7 @@ public class MenuManager : MonoBehaviour
         {
             GameObject catObj = Instantiate(categoryPrefab, categoryParent);
             catObj.GetComponent<CategoryItemView>().SetCategory(cat);
-        }        
+        }
     }
 
     public void GetAllWorlds()

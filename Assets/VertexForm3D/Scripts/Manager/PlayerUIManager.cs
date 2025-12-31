@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using Fusion;
 
 namespace VertexFormCore
 {
@@ -13,347 +13,355 @@ namespace VertexFormCore
         [SerializeField] GameObject GoHome_Button;
         [SerializeField] GameObject menuUI;
         [SerializeField] GameObject settingUI;
+        [SerializeField] GameObject emojiPanel;
         [SerializeField] InputData _inputData;
         [SerializeField] PlayerNetworkSetup networkSetup;
+        [SerializeField] NetworkRunner networkRunner;
+        [SerializeField] GameObject selfieStickPrefab;
+        [SerializeField] Button selfieButton;
+        [SerializeField] private TextMeshProUGUI timeText;
+        [SerializeField] private TextMeshProUGUI dateText;
 
-        [Header("Settings")]
-        [SerializeField] private SettingButton voiceUISetting;
-        [SerializeField] private SettingButton standUISetting;
-        [SerializeField] private SettingButton sitUISetting;
-        [SerializeField] private SettingButton GrabUISetting;
-        [SerializeField] private SettingButton flyUISetting;
-        [SerializeField] private SettingButton audioUISetting;
+        [Header("Setting Buttons (Single Toggle Each)")]
+        [SerializeField] private SettingButton voiceUISetting; // Toggles Mute/Unmute
+        [SerializeField] private SettingButton postureUISetting; // Toggles Sit/Stand
+        [SerializeField] private SettingButton grabUISetting; // Toggles Near/Distance Grab
+        [SerializeField] private SettingButton flyUISetting; // Toggles Fly On/Off
+        [SerializeField] private SettingButton audioUISetting; // Toggles Megaphone On/Off
+        [SerializeField] private SettingButton emojiUISetting; // Toggles Megaphone On/Off
+
         [SerializeField] private NearFarInteractor[] nearFarInteractors;
         [SerializeField] private NearFarInteractor[] UIInteractors;
         [SerializeField] private NotificationHandler notificationHandler;
-        public bool isMegaphone;
-        static bool nearGrab = true;
 
-        public float distanceFromCamera = 1.5f; // Distance from camera to place the canvas
-                                                // Add a reference to the camera within your XR Rig
+        public float distanceFromCamera = 1.5f;
         public Transform xrCameraTransform;
+        public NetworkObject networkObject;
+
+        private NetworkObject spawnedSelfieStick;
+
+        // State tracking booleans
+        private bool isStanding = true; // true = Standing, false = Sitting
+        private bool isVoiceEnabled = true; // true = Unmuted, false = Muted
+        private bool isNearGrab = true; // true = Near Grab, false = Distance Grab
+        private bool isFlying = false; // true = Flying, false = Grounded
+        private bool isMegaphone = false; // true = Megaphone On, false = Off
+        private bool canFlyGlobally = false; // Set by scene/project
+
         void Start()
         {
+            // Assign button events programmatically
             GoHome_Button.GetComponent<Button>().onClick.AddListener(VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene);
-            Sit();
+            selfieButton.onClick.AddListener(OnTapSelfieStick);
+
+            postureUISetting.button.onClick.RemoveAllListeners();
+            postureUISetting.button.onClick.AddListener(OnTapPostureToggle);
+
+            voiceUISetting.button.onClick.RemoveAllListeners();
+            voiceUISetting.button.onClick.AddListener(OnTapVoiceToggle);
+
+            grabUISetting.button.onClick.RemoveAllListeners();
+            grabUISetting.button.onClick.AddListener(OnTapGrabToggle);
+
+            flyUISetting.button.onClick.RemoveAllListeners();
+            flyUISetting.button.onClick.AddListener(OnTapFlyToggle);
+
+            audioUISetting.button.onClick.RemoveAllListeners();
+            audioUISetting.button.onClick.AddListener(OnTapMegaphoneToggle);
+
+            emojiUISetting.button.onClick.RemoveAllListeners();
+            emojiUISetting.button.onClick.AddListener(ManageEmojiPanel);
+
+            if (networkObject.HasInputAuthority)
+            {
+                InitializeAllSettings();
+            }
+        }
+
+        public void ManageEmojiPanel()
+        {
+            if (!emojiPanel.activeInHierarchy)
+            {
+                HandleSettingUI();
+            }
+            MoveCanvasToCamera(emojiPanel);
+            emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
+        }
+        public void InitializeAllSettings()
+        {
+            isStanding = ProjectManager.instance.projectDataSO.projectData.defaultSetting.standDefault == toggle.on;
+
+            // Posture
+            if (isStanding)
+                Stand();
+            else
+                Sit();
+
+            // Voice
+            if (ProjectManager.instance.projectDataSO.projectData.defaultSetting.micType == micType.mute)
+                MuteVoice();
+            else
+                UnmuteVoice();
+
+            // Grab Mode
+            isNearGrab = ProjectManager.instance.projectDataSO.projectData.defaultSetting.grabMode == grabMode.near;
+            ApplyGrabMode();
+
+            // Megaphone
+            isMegaphone = ProjectManager.instance.projectDataSO.projectData.defaultSetting.megaphone == toggle.on;
+            ApplyMegaphoneMode();
+
+            // Fly Mode
+            canFlyGlobally = SceneLoader.Instance.isFlyModeEnabled;
+            bool defaultFlyOn = ProjectManager.instance.projectDataSO.projectData.defaultSetting.flyMode == toggle.on;
+            isFlying = canFlyGlobally && defaultFlyOn;
+            ApplyFlyMode();
+
+            InvokeRepeating(nameof(UpdateClock), 0f, 1f);
+        }
+
+        private void UpdateClock()
+        {
+            System.DateTime now = System.DateTime.Now;
+
+            if (timeText != null)
+                timeText.text = now.ToString("HH:mm:ss");
+
+            if (dateText != null)
+            {
+                // Custom format: "12 December, 2025"
+                string monthName = now.ToString("MMMM"); // Full month name, e.g., "December"
+                string formattedDate = $"{now.Day} {monthName}, {now.Year}";
+                dateText.text = formattedDate;
+            }
+        }
+
+        public void OnTapSelfieStick()
+        {
+            if (networkRunner == null)
+                networkRunner = RoomManager.Instance.Runner;
+
+            if (spawnedSelfieStick != null)
+            {
+                networkRunner.Despawn(spawnedSelfieStick);
+                spawnedSelfieStick = null;
+            }
+            else
+            {
+                HandleSettingUI();
+                Vector3 pos = xrCameraTransform.position + xrCameraTransform.forward * 0.5f;
+                pos.y -= 0.4f;
+                Debug.Log("Spawning Selfie Stick at: " + pos+"  "+ (xrCameraTransform.forward * 0.5f) );
+                spawnedSelfieStick = networkRunner.Spawn(selfieStickPrefab, pos, Quaternion.identity, networkRunner.LocalPlayer);
+            }
         }
 
         bool rightPrimaryButtonPressed;
         bool leftPrimaryButtonPressed;
+
         private void Update()
         {
 #if UNITY_EDITOR
-            if (Input.GetKeyDown(KeyCode.N))
-            {
-                HandleMenuUI();
-            }
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                HandleSettingUI();
-            }
+            if (Input.GetKeyDown(KeyCode.N)) HandleMenuUI();
+            if (Input.GetKeyDown(KeyCode.M)) HandleSettingUI();
 #endif
-            if (_inputData._rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool rightPrimaryButton))
+            if (_inputData._rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool rightBtn))
             {
-                if (rightPrimaryButton)
+                if (rightBtn && !rightPrimaryButtonPressed)
                 {
-                    if (!rightPrimaryButtonPressed)
-                    {
-                        rightPrimaryButtonPressed = true;
-                        HandleMenuUI();
-                    }
+                    rightPrimaryButtonPressed = true;
+                    HandleMenuUI();
                 }
-                else
-                {
-                    rightPrimaryButtonPressed = false;
-                }
+                else if (!rightBtn) rightPrimaryButtonPressed = false;
             }
-            if (_inputData._leftController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool leftprimaryButton))
+
+            if (_inputData._leftController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool leftBtn))
             {
-                if (leftprimaryButton)
+                if (leftBtn && !leftPrimaryButtonPressed)
                 {
-                    if (!leftPrimaryButtonPressed)
-                    {
-                        leftPrimaryButtonPressed = true;
-                        HandleSettingUI();
-                    }
+                    leftPrimaryButtonPressed = true;
+                    HandleSettingUI();
                 }
-                else
-                {
-                    leftPrimaryButtonPressed = false;
-                }
+                else if (!leftBtn) leftPrimaryButtonPressed = false;
             }
         }
 
-        public void InitializeSetting()
+        // ==================== TOGGLE HANDLERS ====================
+        public void OnTapPostureToggle()
         {
-            if (VoiceRecorderManager.Instance.GetRecorderStatus())
-            {
-                voiceUISetting.Enable();
-                voiceUISetting.SetText("Mute");
-            }
-            else
-            {
-                voiceUISetting.SetText("Unmute");
-                voiceUISetting.Disable();
-            }
-            if (isMegaphone)
-            {
-                audioUISetting.Enable();
-                audioUISetting.SetText("MegaPhone On");
-            }
-            else
-            {
-                audioUISetting.Disable();
-                audioUISetting.SetText("MegaPhone Off");
-            }
+            if (isStanding) Sit();
+            else Stand();
+        }
 
-            InitializeFlyMode();
-            InitializeGrabMode();
-        }
-        public bool canFly;
-        public void InitializeFlyMode()
+        public void OnTapVoiceToggle()
         {
-            canFly = SceneLoader.Instance.isFlyModeEnabled;
-            if (SceneLoader.Instance.isFlyModeEnabled)
-            {
-                networkSetup.GetComponent<FlyingModeScript>().enabled = true;
-                networkSetup.gp.useGravity = false;
-                flyUISetting.SetText("Fly Mode On");
-                flyUISetting.Enable();
-            }
-            else
-            {
-                networkSetup.GetComponent<FlyingModeScript>().enabled = false;
-                networkSetup.gp.useGravity = true;
-                flyUISetting.SetText("Fly Mode Off");
-                flyUISetting.Disable();
-            }
+            if (isVoiceEnabled) MuteVoice();
+            else UnmuteVoice();
         }
-        public void OnTapFlyMode()
+
+        public void OnTapGrabToggle()
         {
-            if (!SceneLoader.Instance.isFlyModeEnabled)
+            isNearGrab = !isNearGrab;
+            ApplyGrabMode();
+        }
+
+        public void OnTapFlyToggle()
+        {
+            if (!canFlyGlobally)
             {
                 notificationHandler.ShowMessage("Fly Mode is disabled in this World", "#FF0000");
                 return;
             }
-            if (canFly)
+            isFlying = !isFlying;
+            ApplyFlyMode();
+        }
+
+        public void OnTapMegaphoneToggle()
+        {
+            isMegaphone = !isMegaphone;
+            ApplyMegaphoneMode();
+        }
+
+        // ==================== APPLY FUNCTIONS ====================
+        private void Sit()
+        {
+            networkSetup.CallSetSittingHeightRPC();
+            isStanding = false;
+            postureUISetting.Disable(); // Sets disableSprite + disableText
+        }
+
+        private void Stand()
+        {
+            networkSetup.CallSetStandingHeightRPC();
+            isStanding = true;
+            postureUISetting.Enable(); // Sets enableSprite + enableText
+        }
+
+        private void MuteVoice()
+        {
+            VoiceRecorderManager.Instance.DisableRecorder();
+            isVoiceEnabled = false;
+            voiceUISetting.Disable();
+        }
+
+        private void UnmuteVoice()
+        {
+            VoiceRecorderManager.Instance.EnableRecorder();
+            isVoiceEnabled = true;
+            voiceUISetting.Enable();
+        }
+
+        private void ApplyGrabMode()
+        {
+            bool enableFar = !isNearGrab;
+            foreach (var interactor in nearFarInteractors)
+                interactor.enableFarCasting = enableFar;
+
+            if (isNearGrab)
             {
-                canFly = false;
-                networkSetup.GetComponent<FlyingModeScript>().enabled = false;
-                networkSetup.gp.useGravity = true;
-                flyUISetting.SetText("Fly Mode Off");
-                flyUISetting.Disable();
+                grabUISetting.Disable(); // Near Grab is active → show as "disabled" style (convention in your UI)
+                HandleUIInteractor(true);
             }
             else
+            {
+                grabUISetting.Enable(); // Distance Grab active
+                HandleUIInteractor(false);
+            }
+        }
+
+        private void ApplyFlyMode()
+        {
+            if (isFlying)
             {
                 networkSetup.GetComponent<FlyingModeScript>().enabled = true;
                 networkSetup.gp.useGravity = false;
-                canFly = true;
-                flyUISetting.SetText("Fly Mode On");
                 flyUISetting.Enable();
             }
-        }
-        public void OnTapSit()
-        {
-            Sit();
-        }
-
-        public void OnTapStand()
-        {
-            Stand();
-        }
-
-        public void OnTapVoiceButton()
-        {
-            if (VoiceRecorderManager.Instance.GetRecorderStatus())
-            {
-                VoiceRecorderManager.Instance.DisableRecorder();
-                voiceUISetting.SetText("Unmute");
-                voiceUISetting.Disable();
-            }
             else
             {
-                voiceUISetting.SetText("Mute");
-                voiceUISetting.Enable();
-                VoiceRecorderManager.Instance.EnableRecorder();
+                networkSetup.GetComponent<FlyingModeScript>().enabled = false;
+                networkSetup.gp.useGravity = true;
+                flyUISetting.Disable();
             }
-        }
-        public void Sit()
-        {
-            Debug.Log("Sit height Called");
-            networkSetup.CallSetSittingHeightRPC();
         }
 
-        public void ChangeAudioMode()
+        private void ApplyMegaphoneMode()
         {
-            if (isMegaphone)
-            {
-                audioUISetting.Disable();
-                audioUISetting.SetText("MegaPhone Off");
-                isMegaphone = false;
-            }
-            else
-            {
-                audioUISetting.Enable();
-                audioUISetting.SetText("MegaPhone On");
-                isMegaphone = true;
-            }
             networkSetup.MegaphoneHandler(isMegaphone);
-        }
-
-        public void SetAudioMode()
-        {
-            foreach (PlayerNetworkSetup pns in SpawnManager.Instance.allPlayers)
-            {
-                if (isMegaphone)
-                {
-                    pns.voiceView.SpeakerInUse.GetComponent<AudioSource>().spatialBlend = 0;
-                }
-                else
-                {
-                    pns.voiceView.SpeakerInUse.GetComponent<AudioSource>().spatialBlend = 1;
-                }
-            }
-        }
-
-        public void InitializeGrabMode()
-        {
-            if (nearGrab)
-            {
-                foreach (NearFarInteractor interactor in nearFarInteractors)
-                {
-                    interactor.enableFarCasting = false;
-                }
-                GrabUISetting.Disable();
-                GrabUISetting.SetText("Near Grab");
-                HandleUIInteractor(true);
-            }
+            if (isMegaphone)
+                audioUISetting.Enable();
             else
-            {
-                foreach (NearFarInteractor interactor in nearFarInteractors)
-                {
-                    interactor.enableFarCasting = true;
-                }
-                GrabUISetting.Enable();
-                GrabUISetting.SetText("Distance Grab");
-                HandleUIInteractor(false);
-            }
-        }
-
-        public void ChangeGrabMode()
-        {
-            if (nearGrab)
-            {
-                foreach (NearFarInteractor interactor in nearFarInteractors)
-                {
-                    interactor.enableFarCasting = true;
-                }
-                nearGrab = false;
-                GrabUISetting.Enable();
-                GrabUISetting.SetText("Distance Grab");
-                HandleUIInteractor(false);
-            }
-            else
-            {
-                foreach (NearFarInteractor interactor in nearFarInteractors)
-                {
-                    interactor.enableFarCasting = false;
-                }
-                GrabUISetting.Disable();
-                GrabUISetting.SetText("Near Grab");
-                HandleUIInteractor(true);
-                nearGrab = true;
-            }
+                audioUISetting.Disable();
         }
 
         void HandleUIInteractor(bool active)
         {
-            foreach (NearFarInteractor interactor in UIInteractors)
-            {
+            foreach (var interactor in UIInteractors)
                 interactor.gameObject.SetActive(active);
-            }
         }
-        public void Stand()
-        {
-            Debug.Log("Stand height Called");
-            networkSetup.CallSetStandingHeightRPC();
-        }
+
+        // ==================== UI Positioning ====================
         public void HandleMenuUI()
         {
-            if (menuUI == null)
-            {
-                return;
-            }
+            if (menuUI == null) return;
+            menuUI.SetActive(!menuUI.activeInHierarchy);
             if (menuUI.activeInHierarchy)
             {
-                menuUI.SetActive(false);
-            }
-            else
-            {
                 MoveCanvasToCamera(menuUI);
-                menuUI.SetActive(true);
                 settingUI.SetActive(false);
             }
         }
 
         public void HandleSettingUI()
         {
-            if (settingUI == null)
-            {
-                return;
-            }
+            if (settingUI == null) return;
+            settingUI.SetActive(!settingUI.activeInHierarchy);
             if (settingUI.activeInHierarchy)
             {
-                settingUI.SetActive(false);
-            }
-            else
-            {
                 MoveCanvasToCamera(settingUI);
-                settingUI.SetActive(true);
                 menuUI.SetActive(false);
             }
         }
 
         void MoveCanvasToCamera(GameObject UIObject)
         {
-            // Set the canvas position to the camera position plus forward vector times the desired distance
             UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
-
-            // Make the canvas face the camera horizontally by setting its forward direction to the inverse of the camera's (on the XZ plane)
-            Vector3 cameraForwardOnGround = xrCameraTransform.forward;
-            cameraForwardOnGround.y = 0; // This ensures the UI canvas will only rotate around the Y axis
-            cameraForwardOnGround.Normalize();
-
-            UIObject.transform.forward = -cameraForwardOnGround;
-            // Level the canvas to the ground (maintain zero rotation along X and Z axes)
-            UIObject.transform.rotation = Quaternion.Euler(
-                0,  // zero X rotation
-                UIObject.transform.rotation.eulerAngles.y + 180,  // maintain Y rotation
-                0   // zero Z rotation
-            );
+            Vector3 flatForward = xrCameraTransform.forward;
+            flatForward.y = 0;
+            flatForward.Normalize();
+            UIObject.transform.forward = -flatForward;
+            UIObject.transform.rotation = Quaternion.Euler(0, UIObject.transform.eulerAngles.y + 180, 0);
         }
     }
-}
 
-[Serializable]
-public class SettingButton
-{
-    //public Image[] images;
-    public Image icon;
-    public TextMeshProUGUI UIText;
-    public Sprite enableSprite;
-    public Sprite disableSprite;
+    [Serializable]
+    public class SettingButton
+    {
+        public Button button;
+        public Image icon;
+        public TextMeshProUGUI UIText;
 
-    public void SetText(string str)
-    {
-        UIText.text = str;
-    }
-    public void Enable()
-    {
-        icon.sprite = enableSprite;
-    }
-    public void Disable()
-    {
-        icon.sprite = disableSprite;
+        public Sprite enableSprite;
+        public Sprite disableSprite;
+
+        public string enableText = "On";        // Text when in "enabled/active" state
+        public string disableText = "Off";      // Text when in "disabled/inactive" state
+
+        public void SetText(string str)
+        {
+            if (UIText) UIText.text = str;
+        }
+
+        public void Enable()
+        {
+            if (icon && enableSprite) icon.sprite = enableSprite;
+            if (UIText) UIText.text = enableText;
+        }
+
+        public void Disable()
+        {
+            if (icon && disableSprite) icon.sprite = disableSprite;
+            if (UIText) UIText.text = disableText;
+        }
     }
 }

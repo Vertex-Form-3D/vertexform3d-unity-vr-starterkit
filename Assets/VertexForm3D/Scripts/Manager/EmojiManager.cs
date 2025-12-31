@@ -1,10 +1,10 @@
-using Photon.Pun;
+using Fusion;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EmojiManager : MonoBehaviour
+public class EmojiManager : NetworkBehaviour
 {
     public ParticleSystem partical; // Reference to the ParticleSystem
     public Transform spawnPoint; // Point where particles will be spawned
@@ -15,10 +15,10 @@ public class EmojiManager : MonoBehaviour
     private ParticleSystemRenderer particleRenderer; // Renderer for the ParticleSystem
     private Material particleMaterial;               // New material instance for the ParticleSystem
     public int emojiIndex; // Index of the current emoji sprite
-    public PhotonView PV;
+
     void Start()
     {
-        if (PV != null && PV.IsMine)
+        if (Object.HasInputAuthority)
         {
             Init();
         }
@@ -53,7 +53,6 @@ public class EmojiManager : MonoBehaviour
     }
 
 
-    [PunRPC]
     public void ShowEmoji(int index)
     {
         emojiIndex = index;
@@ -83,6 +82,12 @@ public class EmojiManager : MonoBehaviour
 
     public void ShowEmojiRPCcall(int index)
     {
-        PV.RPC(nameof(ShowEmoji), RpcTarget.All, index);
+        RPC_ShowEmoji(index);
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    public void RPC_ShowEmoji(int index)
+    {
+        ShowEmoji(index);
     }
 }

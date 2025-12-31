@@ -1,24 +1,30 @@
-using Photon.Pun;
+using Fusion;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
+using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using VertexFormCore;
 
 public class WatchManager : MonoBehaviour
 {
     [SerializeField] private GameObject watch;
     [SerializeField] private XRInputModalityManager XRIMM;
+    public bool isRPM;
+    [SerializeField] private Transform RPMLeftHand;
     [SerializeField] private Transform leftControllerHand;
     [SerializeField] private Transform leftHand;
     [SerializeField] private TMP_Text timeText;
     [SerializeField] private TMP_Text secondsText;
-    [SerializeField] private PhotonView PV;
+    [SerializeField] private NetworkObject networkObject;
     [SerializeField] private GameObject emojiPanel;
+    public Button emojiButton;
+
     private void Start()
     {
-        if (PV != null)
+        isRPM = PlayerPrefs.GetString(MultiplayerVRConstants.IS_RPM) == "true" ? true : false;
+        if (networkObject != null)
         {
-            if (PV.IsMine)
+            if (networkObject.HasInputAuthority)
             {
                 XRIMM.trackedHandModeStarted.AddListener(OnTrackedHandModeStarted);
                 XRIMM.trackedHandModeEnded.AddListener(OnTrackedHandModeEnded);
@@ -39,12 +45,14 @@ public class WatchManager : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+        emojiButton?.onClick.AddListener(ManageEmojiPanel);
     }
 
     public void ManageEmojiPanel()
     {
         emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
     }
+
     public void ShowTime()
     {
         System.DateTime now = System.DateTime.Now;
@@ -58,13 +66,20 @@ public class WatchManager : MonoBehaviour
         // Print to the console
     }
 
-
     private void OnMotionControllerModeStarted()
     {
-        watch.transform.SetParent(leftControllerHand);
+        if (isRPM)
+        {
+            watch.transform.SetParent(RPMLeftHand);
+        }
+        else
+        {
+            watch.transform.SetParent(leftControllerHand);
+        }
         watch.transform.localPosition = Vector3.zero;
         watch.transform.localRotation = Quaternion.identity;
     }
+
     private void OnMotionControllerModeEnded()
     {
 
@@ -77,7 +92,14 @@ public class WatchManager : MonoBehaviour
 
     private void OnTrackedHandModeStarted()
     {
-        watch.transform.SetParent(leftHand);
+        if (isRPM)
+        {
+            watch.transform.SetParent(RPMLeftHand);
+        }
+        else
+        {
+            watch.transform.SetParent(leftHand);
+        }
         watch.transform.localPosition = Vector3.zero;
         watch.transform.localRotation = Quaternion.identity;
     }

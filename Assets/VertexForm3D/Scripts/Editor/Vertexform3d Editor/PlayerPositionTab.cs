@@ -34,6 +34,12 @@ namespace VertexFormCore.Editor
     "Add one or more spawn points to control where the player appears in the scene.",
     "You can create one or multiple spawn points. If multiple are present, the player will spawn at one randomly. If no spawn points are set, the player will spawn at the default position (0, 0, 0).",
     CreatePlayerSpawnPoint));
+            
+            items.Add(new ToolkitItem(
+    "SittingPoint",
+    "Add one or more sitting points to define where the player can sit within the scene.",
+    "You can create one or multiple sitting points in the scene. These define the exact locations where the player is allowed to sit during gameplay.",
+    CreatePlayerSit));
 
         }
 
@@ -43,6 +49,13 @@ namespace VertexFormCore.Editor
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/PlayerSpawnPoint"));
             g.name = "PlayerspwanPoint";
+            EditorGUIUtility.PingObject(g);
+        }
+        
+        public void CreatePlayerSit()
+        {
+            GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/SitSpotPrefab"));
+            g.name = "SittingPrefab";
             EditorGUIUtility.PingObject(g);
         }
 

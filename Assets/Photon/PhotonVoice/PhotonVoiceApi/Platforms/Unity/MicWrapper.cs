@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using System.Linq;
 
 namespace Photon.Voice.Unity
 {
@@ -9,39 +8,24 @@ namespace Photon.Voice.Unity
     {
         private AudioClip mic;
         private string device;
-		ILogger logger;
+        ILogger logger;
 
-		public MicWrapper(string device, int suggestedFrequency, ILogger logger)
+        public MicWrapper(string device, int suggestedFrequency, ILogger logger)
         {
             try
             {
                 this.device = device;
-				this.logger = logger;
-                if (UnityMicrophone.devices.Length < 1)
+                this.logger = logger;
+
+                int frequency;
+                this.Error = UnityMicrophone.CheckDevice(logger, "[PV] MicWrapper: ", device, suggestedFrequency, out frequency);
+                if (this.Error != null)
                 {
-                    Error = "No microphones found (UnityMicrophone.devices is empty)";
-                    logger.LogError("[PV] MicWrapper: " + Error);
                     return;
                 }
-                if (!string.IsNullOrEmpty(device) && !UnityMicrophone.devices.Contains(device))
-                {
-                    logger.LogError(string.Format("[PV] MicWrapper: \"{0}\" is not a valid Unity microphone device, falling back to default one", device));
-                    device = null;
-                }
-                int minFreq;
-                int maxFreq;
-                logger.LogInfo("[PV] MicWrapper: initializing microphone '{0}', suggested frequency = {1}).", device, suggestedFrequency);
-                UnityMicrophone.GetDeviceCaps(device, out minFreq, out maxFreq);
-                var frequency = suggestedFrequency;
-                //        minFreq = maxFreq = 44100; // test like android client
-                if (suggestedFrequency < minFreq || maxFreq != 0 && suggestedFrequency > maxFreq)
-                {
-                    logger.LogWarning("[PV] MicWrapper does not support suggested frequency {0} (min: {1}, max: {2}). Setting to {2}",
-                        suggestedFrequency, minFreq, maxFreq);
-                    frequency = maxFreq;
-                }
+
                 this.mic = UnityMicrophone.Start(device, true, 1, frequency);
-                logger.LogInfo("[PV] MicWrapper: microphone '{0}' initialized, frequency = {1}, channels = {2}.", device, this.mic.frequency, this.mic.channels);
+                logger.Log(LogLevel.Info, "[PV] MicWrapper: microphone '{0}' initialized, frequency = {1}, channels = {2}.", device, this.mic.frequency, this.mic.channels);
             }
             catch (Exception e)
             {
@@ -50,7 +34,7 @@ namespace Photon.Voice.Unity
                 {
                     Error = "Exception in MicWrapper constructor";
                 }
-                logger.LogError("[PV] MicWrapper: " + Error);
+                logger.Log(LogLevel.Error, "[PV] MicWrapper: " + Error);
             }
         }
 
@@ -83,15 +67,15 @@ namespace Photon.Voice.Unity
 
             var micAbsPos = micLoopCnt * this.mic.samples + micPos;
 
-			if (mic.channels == 0)
-			{
-				Error = "Number of channels is 0 in Read()";
-				logger.LogError("[PV] MicWrapper: " + Error);
-				return false;
-			}
-			var bufferSamplesCount = buffer.Length / mic.channels;
+            if (mic.channels == 0)
+            {
+                Error = "Number of channels is 0 in Read()";
+                logger.Log(LogLevel.Error, "[PV] MicWrapper: " + Error);
+                return false;
+            }
+            var bufferSamplesCount = buffer.Length / mic.channels;
 
-			var nextReadPos = this.readAbsPos + bufferSamplesCount;
+            var nextReadPos = this.readAbsPos + bufferSamplesCount;
             if (nextReadPos < micAbsPos)
             {
                 this.mic.GetData(buffer, this.readAbsPos % this.mic.samples);
