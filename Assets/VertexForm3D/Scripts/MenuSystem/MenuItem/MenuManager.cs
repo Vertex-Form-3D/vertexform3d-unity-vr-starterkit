@@ -1,4 +1,3 @@
-using DG.Tweening.Plugins.Options;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using TMPro;
@@ -148,7 +147,7 @@ public class MenuManager : MonoBehaviour
         }
         GameObject catObj = Instantiate(categoryPrefab, categoryParent);
         Category allCat = new Category();
-        allCat.categoryName = "All Worlds";
+        allCat.categoryName = "All Places";
         allCat.environments = allWorlds;
         catObj.GetComponent<CategoryItemView>().SetCategory(allCat);
 

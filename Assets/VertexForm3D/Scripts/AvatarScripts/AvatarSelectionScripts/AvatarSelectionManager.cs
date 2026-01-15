@@ -9,12 +9,8 @@ namespace VertexFormCore
         [SerializeField]
         GameObject AvatarSelectionPlatformGameobject;
 
-        public Button RPMButton;
-        public Button customAvatarButton;
         public Button previousButton;
         public Button nextButton;
-        public GameObject[] selectableAvatarModels;
-        public GameObject[] loadableAvatarModels;
 
         [Header("Custom Avatar Properties")]
         public Transform headTransform;
@@ -30,16 +26,10 @@ namespace VertexFormCore
         public GameObject customAvatarSelectionUI;
         public AvatarHolder customavatarloader;
         [Header("Custom Avatar Properties")]
-        public string defaultRPMAvatarURL = "https://models.readyplayer.me/68e20ad9263ebdf61cfa83e2.glb";
-        public LoadRPMAvatar RPMAvatarLoader;
-        public GameObject readyPlayerMeSelection;
-        public GameObject readyPlayerMeSelectionUI;
-        public bool isRPM;
         public XRInputModalityManager XRIMM;
         public int avatarSelectionNumber = 0;
         public Renderer leftHandVisual;
         public Renderer rightHandVisual;
-        public GameObject AvatarButtonParent;
         public GameObject bottomButtonParent;
         public GameObject avatarSelectionCanvas;
         public GameObject mainUICanvas;
@@ -62,15 +52,14 @@ namespace VertexFormCore
 
         public void OnTapChangeAvatar()
         {
-            AvatarButtonParent.SetActive(true);
             bottomButtonParent.SetActive(false);
             mainUICanvas.SetActive(false);
             avatarSelectionCanvas.SetActive(true);
+            OnTapCustomAvatarSelection();
         }
 
         public void OnCloseAvatarSelection()
         {
-            AvatarButtonParent.SetActive(false);
             bottomButtonParent.SetActive(true);
             mainUICanvas.SetActive(true);
             avatarSelectionCanvas.SetActive(false);
@@ -90,15 +79,6 @@ namespace VertexFormCore
                 NextAvatar();
             });
 
-            RPMButton.onClick.AddListener(() =>
-            {
-                OnTapReadyPlayerMeAvatarSelection();
-            });
-
-            customAvatarButton.onClick.AddListener(() =>
-            {
-                OnTapCustomAvatarSelection();
-            });
             InitializeAvatarSystem();
             HandAndControllerSync();
         }
@@ -122,8 +102,8 @@ namespace VertexFormCore
 
         private void OnMotionControllerModeStarted()
         {
-            leftHandParent.gameObject.SetActive(!isRPM);
-            rightHandParent.gameObject.SetActive(!isRPM);
+            leftHandParent.gameObject.SetActive(true);
+            rightHandParent.gameObject.SetActive(true);
         }
 
         private void OnMotionControllerModeEnded()
@@ -138,52 +118,23 @@ namespace VertexFormCore
 
         private void OnTrackedHandModeStarted()
         {
-            if (!isRPM)
-            {
                 leftHandVisual.enabled = rightHandVisual.enabled = true;
-            }
-            else
-            {
-                leftHandVisual.enabled = rightHandVisual.enabled = false;
-            }
+            
             leftHandParent.gameObject.SetActive(false);
             rightHandParent.gameObject.SetActive(false);
         }
 
         public void InitializeAvatarSystem()
         {
-            isRPM = PlayerPrefs.GetString("IS_RPM") == "true";
-            if (isRPM)
-            {
-                if (!string.IsNullOrEmpty(PlayerPrefs.GetString("RPM_AVATAR_ID")))
-                {
-
-                    RPMAvatarLoader.LoadAvatar(PlayerPrefs.GetString("RPM_AVATAR_ID"));
-                }
-                else
-                {
-                    RPMAvatarLoader.LoadAvatar(defaultRPMAvatarURL);
-                }
-                OnTapReadyPlayerMeAvatarSelection();
-            }
-            else
-            {
                 OnTapCustomAvatarSelection();
-            }
+            
         }
         public void OnTapCustomAvatarSelection()
         {
-            PlayerPrefs.SetString("IS_RPM", "false");
-            isRPM = false;
             avatarSelectionNumber = PlayerPrefs.GetInt(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER);
             ActivateAvatarModelAt(avatarSelectionNumber);
-            customAvatarButton.gameObject.SetActive(false);
-            RPMButton.gameObject.SetActive(true);
-            RPMButton.gameObject.SetActive(true);
             customAvatarSelection.SetActive(true);
             customAvatarSelectionUI.SetActive(true);
-            readyPlayerMeSelection.SetActive(false);
-            readyPlayerMeSelectionUI.SetActive(false);
             if (customAvatarSelectionUI.activeInHierarchy)
             {
                 leftHandVisual.enabled = rightHandVisual.enabled = true;
@@ -194,34 +145,6 @@ namespace VertexFormCore
             }
             leftHandParent.gameObject.SetActive(XRIMM.leftController.activeInHierarchy);
             rightHandParent.gameObject.SetActive(XRIMM.rightController.activeInHierarchy);
-        }
-
-        public void OnTapReadyPlayerMeAvatarSelection()
-        {
-            if (PlayerPrefs.GetString("IS_RPM") == "false")
-            {
-                string defaultURL = RPMAvatarLoader.defaultAvatarUrl;
-                PlayerPrefs.SetString("RPM_AVATAR_ID", defaultURL);
-                Debug.Log("Loading Default RPM Avatar:" + RPMAvatarLoader.defaultAvatarUrl);
-                RPMAvatarLoader.LoadAvatar(defaultRPMAvatarURL);
-                PlayerPrefs.SetString("IS_RPM", "true");
-            }
-            customAvatarButton.gameObject.SetActive(true);
-            RPMButton.gameObject.SetActive(false);
-            isRPM = true;
-            leftHandVisual.enabled = rightHandVisual.enabled = false;
-            customAvatarSelection.SetActive(false);
-            customAvatarSelectionUI.SetActive(false);
-            readyPlayerMeSelection.SetActive(true);
-            readyPlayerMeSelectionUI.SetActive(true);
-            if (customAvatarSelectionUI.activeInHierarchy)
-            {
-                leftHandVisual.enabled = rightHandVisual.enabled = true;
-            }
-            else
-            {
-                leftHandVisual.enabled = rightHandVisual.enabled = false;
-            }
         }
 
         public void DeactivateAvatarSelectionPlatform()

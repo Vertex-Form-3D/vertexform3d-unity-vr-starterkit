@@ -11,6 +11,7 @@ using Photon.Voice.Fusion;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using Photon.Voice.Unity;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.InputSystem.XR;
 
 namespace VertexFormCore
 {
@@ -23,7 +24,6 @@ namespace VertexFormCore
         [SerializeField] private GameObject[] AvatarHeadGameobjects;
         [SerializeField] private GameObject AvatarBodyGameobject;
 
-        [SerializeField] private GameObject[] AvatarModelPrefabs;
         [SerializeField] private TextMeshProUGUI PlayerName_Text;
         [SerializeField] private GameObject cameraOffset;
         [SerializeField] private XROrigin xROrigin;
@@ -40,6 +40,7 @@ namespace VertexFormCore
         public GameObject leftControllerHand;
         public GameObject rightControllerHand;
         public ClimbProvider cp;
+        public TrackedPoseDriver[] trackedPoseDrivers;
         [SerializeField] InputActionManager IAM;
         [SerializeField] XRInputModalityManager XRIMM;
 
@@ -60,14 +61,10 @@ namespace VertexFormCore
 
         public CustomAvatarScriptable customAvatarScriptable;
         public AvatarHolder avatarHolder;
-        public LoadRPMAvatar RPM_avatarLoader;
-        public GameObject RPM_body;
         public Transform bodyTransform;
         public Transform headTransform;
 
         // Fusion networked properties
-        [Networked] public bool isRPM { get; set; }
-        [Networked] public NetworkString<_64> rpmID { get; set; }
         [Networked] public int AvatarSelectionNumber { get; set; }
         [Networked] public NetworkString<_16> PlayerName { get; set; }
 
@@ -193,16 +190,7 @@ namespace VertexFormCore
                 //Getting the avatar selection data
                 int avatarSelectionNumber = PlayerPrefs.GetInt(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER);
                 AvatarSelectionNumber = avatarSelectionNumber;
-                isRPM = PlayerPrefs.GetString(MultiplayerVRConstants.IS_RPM) == "true" ? true : false;
-                MainAvatarGameobject.SetActive(!isRPM);
-                RPM_body.SetActive(isRPM);
-                if (isRPM)
-                {
-                    rpmID = PlayerPrefs.GetString(MultiplayerVRConstants.RPM_AVATAR_ID);
-                    Debug.Log("Loading RPM Avatar from URL: " + rpmID);
-                    RPM_avatarLoader.LoadAvatar(rpmID.ToString());
-                }
-                else
+                MainAvatarGameobject.SetActive(true);
                 {
                     InitializeSelectedAvatarModel(avatarSelectionNumber);
                 }
@@ -229,6 +217,13 @@ namespace VertexFormCore
                 IAM.actionAssets.Clear();
                 XRIMM.enabled = false;
                 XRIMM.leftHand = XRIMM.rightHand = null;
+                foreach (TrackedPoseDriver poseDriver in trackedPoseDrivers)
+                {
+                    if (poseDriver != null)
+                    {
+                        poseDriver.enabled = false;
+                    }
+                }
                 for (int i = 0; i < nonSyncableObjects.Length; i++)
                 {
                     if (nonSyncableObjects[i].gameObject != null)
@@ -238,8 +233,7 @@ namespace VertexFormCore
                         Destroy(g);
                     }
                 }
-                MainAvatarGameobject.SetActive(!isRPM);
-                RPM_body.SetActive(isRPM);
+
                 foreach (GameObject head in AvatarHeadGameobjects)
                 {
                     SetLayerRecursively(head, 0);
@@ -248,14 +242,9 @@ namespace VertexFormCore
 
                 // Setup voice components for remote player to ensure we can hear them
                 SetupRemotePlayerVoiceComponents();
-                if (isRPM)
-                {
-                    RPM_avatarLoader.LoadAvatar(rpmID.ToString());
-                }
-                else
-                {
-                    InitializeRemotePlayerAvatar();
-                }
+
+                InitializeRemotePlayerAvatar();
+
 
                 Debug.Log("-->remote player avatar initialized");
             }
@@ -323,10 +312,8 @@ namespace VertexFormCore
         [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
         public void RPC_EnableHand()
         {
-            Debug.Log("isRPM: " + isRPM + !isRPM);
             leftHand.SetActive(true);
             rightHand.SetActive(true);
-            leftHandVisual.enabled = rightHandVisual.enabled = (!isRPM);
             LeftController.SetActive(false);
             rightController.SetActive(false);
             rightControllerHand.SetActive(false);

@@ -5,6 +5,7 @@ using UnityEngine;
 public class ProjectDataScriptableObject : ScriptableObject
 {
     public ProjectData projectData;
+    public Mode mode;
 }
 
 [Serializable]
@@ -16,6 +17,8 @@ public class ProjectData
     public string addressableCatalogFilePath;
     public string catalogFileName;
     public SettingClass defaultSetting;
+    public string currentPackageVersion = "1.0.0";
+    public string versionJsonUrl = "https://storage.googleapis.com/your_bucket_name/version.json";
 }
 
 public enum micType
@@ -34,6 +37,12 @@ public enum toggle
 {
     on,
     off
+}
+
+public enum Mode
+{
+    player,
+    Spectator
 }
 
 [System.Serializable]

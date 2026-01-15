@@ -212,6 +212,7 @@ namespace VertexFormCore
             if (completedTask == timeoutTask)
             {
                 Debug.LogError("[RoomManager] StartGame timed out after 30 seconds!");
+                ConnectToRoom(mapName);
                 return;
             }
 

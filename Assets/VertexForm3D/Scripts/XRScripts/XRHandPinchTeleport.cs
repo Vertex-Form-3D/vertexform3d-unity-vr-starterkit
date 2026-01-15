@@ -20,11 +20,12 @@ public class XRHandPinchTeleport : MonoBehaviour
     private XRHandSubsystem handSubsystem;
     private bool teleportQueued = false;
     public NetworkObject networkObject;
+
     void Start()
     {
-        if (networkObject != null)
+        if (networkObject!=null)
         {
-            if (!networkObject.HasInputAuthority)
+            if (networkObject.HasInputAuthority)
             {
                 Destroy(teleportHandGesture);
                 Destroy(rayInteractor.gameObject);

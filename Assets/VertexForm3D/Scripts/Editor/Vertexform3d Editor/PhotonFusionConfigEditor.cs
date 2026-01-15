@@ -2,14 +2,12 @@
 using UnityEditor;
 using System.IO;
 using Fusion.Photon.Realtime;
-using ReadyPlayerMe.Core.Data;
 
 [System.Serializable]
 public class PhotonConfigData
 {
     public string FusionAppId = "";
     public string VoiceAppId = "";
-    public string ReadyPlayerMeSubDomain = "https://api.readyplayer.me";
     public string ReadyPlayerMeAppId = "";
     public string AddressablesPath = "";
 }
@@ -20,7 +18,7 @@ public class PhotonFusionConfigEditor : EditorWindow
     private Vector2 scrollPosition;
     private string filePath;
     private const string PhotonAppSettingsPath = "PhotonAppSettings";
-    private const string CoreSettingsPath = "Settings/CoreSettings";
+    private const string CoreSettingsPath = "CoreSettings";
 
     [MenuItem("Window/Photon Fusion Config Manager")]
     public static void ShowWindow()
@@ -61,9 +59,7 @@ public class PhotonFusionConfigEditor : EditorWindow
         // === Ready Player Me Settings Group ===
         EditorGUILayout.LabelField("Ready Player Me Settings", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        configData.ReadyPlayerMeSubDomain = EditorGUILayout.TextField(
-            new GUIContent("RPM Subdomain", "Usually https://api.readyplayer.me or a custom demo subdomain"),
-            configData.ReadyPlayerMeSubDomain);
+
         configData.ReadyPlayerMeAppId = EditorGUILayout.TextField(
             new GUIContent("RPM App ID (Optional)", "Required for partner features or analytics"),
             configData.ReadyPlayerMeAppId);
@@ -113,7 +109,6 @@ public class PhotonFusionConfigEditor : EditorWindow
 
         // === Asset Status ===
         var photonSettings = Resources.Load<PhotonAppSettings>(PhotonAppSettingsPath);
-        var coreSettings = Resources.Load<CoreSettings>(CoreSettingsPath);
 
         if (photonSettings == null)
         {
@@ -122,11 +117,6 @@ public class PhotonFusionConfigEditor : EditorWindow
         else
         {
             EditorGUILayout.HelpBox("✓ PhotonAppSettings.asset found and ready.", MessageType.Info);
-        }
-
-        if (coreSettings == null)
-        {
-            EditorGUILayout.HelpBox("⚠ CoreSettings.asset (ReadyPlayerMe) not found in Resources!", MessageType.Warning);
         }
 
         EditorGUILayout.EndScrollView();
@@ -186,17 +176,14 @@ public class PhotonFusionConfigEditor : EditorWindow
             return;
         }
 
-        photonSettings.AppSettings.AppIdFusion = configData.FusionAppId;
-        photonSettings.AppSettings.AppIdVoice = configData.VoiceAppId;
-        modified = true;
-
-        // Update Ready Player Me CoreSettings
-        var coreSettings = Resources.Load<CoreSettings>(CoreSettingsPath);
-        if (coreSettings != null)
+        if (!string.IsNullOrEmpty(configData.FusionAppId))
         {
-            coreSettings.Subdomain = configData.ReadyPlayerMeSubDomain;
-            coreSettings.AppId = configData.ReadyPlayerMeAppId;
-            EditorUtility.SetDirty(coreSettings);
+            photonSettings.AppSettings.AppIdFusion = configData.FusionAppId;
+            modified = true;
+        }
+        if (!string.IsNullOrEmpty(configData.VoiceAppId))
+        {
+            photonSettings.AppSettings.AppIdVoice = configData.VoiceAppId;
             modified = true;
         }
 
@@ -237,13 +224,6 @@ public class PhotonFusionConfigEditor : EditorWindow
         {
             configData.FusionAppId = photonSettings.AppSettings.AppIdFusion ?? "";
             configData.VoiceAppId = photonSettings.AppSettings.AppIdVoice ?? "";
-        }
-
-        var coreSettings = Resources.Load<CoreSettings>(CoreSettingsPath);
-        if (coreSettings != null)
-        {
-            configData.ReadyPlayerMeSubDomain = coreSettings.Subdomain ?? "https://api.readyplayer.me";
-            configData.ReadyPlayerMeAppId = coreSettings.AppId ?? "";
         }
 
         configData.AddressablesPath = PlayerPrefs.GetString("Addressables_Path", "");
