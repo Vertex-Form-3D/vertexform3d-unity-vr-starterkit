@@ -1,4 +1,4 @@
-﻿using Fusion;
+using Fusion;
 using UnityEngine;
 
 namespace VertexFormCore
@@ -34,7 +34,16 @@ namespace VertexFormCore
                 }
             }
             //Head and Body synch
-            MainAvatarTransform.position = Vector3.Lerp(MainAvatarTransform.position, XRHead.position + headPositionOffset, 0.5f);
+            // Apply offset in local space for horizontal positioning only
+            Vector3 horizontalOffset = XRHead.TransformDirection(new Vector3(headPositionOffset.x, 0, headPositionOffset.z));
+            Vector3 targetBodyPosition = new Vector3(
+                XRHead.position.x + horizontalOffset.x,
+                XRHead.position.y + headPositionOffset.y, // Vertical offset in world space
+                XRHead.position.z + horizontalOffset.z
+            );
+            MainAvatarTransform.position = Vector3.Lerp(MainAvatarTransform.position, targetBodyPosition, 0.5f);
+            
+            // Head rotates freely to match VR headset
             AvatarHead.rotation = Quaternion.Lerp(AvatarHead.rotation, XRHead.rotation, 0.5f);
             AvatarBody.rotation = Quaternion.Lerp(AvatarBody.rotation, Quaternion.Euler(new Vector3(0, AvatarHead.rotation.eulerAngles.y, 0)), 0.05f);
 

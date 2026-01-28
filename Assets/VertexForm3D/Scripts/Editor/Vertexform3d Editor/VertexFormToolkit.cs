@@ -18,17 +18,14 @@ namespace VertexFormCore.Editor
         private const float tileWidth = 180f;
         private const float tileHeight = 180f;
         private const float spacing = 10f;
-        private float headerHeight = 50f;
         private float tabHeight = 25f;
-        private float tabDescriptionHeight = 60f;
-        private float searchBarHeight = 30f;
+
         private const float tabPadding = 10f; // Padding for the tab content
         private const float minTabWidth = 90f; // Minimum width for a tab
         private Dictionary<int, float> tabWidths = new Dictionary<int, float>(); // Store calculated tab widths
 
         // Store the selected item for detail view
         private ToolkitItem selectedItem;
-        private bool showDetailWindow = false;
 
         // Tab management
         private List<ITabGroup> tabGroups = new List<ITabGroup>();
@@ -69,7 +66,6 @@ namespace VertexFormCore.Editor
                     if (item.title == title)
                     {
                         selectedItem = item;
-                        showDetailWindow = true;
                         OpenDetailWindow(item);
                         return;
                     }
@@ -1131,7 +1127,6 @@ namespace VertexFormCore.Editor
         private void OpenDetailWindow(ToolkitItem item)
         {
             selectedItem = item;
-            showDetailWindow = true;
             ToolkitDetailWindow.Open(item, this, favoritesTab);
         }
     }

@@ -16,6 +16,7 @@ namespace VertexFormCore
         //Head  Synch
         [Header("Avatar Head Transform Synch")]
         public Transform headTransform;
+        public Transform shadowHeadTransform;
 
         //Body Synch
         [Header("Avatar Body Transform Synch")]

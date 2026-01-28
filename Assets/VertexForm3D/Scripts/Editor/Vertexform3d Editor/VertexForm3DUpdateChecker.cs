@@ -1,19 +1,21 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 using Unity.EditorCoroutines.Editor;
+using Process = System.Diagnostics.Process;
 
 /// <summary>
-/// Automatically checks for SDK updates when Unity starts.
+/// Automatically checks for SDK updates every time Unity starts.
 /// Shows a dialog if a newer version is available on the server.
 /// </summary>
 [InitializeOnLoad]
 public static class VertexForm3DUpdateChecker
 {
-    private const string LastCheckKey = "VertexForm3D_LastUpdateCheck";
-    private const double CheckIntervalHours = 24; // Check once per day
+    private const string SessionCheckKey = "VertexForm3D_SessionCheck";
     private static bool hasCheckedThisSession = false;
 
     static VertexForm3DUpdateChecker()
@@ -24,43 +26,59 @@ public static class VertexForm3DUpdateChecker
 
     private static void OnEditorUpdate()
     {
-        // Only check once per Unity session
+        // Only check once per Unity session (not on every compile)
         if (hasCheckedThisSession)
         {
             EditorApplication.update -= OnEditorUpdate;
             return;
         }
 
+        // Check if we've already checked in this Unity session
+        // Use the actual process start time to detect if Unity was restarted vs just recompiled
+        try
+        {
+            DateTime currentProcessStartTime = Process.GetCurrentProcess().StartTime;
+            string storedStartTimeStr = EditorPrefs.GetString(SessionCheckKey, string.Empty);
+
+            if (!string.IsNullOrEmpty(storedStartTimeStr))
+            {
+                if (DateTime.TryParse(storedStartTimeStr, out DateTime storedStartTime))
+                {
+                    // If the process start time matches, we're in the same Unity session (just recompiled)
+                    if (Math.Abs((currentProcessStartTime - storedStartTime).TotalSeconds) < 1.0)
+                    {
+                        // Same Unity process, just a recompile - skip check
+                        EditorApplication.update -= OnEditorUpdate;
+                        return;
+                    }
+                }
+            }
+
+            // New Unity session - store the process start time and check for updates
+            EditorPrefs.SetString(SessionCheckKey, currentProcessStartTime.ToString("O"));
+        }
+        catch
+        {
+            // If we can't get process info, fall back to checking anyway
+        }
+
         hasCheckedThisSession = true;
         EditorApplication.update -= OnEditorUpdate;
 
-        // Check if we should check now (respects 24-hour interval)
-        if (!ShouldCheckNow())
-            return;
-
-        // Start async check
+        // Start async check (checks every time Unity starts)
         EditorCoroutineUtility.StartCoroutineOwnerless(CheckForUpdatesCoroutine());
     }
 
-    private static bool ShouldCheckNow()
+    /// <summary>
+    /// Manually triggers an update check. Can be called from menu items.
+    /// </summary>
+    public static void CheckForUpdatesManually()
     {
-        var lastCheckStr = EditorPrefs.GetString(LastCheckKey, string.Empty);
-        if (string.IsNullOrEmpty(lastCheckStr))
-            return true;
-
-        if (!double.TryParse(lastCheckStr, out var lastOADate))
-            return true;
-
-        var lastTime = DateTime.FromOADate(lastOADate);
-        var timeSinceLastCheck = DateTime.UtcNow - lastTime;
-        return timeSinceLastCheck.TotalHours >= CheckIntervalHours;
+        EditorCoroutineUtility.StartCoroutineOwnerless(CheckForUpdatesCoroutine(forceCheck: true));
     }
 
-    private static IEnumerator CheckForUpdatesCoroutine()
+    private static IEnumerator CheckForUpdatesCoroutine(bool forceCheck = false)
     {
-        // Update last check time
-        EditorPrefs.SetString(LastCheckKey, DateTime.UtcNow.ToOADate().ToString());
-
         // Load project data
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso == null)
@@ -109,29 +127,79 @@ public static class VertexForm3DUpdateChecker
                     yield break;
                 }
 
-                // Find the SDK package (usually the first one, or match by name)
-                VersionPackageInfo latestPackage = versionData[0];
+                // Filter SDK packages
+                List<VersionPackageInfo> sdkPackages = new List<VersionPackageInfo>();
                 foreach (var pkg in versionData)
                 {
-                    if (pkg.name.Contains("VertexForm3D") || pkg.name.Contains("Vertex Form 3D"))
+                    if (pkg.name != null && (pkg.name.Contains("VertexForm3D") || pkg.name.Contains("Vertex Form 3D")))
                     {
-                        latestPackage = pkg;
-                        break;
+                        sdkPackages.Add(pkg);
                     }
+                }
+
+                // If no SDK-specific packages found, use all packages
+                if (sdkPackages.Count == 0)
+                {
+                    sdkPackages.AddRange(versionData);
+                }
+
+                // Find all versions newer than current
+                List<VersionPackageInfo> newerVersions = new List<VersionPackageInfo>();
+                foreach (var pkg in sdkPackages)
+                {
+                    if (!string.IsNullOrEmpty(pkg.version) && IsNewerVersion(pkg.version, localVersion))
+                    {
+                        newerVersions.Add(pkg);
+                    }
+                }
+
+                // Sort versions (oldest first)
+                newerVersions.Sort((a, b) =>
+                {
+                    System.Version vA = ParseVersion(a.version);
+                    System.Version vB = ParseVersion(b.version);
+                    if (vA != null && vB != null)
+                    {
+                        return vA.CompareTo(vB);
+                    }
+                    return string.Compare(a.version ?? "", b.version ?? "", StringComparison.OrdinalIgnoreCase);
+                });
+
+                // Find the latest version for display
+                VersionPackageInfo latestPackage = newerVersions.Count > 0
+                    ? newerVersions[newerVersions.Count - 1]
+                    : (sdkPackages.Count > 0 ? sdkPackages[0] : null);
+
+                if (latestPackage == null)
+                {
+                    Debug.LogWarning("VertexForm3D: No package found in version.json");
+                    yield break;
                 }
 
                 string remoteVersion = latestPackage.version;
                 string packageUrl = latestPackage.url;
                 string releaseNotes = latestPackage.releaseNotes ?? "No release notes available.";
 
-                // Compare versions
-                if (IsNewerVersion(remoteVersion, localVersion))
+                // Check if any updates are available
+                if (newerVersions.Count > 0)
                 {
-                    // Show update dialog with release notes
-                    string message = $"A new SDK version is available!\n\n" +
+                    // Build message showing how many versions will be downloaded
+                    string versionsList = "";
+                    if (newerVersions.Count <= 5)
+                    {
+                        versionsList = string.Join(", ", newerVersions.Select(v => v.version));
+                    }
+                    else
+                    {
+                        versionsList = $"{newerVersions[0].version} → ... → {newerVersions[newerVersions.Count - 1].version}";
+                    }
+
+                    string message = $"New SDK version(s) available!\n\n" +
                                     $"Current Version: {localVersion}\n" +
-                                    $"Latest Version: {remoteVersion}\n\n" +
-                                    $"Release Notes:\n{releaseNotes}\n\n" +
+                                    $"Latest Version: {remoteVersion}\n" +
+                                    $"Versions to download: {newerVersions.Count} ({versionsList})\n\n" +
+                                    $"Release Notes (Latest):\n{releaseNotes}\n\n" +
+                                    $"All intermediate versions will be downloaded sequentially.\n" +
                                     $"Would you like to update now?";
 
                     int result = EditorUtility.DisplayDialogComplex(
@@ -144,8 +212,9 @@ public static class VertexForm3DUpdateChecker
 
                     if (result == 0) // Update Now
                     {
-                        // Trigger update via PackageUpdaterWindow
-                        PackageUpdaterWindow.ShowWindowAndUpdate(packageUrl, remoteVersion, releaseNotes);
+                        // Open window and set it to auto-start download after fetching versions
+                        var window = PackageUpdaterWindow.ShowWindow();
+                        window.SetAutoStartDownload(true);
                     }
                     else if (result == 2) // Open Update Window
                     {
@@ -154,7 +223,18 @@ public static class VertexForm3DUpdateChecker
                 }
                 else
                 {
-                    Debug.Log($"VertexForm3D SDK is up to date (Version {localVersion}).");
+                    string message = forceCheck
+                        ? $"VertexForm3D SDK is up to date!\n\nCurrent Version: {localVersion}\nLatest Version: {remoteVersion}"
+                        : $"VertexForm3D SDK is up to date (Version {localVersion}).";
+
+                    if (forceCheck)
+                    {
+                        EditorUtility.DisplayDialog("Vertex Form 3D SDK Update Check", message, "OK");
+                    }
+                    else
+                    {
+                        Debug.Log(message);
+                    }
                 }
             }
             catch (Exception e)
@@ -169,8 +249,8 @@ public static class VertexForm3DUpdateChecker
         try
         {
             // Try semantic version comparison (e.g., "1.2.3")
-            Version remoteV = ParseVersion(remoteVersion);
-            Version localV = ParseVersion(localVersion);
+            System.Version remoteV = ParseVersion(remoteVersion);
+            System.Version localV = ParseVersion(localVersion);
 
             if (remoteV != null && localV != null)
             {
@@ -187,7 +267,7 @@ public static class VertexForm3DUpdateChecker
         }
     }
 
-    private static Version ParseVersion(string versionStr)
+    private static System.Version ParseVersion(string versionStr)
     {
         if (string.IsNullOrEmpty(versionStr))
             return null;
@@ -196,11 +276,12 @@ public static class VertexForm3DUpdateChecker
         versionStr = versionStr.TrimStart('v', 'V').Trim();
 
         // Try parsing as System.Version
-        if (Version.TryParse(versionStr, out Version v))
+        if (System.Version.TryParse(versionStr, out System.Version v))
             return v;
 
         return null;
     }
+
 }
 
 /// <summary>

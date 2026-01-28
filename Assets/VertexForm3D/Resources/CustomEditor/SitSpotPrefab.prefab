@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 614414940557007511}
   - component: {fileID: 1136225466298574024}
-  - component: {fileID: 1836141272009701912}
+  - component: {fileID: 7698183499971279689}
+  - component: {fileID: 5249415501699143318}
   m_Layer: 0
   m_Name: SitSpotPrefab
   m_TagString: Untagged
@@ -56,7 +57,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1836141272009701912
+--- !u!114 &7698183499971279689
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -65,16 +66,36 @@ MonoBehaviour:
   m_GameObject: {fileID: 1635298352884558886}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a6c705d92a88814ba78435990c75ea0, type: 3}
+  m_Script: {fileID: 11500000, guid: d8d9f4a4373ef884581e25537e2ede7d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::SitSpot
   OnSitRequest:
     m_PersistentCalls:
       m_Calls: []
+  _isOccupied: 0
   SitPoint: {fileID: 2906207610455069124}
-  interactionRange: 1.6
+  interactionRange: 1.2
   uiCanvas: {fileID: 4140068181888565589}
   sitButton: {fileID: 7574602762912743796}
+--- !u!114 &5249415501699143318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635298352884558886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 1174452848
+  ObjectInterest: 1
+  Flags: 524289
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 7698183499971279689}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &1802635704785339539
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,6 +352,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

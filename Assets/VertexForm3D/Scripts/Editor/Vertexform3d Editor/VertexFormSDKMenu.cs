@@ -103,19 +103,24 @@ namespace VertexFormCore.Editor
             window.Show();
         }
 
-        [MenuItem("VertexForm3D SDK/Help", false, 12)]
-        public static void OpenHelp()
-        {
-            VertexForm3DHelp.ShowWindow();
-        }
-        
-        [MenuItem("VertexForm3D SDK/XR Device Simulator", false, 12)]
+        [MenuItem("VertexForm3D SDK/XR Device Simulator", false, 1000)]
         private static void AddXRDeviceSimulator()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/XR Device Simulator"));
             g.name = "XR Device Simulator";
             EditorGUIUtility.PingObject(g);
         }
+
+        [MenuItem("VertexForm3D SDK/Help", false, 15)]
+        public static void OpenHelp()
+        {
+            VertexForm3DHelp.ShowWindow();
+        }
+        // [MenuItem("VertexForm3D SDK/Check for Updates", false, 13)]
+        // public static void CheckForUpdates()
+        // {
+        //     VertexForm3DUpdateChecker.CheckForUpdatesManually();
+        // }
     }
 }
 

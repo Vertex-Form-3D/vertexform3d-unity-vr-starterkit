@@ -13,8 +13,6 @@ public class AddressablesBuildEditor : EditorWindow
     private string addressableCatalogFilePath = "";
     private string catalogFileName = "VertexForm3DAddressablesCatalog";
     private bool useOnlyLocalBundles = true;
-    private string currentPackageVersion = "1.0.0";
-    private string versionJsonUrl = "https://storage.googleapis.com/your_bucket_name/version.json";
     private Vector2 scrollPosition;
     private const string DEFAULT_CATALOG_PATH = "https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json";
 
@@ -34,8 +32,6 @@ public class AddressablesBuildEditor : EditorWindow
             addressableCatalogFilePath = string.IsNullOrEmpty(pso.projectData.addressableCatalogFilePath) ? DEFAULT_CATALOG_PATH : pso.projectData.addressableCatalogFilePath;
             catalogFileName = string.IsNullOrEmpty(pso.projectData.catalogFileName) ? "VertexForm3DAddressablesCatalog" : pso.projectData.catalogFileName;
             useOnlyLocalBundles = pso.projectData.onlyLocalBundles;
-            currentPackageVersion = string.IsNullOrEmpty(pso.projectData.currentPackageVersion) ? "1.0.0" : pso.projectData.currentPackageVersion;
-            versionJsonUrl = string.IsNullOrEmpty(pso.projectData.versionJsonUrl) ? "https://storage.googleapis.com/your_bucket_name/version.json" : pso.projectData.versionJsonUrl;
         }
         else
         {
@@ -43,8 +39,6 @@ public class AddressablesBuildEditor : EditorWindow
             addressableCatalogFilePath = DEFAULT_CATALOG_PATH;
             catalogFileName = "VertexForm3DAddressablesCatalog";
             useOnlyLocalBundles = true;
-            currentPackageVersion = "1.0.0";
-            versionJsonUrl = "https://storage.googleapis.com/your_bucket_name/version.json";
         }
     }
 
@@ -197,8 +191,8 @@ public class AddressablesBuildEditor : EditorWindow
         // {
         //     SaveVersionSettings();
         // }
-        EditorGUILayout.Space(5);
-        EditorGUILayout.EndVertical();
+        // EditorGUILayout.Space(5);
+        // EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(10);
         EditorGUILayout.EndScrollView();
@@ -280,11 +274,9 @@ public class AddressablesBuildEditor : EditorWindow
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso != null)
         {
-            pso.projectData.currentPackageVersion = string.IsNullOrEmpty(currentPackageVersion) ? "1.0.0" : currentPackageVersion;
-            pso.projectData.versionJsonUrl = string.IsNullOrEmpty(versionJsonUrl) ? "https://storage.googleapis.com/your_bucket_name/version.json" : versionJsonUrl;
             EditorUtility.SetDirty(pso);
             AssetDatabase.SaveAssets();
-            UnityEngine.Debug.Log($"Version settings saved: Current Version = {pso.projectData.currentPackageVersion}, Version JSON URL = {pso.projectData.versionJsonUrl}");
+            UnityEngine.Debug.Log($"Version settings saved: Current Version = {pso.projectData.currentPackageVersion}");
         }
         else
         {

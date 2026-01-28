@@ -21,9 +21,6 @@ namespace VertexFormCore
         public GameObject LocalXRRigGameobject;
         [SerializeField] private GameObject MainAvatarGameobject;
 
-        [SerializeField] private GameObject[] AvatarHeadGameobjects;
-        [SerializeField] private GameObject AvatarBodyGameobject;
-
         [SerializeField] private TextMeshProUGUI PlayerName_Text;
         [SerializeField] private GameObject cameraOffset;
         [SerializeField] private XROrigin xROrigin;
@@ -94,8 +91,8 @@ namespace VertexFormCore
 
         public void InitializeSelectedAvatarModel(int avatarSelectionNumber)
         {
-            Debug.Log("-->on selected avatar " + avatarSelectionNumber + "for mine? " + Object.HasInputAuthority);
             AvatarInputConverter avatarInputConverter = LocalXRRigGameobject.GetComponent<AvatarInputConverter>();
+            Debug.Log("-->on selected avatar " + avatarSelectionNumber + "for mine? " + Object.HasInputAuthority);
 
             GameObject body1 = Instantiate(customAvatarScriptable.avatarDatas[avatarSelectionNumber].body);
             body1.transform.SetParent(bodyTransform, false);
@@ -104,6 +101,7 @@ namespace VertexFormCore
             body1.transform.localPosition = head1.transform.localPosition = Vector3.zero;
             avatarHolder.SetAvatar(head1, body1);
 
+            //SetUpAvatarGameobject(avatarHolder.HeadTransform, avatarInputConverter.AvatarHead);
             SetUpAvatarGameobject(avatarHolder.HeadTransform, avatarInputConverter.AvatarHead);
             SetUpAvatarGameobject(avatarHolder.BodyTransform, avatarInputConverter.AvatarBody);
             SetUpAvatarGameobject(avatarHolder.HandLeftTransform, avatarInputConverter.AvatarHand_Left);
@@ -126,6 +124,7 @@ namespace VertexFormCore
             {
                 Debug.Log("-->on selected avatar " + avatarSelectionNumber + "for mine? " + Object.HasInputAuthority);
                 avatarHolder.SetAvatarLayer();
+
             }
         }
 
@@ -196,18 +195,11 @@ namespace VertexFormCore
                 }
 
                 Debug.Log("-->avatar initialized");
-                foreach (GameObject head in AvatarHeadGameobjects)
-                {
-                    SetLayerRecursively(head, 6);
-                }
-                SetLayerRecursively(AvatarBodyGameobject, 7);
-
-                // Add AudioListener to local player if not already present
-                if (MainAvatarGameobject.GetComponent<AudioListener>() == null)
-                {
-                    MainAvatarGameobject.AddComponent<AudioListener>();
-                    Debug.Log("-->AudioListener added to local player");
-                }
+                // foreach (GameObject head in AvatarHeadGameobjects)
+                // {
+                //     SetLayerRecursively(head, 6);
+                // }
+                // SetLayerRecursively(AvatarBodyGameobject, 7);
                 HandAndControllerSync();
             }
             else
@@ -234,10 +226,10 @@ namespace VertexFormCore
                     }
                 }
 
-                foreach (GameObject head in AvatarHeadGameobjects)
-                {
-                    SetLayerRecursively(head, 0);
-                }
+                // foreach (GameObject head in AvatarHeadGameobjects)
+                // {
+                //     SetLayerRecursively(head, 0);
+                // }
                 yield return new WaitForSeconds(0.5f); // Small delay to ensure networked properties are synced
 
                 // Setup voice components for remote player to ensure we can hear them
@@ -348,7 +340,18 @@ namespace VertexFormCore
             }
 #endif
         }
+        public void SittingOnObject(Transform sittingPosition)
+        {
+            if (!Object.HasInputAuthority || sittingPosition == null) return;
 
+            // Move the player's root transform to the sitting position
+            transform.position = sittingPosition.position;
+            transform.rotation = sittingPosition.rotation;
+            cameraOffset.transform.localPosition = Vector3.up * 0.8f;
+            //cameraOffset.transform.localPosition = Vector3.up * normalHeight;
+
+            Debug.Log($"[PlayerNetworkSetup] Player moved to sitting position: {sittingPosition.position}");
+        }
         public void CallSetSittingHeightRPC()
         {
             if (Object.HasInputAuthority)

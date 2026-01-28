@@ -1444,7 +1444,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3322151121076752140}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -1469,10 +1469,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VertexFormCore.AvatarHolder
   MainAvatarTransform: {fileID: 3463589931858407216}
   HeadTransform: {fileID: 4008043411697153107}
+  ShadowHeadTransform: {fileID: 4008043411697153107}
   BodyTransform: {fileID: 2322404650523738561}
   HandLeftTransform: {fileID: 6888912553820153673}
   HandRightTransform: {fileID: 8376887976470448469}
-  initLayer: 0
+  initLayer: 1
 --- !u!114 &9059775381181190525
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2433,10 +2434,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5430527477889038320}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.75, z: 0}
+  m_LocalRotation: {x: 0.045827862, y: 0, z: -0, w: 0.99894935}
+  m_LocalPosition: {x: 0, y: 0.7985505, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 3463589931858407216}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4804,10 +4805,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8479406878921106323}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.00000003774895, y: 0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 3463589931858407216}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6058,6 +6059,10 @@ PrefabInstance:
       propertyPath: m_InteractionLayers.m_Bits
       value: 2147483649
       objectReference: {fileID: 0}
+    - target: {fileID: 1680501587, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1767192439, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_Depth
       value: 1
@@ -6985,9 +6990,6 @@ MonoBehaviour:
   _isHandTracking: 0
   LocalXRRigGameobject: {fileID: 1351904833967977961}
   MainAvatarGameobject: {fileID: 3322151121076752140}
-  AvatarHeadGameobjects:
-  - {fileID: 5430527477889038320}
-  AvatarBodyGameobject: {fileID: 8479406878921106323}
   PlayerName_Text: {fileID: 3686385881209658550}
   cameraOffset: {fileID: 366349417485725846}
   xROrigin: {fileID: 1535270415050945640}
@@ -7083,7 +7085,7 @@ MonoBehaviour:
   XRHead: {fileID: 366349417295850678}
   XRHandController_Left: {fileID: 366349417886633172}
   XRHandController_Right: {fileID: 366349417458699317}
-  headPositionOffset: {x: 0, y: -0.9, z: 0}
+  headPositionOffset: {x: 0, y: -0.9, z: -0.2}
   rightHandRotationOffset: {x: 0, y: 0, z: 310}
   leftHandRotationOffset: {x: 0, y: 0, z: 50}
   networkObject: {fileID: 6239063487715385760}
@@ -7150,6 +7152,7 @@ MonoBehaviour:
   generalVRPlayerTransform: {fileID: 1351904833967977962}
   mainAvatarTransform: {fileID: 3463589931858407216}
   headTransform: {fileID: 4008043411697153107}
+  shadowHeadTransform: {fileID: 0}
   bodyTransform: {fileID: 2322404650523738561}
   leftHandTransform: {fileID: 6888912553820153673}
   rightHandTransform: {fileID: 8376887976470448469}
@@ -7715,7 +7718,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2615437032726936620, guid: e11d7c9b55ad4f743b799885609379a1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0.012
       objectReference: {fileID: 0}
     - target: {fileID: 2615437032726936620, guid: e11d7c9b55ad4f743b799885609379a1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7739,7 +7742,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2615437032726936620, guid: e11d7c9b55ad4f743b799885609379a1, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.43856
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: 2615437032726936620, guid: e11d7c9b55ad4f743b799885609379a1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
