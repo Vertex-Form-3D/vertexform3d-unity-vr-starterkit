@@ -33,7 +33,7 @@ Who doesn't want motivation and support? Become a **Contributor**, a **Stargazer
 
 
 ## 🔹 Core Components  
-- **Unity Version**: `6000.0.32f1`  
+- **Unity**
 - **XR Interaction Toolkit 3**  
 - **Login Panel**  
 - **User-Specific UI for Accessing Scenes**
