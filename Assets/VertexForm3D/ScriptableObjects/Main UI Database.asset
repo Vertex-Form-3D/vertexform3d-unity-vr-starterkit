@@ -1,0 +1,170 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2034aa43184b81e449c48d2cac26fb93, type: 3}
+  m_Name: Main UI Database
+  m_EditorClassIdentifier: Assembly-CSharp::UILayoutConfig
+  leftSectionEnabled: 1
+  leftSectionText: 'Vertex Form 3D is an open-source VR multiplayer framework for
+    building social applications in Unity. Designed with 3D artists in mind, this
+    package provides essential tools for creating scalable VR environments across
+    Meta Quest and other platforms.
+
+
+    info@vertexform3d.com
+
+    vertexform3d.com
+
+'
+  leftSectionItems: []
+  mainSectionPanels:
+  - panelName: Main
+    panelType: 0
+    backgroundImage: {fileID: 21300000, guid: 21675390ef73430409bb9a5c9565f075, type: 3}
+    logoImage: {fileID: 21300000, guid: 9c314c1475525d1489f662e4e50f84e8, type: 3}
+    guideOrCustomText: 
+  - panelName: Places
+    panelType: 1
+    backgroundImage: {fileID: 0}
+    logoImage: {fileID: 0}
+    guideOrCustomText: 
+  - panelName: Guide
+    panelType: 2
+    backgroundImage: {fileID: 0}
+    logoImage: {fileID: 0}
+    guideOrCustomText: 
+  worldCategories:
+  - categoryName: Hubs
+    showInPlacesNav: 1
+    environments:
+    - worldName: Campfire
+      worldKey: Campfire
+      worldImagePath: 
+      worldDescription: A nighttime forest environment with tall pine trees, a central
+        campfire, and a few tents. Logs are placed around the fire for seating. Ambient
+        sound include fire crackling. The area is calm and designed for quiet exploration
+        or relaxation.
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
+      flyMode: 0
+    - worldName: Ocean Villa
+      worldKey: Ocean Villa
+      worldImagePath: 
+      worldDescription: 'A modern oceanfront villa with glass walls, open to the
+        sea breeze. The environment includes palm trees, wooden floors, an infinity
+        pool, and minimalist indoor spaces. '
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: be96b4c00f375bf478889b601850b20c, type: 3}
+      flyMode: 0
+    - worldName: Games
+      worldKey: Games
+      worldImagePath: 
+      worldDescription: A futuristic gaming environment with soft ambient lighting
+        and smooth metallic surfaces. Floating UI panels respond to hand gestures.
+        Users can interact with objects and levers to learn core XR mechanics. Teleportation
+        zones are marked by pulsing lights. Dynamic lighting and a subtle background
+        hum enhance the immersive, tech-focused environment.
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: ba956be2dc747c84cb5aa20a77ea3a87, type: 3}
+      flyMode: 0
+  - categoryName: Geospatial
+    showInPlacesNav: 1
+    environments:
+    - worldName: Earth Terrain
+      worldKey: Earth Terrain
+      worldImagePath: 
+      worldDescription: This environment is built using real-world Earth terrain
+        data.
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: 0068bbc61dbc44e46a5e683b43156547, type: 3}
+      flyMode: 1
+    - worldName: Moon Terrain
+      worldKey: Moon Terrain
+      worldImagePath: 
+      worldDescription: This environment is built using real-world Moon terrain data.
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: d00d7b756bb37cd498b519c772cfd351, type: 3}
+      flyMode: 1
+  - categoryName: Other
+    showInPlacesNav: 1
+    environments:
+    - worldName: Dark Space
+      worldKey: Dark Space
+      worldImagePath: 
+      worldDescription: A geodome structure sits on a floating platform in deep space,
+        illuminated by a soft spotlight. Its honeycomb design glows in amber and
+        magenta tones. Cherry blossom trees bloom nearby, with petals suspended in
+        still air. The surrounding environment is dark and minimal, creating a surreal,
+        tranquil atmosphere. This scene is designed as a quiet, dreamlike sanctuary.
+      sceneProvider: 1
+      worldImage: {fileID: 21300000, guid: 9c9cb025d886ca24e9b0af1416589e5a, type: 3}
+      flyMode: 0
+    - worldName: Bright Space
+      worldKey: Bright Space
+      worldImagePath: 
+      worldDescription: An open, futuristic environment with a mirrored ground and
+        a large, flowing glass structure. Steel frames form a crystal-like lattice,
+        and sunlight filters through, creating moving shadows. The space is minimal
+        and uncluttered, with no walls, emphasizing clean lines and openness. Designed
+        to feel peaceful and otherworldly, this environment showcases a balance of
+        light, form, and architectural elegance.
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: c6ad4fd66735ec7419f4f0a41284a0c0, type: 3}
+      flyMode: 0
+    - worldName: Materials Examples
+      worldKey: Materials Examples
+      worldImagePath: 
+      worldDescription: "A clean, open space built to showcase surface materials.
+        Spheres and cubes are arranged in rows, each displaying different textures
+        and shaders \u2014 including metallic, matte, glass, and emissive types.
+        Neutral floors and walls prevent color distortion, while directional lighting
+        and reflection probes enhance realism. Users can walk or fly around to inspect
+        materials from any angle. This environment functions as a visual catalog
+        for material testing and presentation."
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: 1f7c26e3fa3c9234aac14ed5ca91b9da, type: 3}
+      flyMode: 0
+    - worldName: Mixed Reality
+      worldKey: Mixed Reality
+      worldImagePath: 
+      worldDescription: "A clean, open space built to showcase surface materials.
+        Spheres and cubes are arranged in rows, each displaying different textures
+        and shaders \u2014 including metallic, matte, glass, and emissive types.
+        Neutral floors and walls prevent color distortion, while directional lighting
+        and reflection probes enhance realism. Users can walk or fly around to inspect
+        materials from any angle. This environment functions as a visual catalog
+        for material testing and presentation."
+      sceneProvider: 0
+      worldImage: {fileID: 21300000, guid: 70b38ab1fd2e8e844b5d4da8356e172f, type: 3}
+      flyMode: 0
+  rightSectionEnabled: 1
+  mirror: 1
+  avatarDatas:
+  - head: {fileID: 7979297635213059217, guid: ecff4e45bb4f8524980f969a4fbd9ff2, type: 3}
+    body: {fileID: -3372522033569347474, guid: ecff4e45bb4f8524980f969a4fbd9ff2, type: 3}
+  - head: {fileID: -929441084551915564, guid: 36b169bf11d224d488ee496d9fc66bcf, type: 3}
+    body: {fileID: -1817752537321972114, guid: 36b169bf11d224d488ee496d9fc66bcf, type: 3}
+  - head: {fileID: -8715904968034801427, guid: dad9f7f89b25c734d80d268975cb8a37, type: 3}
+    body: {fileID: -6935687079284805244, guid: dad9f7f89b25c734d80d268975cb8a37, type: 3}
+  - head: {fileID: -4217742146707441286, guid: ec31690b2337d184cb1488994376b03d, type: 3}
+    body: {fileID: 9175552907236278165, guid: ec31690b2337d184cb1488994376b03d, type: 3}
+  - head: {fileID: 4894009203097035609, guid: b1043bceaa128b44fb84d447b0db880a, type: 3}
+    body: {fileID: -4845419198383733991, guid: b1043bceaa128b44fb84d447b0db880a, type: 3}
+  - head: {fileID: 4569841033918371529, guid: 7ddb8a1f0bd1ee747b10e73019ca1501, type: 3}
+    body: {fileID: -2955562502506580004, guid: 7ddb8a1f0bd1ee747b10e73019ca1501, type: 3}
+  - head: {fileID: 2240726597640142125, guid: a3f207e3ecf98de489e0743bebda1109, type: 3}
+    body: {fileID: -7594736381303323828, guid: a3f207e3ecf98de489e0743bebda1109, type: 3}
+  - head: {fileID: -8951071721461954104, guid: b8c98eff912147040af1f63f7b97f197, type: 3}
+    body: {fileID: -6450684098535787853, guid: b8c98eff912147040af1f63f7b97f197, type: 3}
+  - head: {fileID: -3484066010412923265, guid: 760dc0f2b33390b438717c11ba68209a, type: 3}
+    body: {fileID: 7940807810997136023, guid: 760dc0f2b33390b438717c11ba68209a, type: 3}
+  - head: {fileID: 7979297635213059217, guid: febc8d76678608945a1db99844c95f5f, type: 3}
+    body: {fileID: -7963981190000700606, guid: febc8d76678608945a1db99844c95f5f, type: 3}

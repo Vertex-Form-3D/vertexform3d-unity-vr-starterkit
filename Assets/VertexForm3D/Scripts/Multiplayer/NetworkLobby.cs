@@ -31,7 +31,7 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
     public static NetworkLobby Instance;
 
     [Header("Configuration")]
-    private string region = "in"; // Default region
+    private string region = "eu"; // Default region
 
     public List<SessionInfoData> Sessions = new List<SessionInfoData>();
     public Action OnSessionListChanged;
@@ -43,6 +43,7 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
         if (Instance == null)
         {
             Instance = this;
+            this.transform.parent = null;
             DontDestroyOnLoad(this);
         }
         else

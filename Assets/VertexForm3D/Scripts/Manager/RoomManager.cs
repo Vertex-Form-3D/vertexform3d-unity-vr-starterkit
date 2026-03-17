@@ -9,6 +9,7 @@ using Fusion.Photon.Realtime;
 using System.Threading.Tasks;
 using System.Linq;
 using DG.Tweening;
+using Photon.Voice.Fusion;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -34,12 +35,17 @@ namespace VertexFormCore
         [SerializeField] GameObject genericVRPlayerPrefab;
         [SerializeField] GameObject connectVRPrefab;
         public List<PlayerNetworkSetup> allPlayers = new List<PlayerNetworkSetup>();
+        /// <summary>Local spawned object: VR player prefab or spectator prefab depending on mode.</summary>
         public GameObject localVRPlayer;
-        [SerializeField] private PlayerJoinUI playerJoinUI;
+        /// <summary>True when local client is in Spectator mode (localVRPlayer is spectator prefab, no PlayerNetworkSetup).</summary>
+
+        /// <summary>Returns PlayerNetworkSetup of the local VR player, or null if local is spectator or not spawned.</summary>
+        public PlayerNetworkSetup GetLocalPlayerSetup() => localVRPlayer != null ? localVRPlayer.GetComponent<PlayerNetworkSetup>() : null;
         [SerializeField] private MessageScript messageUI;
         [SerializeField] private RectTransform playerJoinHolder;
         [SerializeField] private GameObject addressableSceneVisuals;
         [SerializeField] private CanvasGroup fadeCanvasGroup;
+        [SerializeField] private FusionVoiceClient fusionVoiceClient;
 
         GameObject connectVRObject;
         public Vector3 spawnPosition;
@@ -52,7 +58,8 @@ namespace VertexFormCore
 
         // Track players who were already in the room when local player joined (don't show join messages for them)
         private HashSet<PlayerRef> knownPlayers = new HashSet<PlayerRef>();
-
+        // Track which players are spectators – don't show their join/leave to other players
+        private HashSet<PlayerRef> knownSpectators = new HashSet<PlayerRef>();
 
         public GameObject ConnectVRObject
         {
@@ -82,6 +89,20 @@ namespace VertexFormCore
             ShowLocalTempVRPlayer(true);
             // Fusion doesn't require explicit connection like PUN2
             InvokeRepeating(nameof(GetMultiplayerData), 1, 1);
+
+            // Find FusionVoiceClient if not assigned
+            if (fusionVoiceClient == null)
+            {
+                fusionVoiceClient = FindFirstObjectByType<FusionVoiceClient>();
+                if (fusionVoiceClient != null)
+                {
+                    Debug.Log("[RoomManager] FusionVoiceClient found");
+                }
+                else
+                {
+                    Debug.LogWarning("[RoomManager] FusionVoiceClient not found in scene");
+                }
+            }
         }
         void Update()
         {
@@ -137,15 +158,42 @@ namespace VertexFormCore
             }
         }
 
+        public void LeaveRoomAndLoadOnBoardingScene()
+        {
+            VirtualRoomManager.Instance.LeaveRoomAndLoadOnBoardingScene();
+        }
+
+        /// <summary>
+        /// Connects to a Fusion room/session with the specified addressable scene.
+        /// 
+        /// WORKFLOW (Option B - Fusion Loads Addressable Scene):
+        /// 1. SceneLoader loads only the base "addressableScene"
+        /// 2. ConnectToRoom is called with the addressable scene name/key
+        /// 3. Scene is registered with CustomNetworkSceneManager
+        /// 4. Fusion loads the addressable scene for all clients via CustomNetworkSceneManager
+        /// 5. NetworkObjects in the addressable scene are properly networked
+        /// 
+        /// This ensures cross-platform compatibility and proper NetworkObject synchronization.
+        /// </summary>
+        /// <param name="mapName">The addressable scene key/name (e.g., "Journeys Experience")</param>
         public async void ConnectToRoom(string mapName)
         {
-            Debug.Log($"[RoomManager] ConnectToRoom called with mapName: {mapName}");
+            Debug.Log($"[RoomManager] ConnectToRoom called with session name: {mapName}");
 
             // Check if NetworkRunner is assigned, create one if not
             if (_runner == null)
             {
                 Debug.Log("[RoomManager] NetworkRunner is null, creating one...");
                 _runner = gameObject.AddComponent<NetworkRunner>();
+
+                // Add our custom scene manager instead of the default one
+                var sceneManager = _runner.GetComponent<CustomNetworkSceneManager>();
+                if (sceneManager == null)
+                {
+                    sceneManager = _runner.gameObject.AddComponent<CustomNetworkSceneManager>();
+                    Debug.Log("[RoomManager] CustomNetworkSceneManager added");
+                }
+
                 _runner.AddCallbacks(this);
                 Debug.Log("[RoomManager] NetworkRunner created and callbacks added");
             }
@@ -154,6 +202,14 @@ namespace VertexFormCore
                 Debug.Log("[RoomManager] NetworkRunner already exists, ensuring callbacks are registered");
                 // Ensure callbacks are registered
                 _runner.AddCallbacks(this);
+
+                // Make sure we have the custom scene manager
+                var sceneManager = _runner.GetComponent<CustomNetworkSceneManager>();
+                if (sceneManager == null)
+                {
+                    sceneManager = _runner.gameObject.AddComponent<CustomNetworkSceneManager>();
+                    Debug.Log("[RoomManager] CustomNetworkSceneManager added to existing runner");
+                }
             }
 
             Debug.Log($"[RoomManager] NetworkRunner state: {_runner.State}, IsRunning: {_runner.IsRunning}");
@@ -167,37 +223,46 @@ namespace VertexFormCore
             // Create scene info for both base scene and addressable scene
             var sceneInfo = new NetworkSceneInfo();
 
-            // Add the base "addressableScene" from build settings
+            // Add ONLY the base "addressableScene" from build settings to Fusion's scene management
+            // Use FromPath instead of FromIndex for cross-platform compatibility
             var baseScene = SceneManager.GetSceneByName("addressableScene");
             if (baseScene.IsValid())
             {
-                var baseSceneRef = SceneRef.FromIndex(baseScene.buildIndex);
+                var baseSceneRef = SceneRef.FromPath(baseScene.path);
                 sceneInfo.AddSceneRef(baseSceneRef, LoadSceneMode.Single);
-                Debug.Log($"Adding base scene to network: {baseScene.name} (build index: {baseScene.buildIndex})");
+                Debug.Log($"Adding base scene to network: {baseScene.name} (path: {baseScene.path})");
             }
 
-            // Add the addressable scene with mapName additively
+            // Register and add the addressable scene for Fusion to load
+            string sessionName = mapName;
             if (!string.IsNullOrEmpty(mapName))
             {
+                // Register the addressable scene with our custom scene manager
+                // This tells Fusion where to find the scene for loading
+                CustomNetworkSceneManager.RegisterAddressableScene(mapName);
+                Debug.Log($"[RoomManager] Registered addressable scene: {mapName}");
+
+                // Add addressable scene to NetworkSceneInfo
+                // Fusion will load this scene using CustomNetworkSceneManager
                 var addressableSceneRef = SceneRef.FromPath(mapName);
                 sceneInfo.AddSceneRef(addressableSceneRef, LoadSceneMode.Additive);
-                Debug.Log($"Adding addressable scene to network: {mapName} (additive)");
+                Debug.Log($"[RoomManager] Adding addressable scene to NetworkSceneInfo: {mapName} (additive mode)");
             }
 
             var startGameArgs = new StartGameArgs
             {
                 GameMode = GameMode.Shared,
                 CustomPhotonAppSettings = appSettings,
-                SessionName = mapName,
+                SessionName = sessionName, // Use scene name for the room, not the path
                 Scene = sceneInfo, // Add scene information for both scenes
-                SceneManager = _runner.GetComponent<NetworkSceneManagerDefault>(),
+                SceneManager = _runner.GetComponent<CustomNetworkSceneManager>(),
                 CustomLobbyName = "default_lobby",
                 IsVisible = true,
                 IsOpen = true
             };
 
             // Start game session
-            Debug.Log($"[RoomManager] About to call StartGame with session name: {mapName}");
+            Debug.Log($"[RoomManager] About to call StartGame with session name: {sessionName} (scene path: {mapName})");
 
             // Add timeout to prevent hanging
             /*StartCoroutine(WaitNCall(4f, () =>
@@ -212,7 +277,7 @@ namespace VertexFormCore
             if (completedTask == timeoutTask)
             {
                 Debug.LogError("[RoomManager] StartGame timed out after 30 seconds!");
-                ConnectToRoom(mapName);
+                ConnectToRoom(mapName); // Retry connection
                 return;
             }
 
@@ -221,8 +286,8 @@ namespace VertexFormCore
 
             if (result.Ok)
             {
-                Log("Successfully connected to room: " + mapName);
-                onJoinedRoomSuccess?.Invoke(mapName);
+                Log("Successfully connected to room: " + sessionName);
+                onJoinedRoomSuccess?.Invoke(sessionName);
             }
             else
             {
@@ -295,30 +360,25 @@ namespace VertexFormCore
         {
             Debug.Log($"[SpawnManager] SpawnVRPlayer called for player: {player}");
 
-            // Validate prefab
-            if (genericVRPlayerPrefab == null)
+
+            GameObject prefabToSpawn = genericVRPlayerPrefab;
+
+            if (prefabToSpawn == null)
             {
-                Debug.LogError("[SpawnManager] genericVRPlayerPrefab is NULL! Cannot spawn player.");
                 return;
             }
 
-            // Check if prefab has NetworkObject component
-            NetworkObject prefabNetworkObject = genericVRPlayerPrefab.GetComponent<NetworkObject>();
+            NetworkObject prefabNetworkObject = prefabToSpawn.GetComponent<NetworkObject>();
             if (prefabNetworkObject == null)
             {
-                Debug.LogError("[SpawnManager] genericVRPlayerPrefab does not have a NetworkObject component! Cannot spawn player.");
+                Debug.LogError($"[SpawnManager] Prefab does not have a NetworkObject component! Cannot spawn.");
                 return;
             }
 
-            Debug.Log($"[SpawnManager] Prefab validation passed. NetworkObject found: {prefabNetworkObject.name}");
 
-            // Hide temp character
             ShowLocalTempVRPlayer(false);
 
-            Debug.Log($"[SpawnManager] Attempting to spawn at position: {spawnPos}, rotation: {spawnRot}");
-
-            // Spawn the VR player using Fusion's spawn method
-            NetworkObject vrpNetworkObject = _runner.Spawn(genericVRPlayerPrefab, spawnPos, spawnRot, player);
+            NetworkObject vrpNetworkObject = _runner.Spawn(prefabToSpawn, spawnPos, spawnRot, player);
             Debug.Log("vrpNetworkObject.transform.position: " + vrpNetworkObject.transform.position);
             Debug.Log("vrpNetworkObject.transform.rotation: " + vrpNetworkObject.transform.rotation);
             Debug.Log($"[SpawnManager] Runner.Spawn returned: {(vrpNetworkObject != null ? vrpNetworkObject.name : "NULL")}");
@@ -343,6 +403,9 @@ namespace VertexFormCore
                         CesiumSceneHandler.Instance.refreshTilesAction?.Invoke();
                         Debug.Log("[SpawnManager] Cesium tiles refresh invoked");
                     }
+
+                    // Manually join voice lobby now that local player is spawned (with a small delay)
+                    StartCoroutine(JoinVoiceLobbyDelayed(1f));
                 }
                 else
                 {
@@ -362,6 +425,112 @@ namespace VertexFormCore
             ConnectVRObject.SetActive(status);
             Debug.Log($"[SpawnManager] Temp VR Player visibility set to: {status}");
         }
+
+        /// <summary>
+        /// Manually join the voice lobby after the room is ready (with delay)
+        /// </summary>
+        private IEnumerator JoinVoiceLobbyDelayed(float delay)
+        {
+            Debug.Log($"[RoomManager] Waiting {delay} seconds before joining voice lobby...");
+            yield return new WaitForSeconds(delay);
+            JoinVoiceLobby();
+        }
+
+        /// <summary>
+        /// Manually join the voice lobby after the room is ready
+        /// </summary>
+        public void JoinVoiceLobby()
+        {
+            if (fusionVoiceClient == null)
+            {
+                fusionVoiceClient = FindFirstObjectByType<FusionVoiceClient>();
+                if (fusionVoiceClient == null)
+                {
+                    Debug.LogError("[RoomManager] Cannot join voice lobby - FusionVoiceClient not found!");
+                    return;
+                }
+            }
+
+            // Ensure AutoConnectAndJoin is disabled (should already be disabled)
+            if (fusionVoiceClient.AutoConnectAndJoin)
+            {
+                Debug.LogWarning("[RoomManager] AutoConnectAndJoin is enabled. Disabling it for manual control.");
+                fusionVoiceClient.AutoConnectAndJoin = false;
+            }
+
+            // Check if already connected
+            if (fusionVoiceClient.Client != null && fusionVoiceClient.Client.State == Photon.Realtime.ClientState.Joined)
+            {
+                Debug.Log("[RoomManager] Voice client already joined to voice room");
+                EnableVoiceRecorder();
+                return;
+            }
+
+            // Manually connect and join the voice room
+            Debug.Log("[RoomManager] Manually joining voice lobby...");
+            bool success = fusionVoiceClient.ConnectAndJoinRoom();
+
+            if (success)
+            {
+                Debug.Log("[RoomManager] Voice lobby join command sent successfully");
+                // Enable recorder after a short delay to ensure connection is established
+                StartCoroutine(EnableVoiceRecorderDelayed(2f));
+            }
+            else
+            {
+                Debug.LogError("[RoomManager] Failed to send voice lobby join command");
+            }
+        }
+
+        /// <summary>
+        /// Enable voice recorder with a delay
+        /// </summary>
+        private IEnumerator EnableVoiceRecorderDelayed(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            EnableVoiceRecorder();
+        }
+
+        /// <summary>
+        /// Enable the voice recorder to ensure voice transmission works
+        /// </summary>
+        private void EnableVoiceRecorder()
+        {
+            Debug.Log("[RoomManager] Enabling voice recorder...");
+
+            // Enable primary recorder if it exists
+            if (fusionVoiceClient != null && fusionVoiceClient.PrimaryRecorder != null)
+            {
+                fusionVoiceClient.PrimaryRecorder.TransmitEnabled = true;
+                fusionVoiceClient.PrimaryRecorder.RecordingEnabled = true;
+                Debug.Log($"[RoomManager] Primary Recorder enabled - TransmitEnabled: {fusionVoiceClient.PrimaryRecorder.TransmitEnabled}, IsTransmitting: {fusionVoiceClient.PrimaryRecorder.IsCurrentlyTransmitting}");
+            }
+
+            // Also ensure VoiceRecorderManager's recorder is enabled
+            if (VoiceRecorderManager.Instance != null && VoiceRecorderManager.Instance.recorder != null)
+            {
+                VoiceRecorderManager.Instance.recorder.TransmitEnabled = true;
+                VoiceRecorderManager.Instance.recorder.RecordingEnabled = true;
+                Debug.Log($"[RoomManager] VoiceRecorderManager recorder enabled - TransmitEnabled: {VoiceRecorderManager.Instance.recorder.TransmitEnabled}");
+            }
+
+            // Find and enable local player's recorder
+            var players = FindObjectsByType<PlayerNetworkSetup>(FindObjectsSortMode.None);
+            foreach (var player in players)
+            {
+                if (player.Object != null && player.Object.HasInputAuthority)
+                {
+                    var recorder = player.GetComponentInChildren<Photon.Voice.Unity.Recorder>();
+                    if (recorder != null)
+                    {
+                        recorder.TransmitEnabled = true;
+                        recorder.RecordingEnabled = true;
+                        Debug.Log($"[RoomManager] Local player ({player.PlayerName}) recorder enabled - TransmitEnabled: {recorder.TransmitEnabled}");
+                    }
+                }
+            }
+        }
+
         private FusionAppSettings BuildCustomAppSetting(string region)
         {
             var appSettings = PhotonAppSettings.Global.AppSettings.GetCopy();
@@ -427,8 +596,8 @@ namespace VertexFormCore
 
         IEnumerator BroadcastPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
-            // Wait for player to be spawned
             yield return new WaitForSeconds(2f);
+
 
             string playerName = $"Player {player.PlayerId}";
             float timeout = 10f; // Maximum 10 seconds to wait for player name
@@ -486,6 +655,8 @@ namespace VertexFormCore
                 Debug.Log($"[RoomManager] {playerName} was already in the room, skipping join message");
             }
         }
+
+
         IEnumerator WaitNCall(float seconds, Action action)
         {
             yield return new WaitForSeconds(seconds);
@@ -493,16 +664,26 @@ namespace VertexFormCore
         }
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
-            string playerName = $"Player {player.PlayerId}";
+            // Release any grabbed interactables that were held by this player (so they don't stay stuck)
+            var interactables = FindObjectsByType<XRGrabNetworkInteractable>(FindObjectsSortMode.None);
+            foreach (var interactable in interactables)
+                interactable.ReleaseIfHeldByPlayer(player);
 
-            // Try to get player name from stored dictionary first
-            if (playerNames.ContainsKey(player))
+            if (knownSpectators.Contains(player))
             {
-                playerName = playerNames[player];
+                knownSpectators.Remove(player);
+                knownPlayers.Remove(player);
+                playerNames.Remove(player);
+                spawnedPlayers.Remove(player);
+                Debug.Log($"[RoomManager] Spectator left the Lobby (no message shown)");
+                return;
             }
+
+            string playerName = $"Player {player.PlayerId}";
+            if (playerNames.ContainsKey(player))
+                playerName = playerNames[player];
             else
             {
-                // Try to get from PlayerNetworkSetup if still available
                 var players = FindObjectsByType<PlayerNetworkSetup>(FindObjectsSortMode.None);
                 foreach (var p in players)
                 {
@@ -514,38 +695,24 @@ namespace VertexFormCore
                 }
             }
 
-            // Clean up references
-            if (playerNames.ContainsKey(player))
-            {
-                playerNames.Remove(player);
-            }
-            if (spawnedPlayers.ContainsKey(player))
-            {
-                spawnedPlayers.Remove(player);
-            }
-            if (knownPlayers.Contains(player))
-            {
-                knownPlayers.Remove(player);
-            }
+            if (playerNames.ContainsKey(player)) playerNames.Remove(player);
+            if (spawnedPlayers.ContainsKey(player)) spawnedPlayers.Remove(player);
+            if (knownPlayers.Contains(player)) knownPlayers.Remove(player);
 
             Debug.Log($"[RoomManager] {playerName} Left the Lobby");
             PlayerJoinLeftUI(playerName, false);
         }
         public void PlayerJoinLeftUI(string playerName, bool isJoined)
         {
-            if (localVRPlayer != null)
-            {
-                playerJoinHolder = localVRPlayer.GetComponent<PlayerNetworkSetup>().notificationParent;
-                GameObject obj = Instantiate(messageUI.gameObject, playerJoinHolder);
-                if (isJoined)
-                {
-                    obj.GetComponent<MessageScript>().ShowMessage(playerName + " Join the Place.", Color.green);
-                }
-                else
-                {
-                    obj.GetComponent<MessageScript>().ShowMessage(playerName + " Left the Place.", Color.red);
-                }
-            }
+            if (localVRPlayer == null) return;
+            var playerSetup = GetLocalPlayerSetup();
+            if (playerSetup == null || playerSetup.notificationParent == null) return;
+            playerJoinHolder = playerSetup.notificationParent;
+            GameObject obj = Instantiate(messageUI.gameObject, playerJoinHolder);
+            if (isJoined)
+                obj.GetComponent<MessageScript>().ShowMessage(playerName + " Join the Place.", Color.green);
+            else
+                obj.GetComponent<MessageScript>().ShowMessage(playerName + " Left the Place.", Color.red);
         }
         public void OnConnectedToServer(NetworkRunner runner)
         {
@@ -583,8 +750,22 @@ namespace VertexFormCore
         public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
         public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
         public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, System.ArraySegment<byte> data) { }
-        public void OnSceneLoadDone(NetworkRunner runner) { }
-        public void OnSceneLoadStart(NetworkRunner runner) { }
+
+        public void OnSceneLoadStart(NetworkRunner runner)
+        {
+            Debug.Log($"[RoomManager] OnSceneLoadStart - Fusion is loading scene(s)");
+        }
+
+        public void OnSceneLoadDone(NetworkRunner runner)
+        {
+            Debug.Log($"[RoomManager] OnSceneLoadDone - Fusion finished loading scene(s)");
+
+            // Notify SceneLoader that the addressable scene is fully loaded by Fusion
+            if (SceneLoader.Instance != null && !string.IsNullOrEmpty(mapName))
+            {
+                SceneLoader.Instance.OnFusionSceneLoaded(mapName);
+            }
+        }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
         {

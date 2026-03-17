@@ -54,7 +54,7 @@ public class VertexForm3DPackageExporter : EditorWindow
     private string searchFilter = "";
     private bool includeDependencies = true; // Include dependencies by default
 
-    //[MenuItem("VertexForm3D SDK/Export SDK Package", false, 15)]
+    [MenuItem("VertexForm3D SDK/Export SDK Package", false, 15)]
     public static void ShowWindow()
     {
         GetWindow<VertexForm3DPackageExporter>("Export SDK Package");

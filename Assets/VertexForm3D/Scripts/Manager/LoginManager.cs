@@ -10,10 +10,37 @@ namespace VertexFormCore
     public class LoginManager : MonoBehaviour
     {
         public TMP_InputField PlayerName_InputName;
+        public TMP_Text versionText;
 
         public void ConnectAnonymously()
         {
             ConnectToServer();
+        }
+
+        private void Start()
+        {
+            if (versionText != null)
+            {
+                versionText.text = $"Version: {Application.version}";
+            }
+            // if (ProjectManager.instance.projectDataSO.mode == Mode.Spectator && ProjectManager.instance.projectDataSO.projectData.platform == platform.Desktop)
+            // {
+            //     Spectating();
+            // }
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                SceneManager.LoadScene(0);
+            }
+        }
+        public void Spectating()
+        {
+            PlayerName_InputName.text = "DCS CameraMan" + Random.Range(1111, 4444) + Random.Range(1111, 4444);
+            ConnectAnonymously();
+
         }
 
         public void ConnectToServer()
@@ -22,13 +49,13 @@ namespace VertexFormCore
             {
                 string playerName = !string.IsNullOrEmpty(PlayerName_InputName.text) ?
                     PlayerName_InputName.text :
-                    ProjectManager.instance.projectDataSO.projectData.anonymousUserNamePrefix + Random.Range(1111, 9999);
+                    ProjectManager.instance.platformAndSettings.anonymousUserNamePrefix + Random.Range(1111, 9999);
                 ProjectManager.UserName = playerName;
                 // Store player name for later use in Fusion
                 PlayerPrefs.SetString("PlayerName", playerName);
                 PlayerPrefs.Save();
 
-                SceneManager.LoadScene(1);
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
             }
         }
     }

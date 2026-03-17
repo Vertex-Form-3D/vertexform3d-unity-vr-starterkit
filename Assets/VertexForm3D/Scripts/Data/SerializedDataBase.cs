@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace VertexFormCore
 {
-
+    /// <summary>
+    /// Legacy standalone scene database. Prefer editing worlds under Main UI Database → Places panel (UILayoutConfig.worldCategories).
+    /// </summary>
     [CreateAssetMenu(menuName = "Data", fileName = "DataBase", order = 1)]
     public class SerializedDataBase : ScriptableObject
     {
@@ -16,12 +18,15 @@ namespace VertexFormCore
 public class Category
 {
     public string categoryName;
+    [Tooltip("If false, this category is hidden from the Places tabs (worlds still load for All/Favorites).")]
+    public bool showInPlacesNav = true;
     public List<WorldData> environments = new List<WorldData>();
     public Category Clone()
     {
         Category clone = new Category
         {
-            categoryName = this.categoryName, // String is immutable, safe to copy
+            categoryName = this.categoryName,
+            showInPlacesNav = this.showInPlacesNav,
             environments = new List<WorldData>()
         };
 

@@ -2,6 +2,7 @@
 using Fusion;
 using Fusion.Addons.Physics;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -39,6 +40,17 @@ namespace VertexFormCore
         [Tooltip("For object with a rigidbody, if true, apply hand velocity on ungrab")]
         public bool applyVelocityOnRelease = true;
 
+        [Header("Drift reset")]
+        [Tooltip("When no one is grabbing and object has drifted from initial transform, reset it (requires shouldReset)")]
+        public bool resetWhenUngrabbedAndDrifted = true;
+        [Tooltip("Distance threshold to consider object 'at' initial position")]
+        public float positionDriftThreshold = 0.05f;
+        [Tooltip("Angle (degrees) threshold to consider object 'at' initial rotation")]
+        public float rotationDriftThreshold = 2f;
+        [Tooltip("Seconds after ungrab before checking for drift (avoids reset during physics settle)")]
+        public float driftCheckDelay = 1f;
+        float lastUngrabTime = -999f;
+
         // Velocity computation
         const int velocityBufferSize = 5;
         Vector3 lastPosition;
@@ -67,6 +79,9 @@ namespace VertexFormCore
         Status status = Status.NotGrabbed;
 
         private Coroutine resetCoroutine;
+
+        /// <summary>Parent at spawn; restored when released (e.g. after player left) or on drift reset.</summary>
+        private Transform initialParent;
 
         Vector3 Velocity
         {
@@ -121,10 +136,14 @@ namespace VertexFormCore
         public override void Spawned()
         {
             base.Spawned();
+            initialParent = transform.parent;
             if (networkRigidbody && Object.HasStateAuthority)
             {
                 // Save initial kinematic state for later join player
                 InitialIsKinematicState = networkRigidbody.Rigidbody.isKinematic;
+                // If at rest at initial position, make kinematic so it doesn't shake
+                if (shouldReset && IsAtInitialTransform())
+                    MakeKinematicAtRest();
             }
             funChangeDetector = GetChangeDetector(NetworkBehaviour.ChangeDetector.Source.SimulationState);
             renderChangeDetector = GetChangeDetector(NetworkBehaviour.ChangeDetector.Source.SnapshotFrom);
@@ -262,6 +281,7 @@ namespace VertexFormCore
                 if (previousGrabbed && !currentGrabbed)
                 {
                     // Object ungrabbed
+                    lastUngrabTime = Runner.SimulationTime;
                     UnlockObjectPhysics();
                 }
                 if (!previousGrabbed && currentGrabbed)
@@ -271,13 +291,43 @@ namespace VertexFormCore
                 }
             }
 
+            // If grabbed but grabber left and no one has state authority, request it so we can release.
+            // Any peer may request (Fusion grants to one). Needed when host left—then no one is IsServer.
+            if (IsGrabbed && !Object.HasStateAuthority && Runner.ActivePlayers.All(p => p != Object.InputAuthority))
+            {
+                Object.RequestStateAuthority();
+                return;
+            }
+
             // We only update the object position if we have the state authority
             if (!Object.HasStateAuthority) return;
 
-            if (!IsGrabbed) return;
+            // If still grabbed but the player who had input authority is no longer in the session (e.g. disconnected), release
+            if (IsGrabbed && Runner.ActivePlayers.All(p => p != Object.InputAuthority))
+            {
+                IsGrabbed = false;
+                GrabbedBy = default(NetworkId);
+                lastUngrabTime = Runner.SimulationTime;
+                UnlockObjectPhysics();
+                ApplyInitialTransform();
+            }
 
-            // Follow grabber using XRI's natural grab behavior - let XRI handle the positioning
-            // The NetworkTransform will sync the final position
+            if (IsGrabbed) return;
+
+            // When at initial position and ungrabbed: keep kinematic so it doesn't shake
+            if (IsAtInitialTransform())
+            {
+                MakeKinematicAtRest();
+                return;
+            }
+
+            // When no one is grabbing: reset if drifted from initial transform (and options allow)
+            if (shouldReset && resetWhenUngrabbedAndDrifted &&
+                (Runner.SimulationTime - lastUngrabTime) >= driftCheckDelay &&
+                !IsAtInitialTransform())
+            {
+                ApplyInitialTransform();
+            }
         }
 
         private void Update()
@@ -349,12 +399,43 @@ namespace VertexFormCore
             resetCoroutine = null;
         }
 
+        /// <summary>True if current transform is within threshold of initial position/rotation.</summary>
+        bool IsAtInitialTransform()
+        {
+            float posDist = Vector3.Distance(transform.localPosition, initialPosition);
+            float angle = Quaternion.Angle(transform.rotation, Quaternion.Euler(initialRotation));
+            return posDist <= positionDriftThreshold && angle <= rotationDriftThreshold;
+        }
+
+        /// <summary>Apply initial parent and position/rotation (use when we have state authority, e.g. drift reset or player-left release).</summary>
+        void ApplyInitialTransform()
+        {
+            if (initialParent != null)
+                transform.SetParent(initialParent);
+            transform.localPosition = initialPosition;
+            transform.rotation = Quaternion.Euler(initialRotation);
+            MakeKinematicAtRest();
+        }
+
+        /// <summary>Make rigidbody kinematic and zero velocity when at rest at initial position (stops shaking).</summary>
+        void MakeKinematicAtRest()
+        {
+            if (!networkRigidbody) return;
+            var rb = networkRigidbody.Rigidbody;
+            // Only set velocity when body is non-kinematic; Unity does not allow setting velocity on kinematic bodies.
+            if (!rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+            rb.isKinematic = true;
+        }
+
         public void SetInitialTransformOverNetwork()
         {
             if (Object.HasInputAuthority)
             {
-                transform.localPosition = initialPosition;
-                transform.rotation = Quaternion.Euler(initialRotation);
+                ApplyInitialTransform();
             }
         }
 
@@ -401,6 +482,34 @@ namespace VertexFormCore
         {
             grabInteractable.enabled = false;
             Invoke(nameof(EnableGrabbing), 0.5f);
+        }
+
+        /// <summary>
+        /// Call when a player has left the session. If this object was held by that player
+        /// (or its input authority is no longer in the session), releases it so it is not
+        /// stuck in a grabbed state (state authority only).
+        /// </summary>
+        public void ReleaseIfHeldByPlayer(PlayerRef leftPlayer)
+        {
+            if (Object == null || !Object.IsValid) return;
+            if (!IsGrabbed) return;
+
+            bool heldByLeftPlayer = Object.InputAuthority == leftPlayer;
+            bool inputAuthorityNoLongerInSession = Runner.ActivePlayers.All(p => p != Object.InputAuthority);
+            if (!heldByLeftPlayer && !inputAuthorityNoLongerInSession) return;
+
+            if (Object.HasStateAuthority)
+            {
+                IsGrabbed = false;
+                GrabbedBy = default(NetworkId);
+                lastUngrabTime = Runner.SimulationTime;
+                UnlockObjectPhysics();
+            }
+            else
+            {
+                // State authority is null (e.g. grabber had it and left). Any peer may request so we can release next tick (needed when host left).
+                Object.RequestStateAuthority();
+            }
         }
 
         public void SetInitialPosition()

@@ -64,6 +64,7 @@ namespace VertexFormCore
         // Fusion networked properties
         [Networked] public int AvatarSelectionNumber { get; set; }
         [Networked] public NetworkString<_16> PlayerName { get; set; }
+        [Networked] public platform Platform { get; set; }
 
 
         // Track if avatar has been initialized for remote players
@@ -139,6 +140,14 @@ namespace VertexFormCore
         {
             // Reset avatar initialization flag
             avatarInitialized = false;
+            // Set networked Platform (and PlayerName) immediately so other clients and local components (e.g. XRRigController) see the correct platform for THIS player, not the local ProjectManager.
+            if (Object.HasInputAuthority)
+            {
+                PlayerName = ProjectManager.UserName;
+                Platform = ProjectManager.instance != null && ProjectManager.instance.platformAndSettings != null
+                    ? ProjectManager.instance.platformAndSettings.platformChoice
+                    : platform.Desktop;
+            }
             Debug.Log("-->spawning player");
             StartCoroutine(InitializePlayer());
             Debug.Log("-->spawning player done");
@@ -167,8 +176,9 @@ namespace VertexFormCore
             if (Object.HasInputAuthority)
             {
                 Debug.Log("Setting player name to: " + playerName);
-                //PlayerName = playerName;
-                PlayerName = ProjectManager.UserName;
+                // PlayerName and Platform already set in Spawned() for immediate sync; ensure consistency here
+                if (ProjectManager.instance != null && ProjectManager.instance.platformAndSettings != null)
+                    Platform = ProjectManager.instance.platformAndSettings.platformChoice;
             }
             Debug.Log("-->player name set");
             gameObject.name = $"player {PlayerName}";
@@ -249,6 +259,7 @@ namespace VertexFormCore
                 PlayerName_Text.transform.localRotation = Quaternion.Euler(Vector3.up * yRot);
                 Debug.Log("-->player name text set");
             }
+            SetStandingHeight(true);
         }
 
         private void HandAndControllerSync()
@@ -320,75 +331,72 @@ namespace VertexFormCore
             }
         }
 
-        public void CallSetStandingHeightRPC()
+        /// <summary>True while the local player is seated (desktop: movement is skipped). Cleared when standing.</summary>
+        public bool IsSitting { get; private set; }
+        public bool IsSittingHeightFixed { get; private set; }
+
+        /// <summary>Current seat (set when sitting). Used so movement input can trigger leave.</summary>
+        private SitSpot _currentSitSpot;
+
+        public void SetCurrentSitSpot(SitSpot spot) { _currentSitSpot = spot; }
+        public void ClearCurrentSitSpot() { _currentSitSpot = null; }
+
+        /// <summary>Call when local player wants to stand (e.g. pressed move keys while sitting).</summary>
+        public void LeaveCurrentSeatIfAny()
         {
-            if (Object.HasInputAuthority)
+            if (_currentSitSpot != null)
             {
-                RPC_SetStandingHeight();
+                _currentSitSpot.HandleLeave();
+                _currentSitSpot = null;
             }
         }
 
-        //[Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-        public void RPC_SetStandingHeight()
-        {
-            cameraOffset.transform.localPosition = Vector3.up * maxHeight;
-#if UNITY_EDITOR
-            if (IsDeviceSimulatorActive())
-            {
-                xROrigin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.NotSpecified;
-                cameraOffset.transform.localPosition = Vector3.up * 1.6f;
-            }
-#endif
-        }
         public void SittingOnObject(Transform sittingPosition)
         {
+            Debug.Log("SittingOnObject: " + sittingPosition.position + " " + sittingPosition.rotation + " " + Object.HasInputAuthority);
             if (!Object.HasInputAuthority || sittingPosition == null) return;
 
-            // Move the player's root transform to the sitting position
+            IsSitting = true;
             transform.position = sittingPosition.position;
             transform.rotation = sittingPosition.rotation;
-            cameraOffset.transform.localPosition = Vector3.up * 0.8f;
-            //cameraOffset.transform.localPosition = Vector3.up * normalHeight;
+
+            // Sync desktop camera/orbit to face the seat forward (so we look in sitting direction)
+            var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
+            if (xrRig != null)
+                xrRig.SetLookRotation(sittingPosition.rotation);
 
             Debug.Log($"[PlayerNetworkSetup] Player moved to sitting position: {sittingPosition.position}");
         }
-        public void CallSetSittingHeightRPC()
+        public void LeavingSeat()
         {
-            if (Object.HasInputAuthority)
-            {
-                RPC_SetSittingHeight();
-            }
+            IsSitting = false;
         }
 
-        //[Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-        public void RPC_SetSittingHeight()
+
+        public void SetSittingHeight(bool calledFromSitSpot)
         {
-            cameraOffset.transform.localPosition = Vector3.up * normalHeight;
-#if UNITY_EDITOR
-            if (IsDeviceSimulatorActive())
+            if (calledFromSitSpot)
             {
-                xROrigin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.NotSpecified;
-                cameraOffset.transform.localPosition = Vector3.up * 1f;
+                IsSitting = true;
             }
-#endif
+            IsSittingHeightFixed = true;
+            cameraOffset.transform.localPosition = Vector3.up * 1f;
         }
 
+        public void SetStandingHeight(bool calledFromSitSpot)
+        {
+            if (calledFromSitSpot)
+            {
+                IsSitting = false;
+            }
+            IsSittingHeightFixed = false;
+            cameraOffset.transform.localPosition = Vector3.up * 1.2f;
+        }
         public void ResetPosition()
         {
             Debug.Log("Reset Position");
             transform.localPosition = Vector3.zero;
         }
-
-        private bool IsDeviceSimulatorActive()
-        {
-            var ds = FindAnyObjectByType<XRDeviceSimulator>();
-            if (ds != null)
-            {
-                return true;
-            }
-            return false;
-        }
-
         public void MegaphoneHandler(bool active)
         {
             if (Object.HasInputAuthority)

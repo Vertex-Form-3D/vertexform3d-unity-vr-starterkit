@@ -470,6 +470,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoginSceneComponent
       objectReference: {fileID: 0}
+    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: uiLayoutConfig
+      value: 
+      objectReference: {fileID: 11400000, guid: f8ca18bb76527834c8057a7c7eadeb8c, type: 2}
+    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: platformAndSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: b405233d79e78784b9cb0ab4650581d6, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

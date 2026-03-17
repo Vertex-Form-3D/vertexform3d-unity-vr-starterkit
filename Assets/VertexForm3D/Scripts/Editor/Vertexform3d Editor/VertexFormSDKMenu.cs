@@ -21,27 +21,51 @@ namespace VertexFormCore.Editor
         }
 
 
-        [MenuItem("VertexForm3D SDK/Scene Database", false, 2)]
-        public static void OpenSceneDatabase()
+        [MenuItem("VertexForm3D SDK/Main UI Database", false, 2)]
+        public static void OpenMainMapUIDatabase()
         {
-            string[] guids = AssetDatabase.FindAssets("t:SerializedDataBase");
+            string[] guids = AssetDatabase.FindAssets("t:UILayoutConfig");
             if (guids.Length == 0)
             {
-                Debug.LogError("Database asset not found in the project!");
+                string path = "Assets/VertexForm3D/ScriptableObjects/Main UI Database.asset";
+                var config = ScriptableObject.CreateInstance<UILayoutConfig>();
+                AssetDatabase.CreateAsset(config, path);
+                AssetDatabase.SaveAssets();
+                Selection.activeObject = config;
+                EditorUtility.FocusProjectWindow();
+                EditorUtility.OpenPropertyEditor(config);
+                Debug.Log("Created and opened Main UI Database: " + path);
                 return;
             }
-
-            // Convert the GUID to an asset path and load the asset
-            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            SerializedDataBase database = AssetDatabase.LoadAssetAtPath<SerializedDataBase>(path);
-
-            // Select the asset in the Project window
-            Selection.activeObject = database;
-            EditorUtility.FocusProjectWindow(); // Focus the Project window
-
-            // Open it in the Inspector
-            EditorUtility.OpenPropertyEditor(database);
-            Debug.Log("Opened Database: " + path);
+            string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            UILayoutConfig configAsset = AssetDatabase.LoadAssetAtPath<UILayoutConfig>(assetPath);
+            Selection.activeObject = configAsset;
+            EditorUtility.FocusProjectWindow();
+            EditorUtility.OpenPropertyEditor(configAsset);
+            Debug.Log("Opened Main Map UI Database: " + assetPath);
+        }
+        [MenuItem("VertexForm3D SDK/Platform and Settings", false, 2)]
+        public static void OpenPlatformAndSettings()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:PlatformAndSettings");
+            if (guids.Length == 0)
+            {
+                string path = "Assets/VertexForm3D/ScriptableObjects/Platform and Settings.asset";
+                var config = ScriptableObject.CreateInstance<PlatformAndSettings>();
+                AssetDatabase.CreateAsset(config, path);
+                AssetDatabase.SaveAssets();
+                Selection.activeObject = config;
+                EditorUtility.FocusProjectWindow();
+                EditorUtility.OpenPropertyEditor(config);
+                Debug.Log("Created and opened Platform and Settings: " + path);
+                return;
+            }
+            string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            PlatformAndSettings configAsset = AssetDatabase.LoadAssetAtPath<PlatformAndSettings>(assetPath);
+            Selection.activeObject = configAsset;
+            EditorUtility.FocusProjectWindow();
+            EditorUtility.OpenPropertyEditor(configAsset);
+            Debug.Log("Opened Platform and Settings: " + assetPath);
         }
 
         [MenuItem("VertexForm3D SDK/Creator Toolkit/Favorites", false, 4)]

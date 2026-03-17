@@ -165,4 +165,68 @@ public class VoiceRecorderManager : MonoBehaviour
         }
         Debug.LogWarning("[VoiceRecorderManager] Local player not found for voice control");
     }
+
+    /// <summary>
+    /// Returns the list of available microphone device names (same order as Unity Microphone.devices).
+    /// </summary>
+    public string[] GetMicrophoneDevices()
+    {
+        return Microphone.devices;
+    }
+
+    /// <summary>
+    /// Returns the current microphone device index, or 0 if default/unknown.
+    /// </summary>
+    public int GetCurrentMicrophoneDeviceIndex()
+    {
+        string[] devices = Microphone.devices;
+        if (devices == null || devices.Length == 0) return 0;
+        if (recorder == null) return 0;
+        var dev = recorder.MicrophoneDevice;
+        if (dev.IsDefault || dev.IDInt < 0) return 0;
+        int index = Mathf.Clamp(dev.IDInt, 0, devices.Length - 1);
+        return index;
+    }
+
+    /// <summary>
+    /// Switch the voice recorder to use the microphone at the given device index.
+    /// Index should match Unity Microphone.devices order.
+    /// </summary>
+    public void SetMicrophoneDevice(int deviceIndex)
+    {
+        string[] devices = Microphone.devices;
+        if (devices == null || devices.Length == 0)
+        {
+            Debug.LogWarning("[VoiceRecorderManager] No microphone devices found.");
+            return;
+        }
+        if (deviceIndex < 0 || deviceIndex >= devices.Length)
+        {
+            Debug.LogWarning($"[VoiceRecorderManager] Invalid device index {deviceIndex}. Using 0.");
+            deviceIndex = 0;
+        }
+        string deviceName = devices[deviceIndex];
+        var deviceInfo = new Photon.Voice.DeviceInfo(deviceIndex, deviceName);
+
+        if (recorder != null)
+        {
+            recorder.MicrophoneDevice = deviceInfo;
+            Debug.Log($"[VoiceRecorderManager] Microphone set to: {deviceName}");
+        }
+
+        // Also set on local player's recorder if it's a different instance
+        PlayerNetworkSetup[] players = FindObjectsByType<PlayerNetworkSetup>(FindObjectsSortMode.None);
+        foreach (PlayerNetworkSetup player in players)
+        {
+            if (player.Object != null && player.Object.HasInputAuthority)
+            {
+                Recorder playerRecorder = player.GetComponentInChildren<Recorder>();
+                if (playerRecorder != null && playerRecorder != recorder)
+                {
+                    playerRecorder.MicrophoneDevice = deviceInfo;
+                }
+                break;
+            }
+        }
+    }
 }

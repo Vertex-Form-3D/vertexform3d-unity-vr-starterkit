@@ -38,6 +38,10 @@ public class EmojiManager : NetworkBehaviour
 
     void Update()
     {
+        if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+        {
+            return;
+        }
         if (Input.GetKeyDown(KeyCode.Space))
         {
             if (emojiIndex < (emojiSO.emojiData.Count - 1))

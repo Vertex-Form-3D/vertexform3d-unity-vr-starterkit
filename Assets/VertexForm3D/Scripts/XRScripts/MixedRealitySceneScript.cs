@@ -7,15 +7,12 @@ public class MixedRealitySceneScript : MonoBehaviour
 {
     IEnumerator Start()
     {
-        while (RoomManager.Instance == null || RoomManager.Instance.localVRPlayer == null)
+        while (RoomManager.Instance == null || RoomManager.Instance.localVRPlayer == null || RoomManager.Instance.GetLocalPlayerSetup() == null)
         {
             yield return new WaitForSeconds(0.5f);
         }
-        InitializeMixedRealityScene();
-    }
-
-    private void InitializeMixedRealityScene()
-    {
-        RoomManager.Instance.localVRPlayer.GetComponent<MixedRealityHandler>().EnableMixedReality();
+        var handler = RoomManager.Instance.localVRPlayer.GetComponent<MixedRealityHandler>();
+        if (handler != null)
+            handler.EnableMixedReality();
     }
 }

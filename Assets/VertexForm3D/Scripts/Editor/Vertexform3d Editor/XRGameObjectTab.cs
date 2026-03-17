@@ -5,6 +5,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using UnityEditor.SceneManagement;
 using Fusion;
+using Fusion.Addons.Physics;
 
 namespace VertexFormCore.Editor
 {
@@ -30,17 +31,17 @@ namespace VertexFormCore.Editor
             items.Clear();
 
             // Sample Objects Category Items
-            items.Add(new ToolkitItem(
-                "Create Cube Grabbable",
-                "Adds a sample Cube to the Scene, with grabbing enabled, without automatic respawning.",
-                "",
-                CreateGrabNetworkedObject));
+            // items.Add(new ToolkitItem(
+            //     "Create Cube Grabbable",
+            //     "Adds a sample Cube to the Scene, with grabbing enabled, without automatic respawning.",
+            //     "",
+            //     CreateGrabNetworkedObject));
 
-            items.Add(new ToolkitItem(
-                "Create Cube Grabbable With Respawn",
-                "Adds a sample Cube to the Scene, with grabbing and automatic respawning at the Cube's original location enabled.",
-                "",
-                CreateRespawnableGrabNetworkedObject));
+            // items.Add(new ToolkitItem(
+            //     "Create Cube Grabbable With Respawn",
+            //     "Adds a sample Cube to the Scene, with grabbing and automatic respawning at the Cube's original location enabled.",
+            //     "",
+            //     CreateRespawnableGrabNetworkedObject));
 
             items.Add(new ToolkitItem(
                 "Create SnapAndSwap",
@@ -132,9 +133,16 @@ namespace VertexFormCore.Editor
             foreach (GameObject obj in selectedObject)
             {
                 AttachGrabNetworkedObject(obj);
-                obj.GetComponent<XRGrabNetworkInteractable>().shouldReset = true;
-                obj.GetComponent<XRGrabNetworkInteractable>().SetInitialPosition();
-                obj.GetComponent<XRGrabNetworkInteractable>().SetInitialRotation();
+                XRGrabNetworkInteractable grabNetworkInteractable = obj.GetComponent<XRGrabNetworkInteractable>();
+                if (grabNetworkInteractable == null)
+                {
+                    Debug.LogError("Failed to configure XRGrabNetworkInteractable on " + obj.name);
+                    continue;
+                }
+
+                grabNetworkInteractable.shouldReset = true;
+                grabNetworkInteractable.SetInitialPosition();
+                grabNetworkInteractable.SetInitialRotation();
                 EditorSceneManager.MarkSceneDirty(obj.scene);
             }
         }
@@ -145,7 +153,14 @@ namespace VertexFormCore.Editor
             foreach (GameObject obj in selectedObject)
             {
                 AttachGrabNetworkedObject(obj);
-                obj.GetComponent<XRGrabNetworkInteractable>().shouldReset = false;
+                XRGrabNetworkInteractable grabNetworkInteractable = obj.GetComponent<XRGrabNetworkInteractable>();
+                if (grabNetworkInteractable == null)
+                {
+                    Debug.LogError("Failed to configure XRGrabNetworkInteractable on " + obj.name);
+                    continue;
+                }
+
+                grabNetworkInteractable.shouldReset = false;
                 EditorSceneManager.MarkSceneDirty(obj.scene);
             }
         }
@@ -186,9 +201,16 @@ namespace VertexFormCore.Editor
         {
             GameObject g = GameObject.CreatePrimitive(PrimitiveType.Cube);
             AttachGrabNetworkedObject(g);
-            g.GetComponent<XRGrabNetworkInteractable>().shouldReset = true;
-            g.GetComponent<XRGrabNetworkInteractable>().SetInitialPosition();
-            g.GetComponent<XRGrabNetworkInteractable>().SetInitialRotation();
+            XRGrabNetworkInteractable grabNetworkInteractable = g.GetComponent<XRGrabNetworkInteractable>();
+            if (grabNetworkInteractable == null)
+            {
+                Debug.LogError("Failed to configure XRGrabNetworkInteractable on " + g.name);
+                return;
+            }
+
+            grabNetworkInteractable.shouldReset = true;
+            grabNetworkInteractable.SetInitialPosition();
+            grabNetworkInteractable.SetInitialRotation();
             EditorGUIUtility.PingObject(g);
         }
 
@@ -226,16 +248,29 @@ namespace VertexFormCore.Editor
             // Configure NetworkObject flags - only enable AllowStateAuthorityOverride
             no.Flags = NetworkObjectFlags.V1 | NetworkObjectFlags.AllowStateAuthorityOverride;
 
-            if (obj.GetComponent<NetworkTransform>() == null) obj.AddComponent<NetworkTransform>();
-
             NetworkTransform networkTransform = obj.GetComponent<NetworkTransform>();
-            networkTransform.SyncScale = false;
-            networkTransform.SyncParent = false;
-            networkTransform.AutoUpdateAreaOfInterestOverride = true;
-            networkTransform.DisableSharedModeInterpolation = false;
+            if (networkTransform != null && obj.GetComponent<NetworkRigidbody3D>() == null)
+            {
+                Debug.LogWarning("Replacing NetworkTransform with NetworkRigidbody3D on " + obj.name + " because XRGrabNetworkInteractable requires Fusion physics sync.");
+                Object.DestroyImmediate(networkTransform);
+            }
+
+            if (obj.GetComponent<NetworkRigidbody3D>() == null) obj.AddComponent<NetworkRigidbody3D>();
             if (obj.GetComponent<XRGeneralGrabTransformer>() == null) obj.AddComponent<XRGeneralGrabTransformer>();
             if (obj.GetComponent<XRGrabInteractable>() == null) obj.AddComponent<XRGrabInteractable>();
-            obj.GetComponent<XRGrabInteractable>().selectMode = InteractableSelectMode.Multiple;
+
+            XRGeneralGrabTransformer grabTransformer = obj.GetComponent<XRGeneralGrabTransformer>();
+            XRGrabInteractable grabInteractable = obj.GetComponent<XRGrabInteractable>();
+
+            if (grabInteractable == null || grabTransformer == null)
+            {
+                Debug.LogError("Failed to configure grab components on " + obj.name);
+                return;
+            }
+
+            grabInteractable.AddMultipleGrabTransformer(grabTransformer);
+            grabInteractable.AddSingleGrabTransformer(grabTransformer);
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
             if (obj.GetComponent<XRGrabNetworkInteractable>() == null) obj.AddComponent<XRGrabNetworkInteractable>();
         }
 

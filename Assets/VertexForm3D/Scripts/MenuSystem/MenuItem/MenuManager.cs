@@ -1,10 +1,11 @@
+
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VertexFormCore;
-
+using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
     public string worldDataJson
@@ -30,7 +31,15 @@ public class MenuManager : MonoBehaviour
     public GameObject worldScreen;
     public GameObject GuideScreen;
     public GameObject worldInfoScreen;
-    public SerializedDataBase dataBase;
+    public IReadOnlyList<Category> ActiveWorldCategories
+    {
+        get
+        {
+            if (ProjectManager.instance.uiLayoutConfig != null && ProjectManager.instance.uiLayoutConfig.worldCategories != null && ProjectManager.instance.uiLayoutConfig.worldCategories.Count > 0)
+                return ProjectManager.instance.uiLayoutConfig.worldCategories;
+            return System.Array.Empty<Category>();
+        }
+    }
     public GameObject[] allScreens;
 
     [Header("World View UI")]
@@ -57,7 +66,7 @@ public class MenuManager : MonoBehaviour
 
     public void OnTapHome()
     {
-
+        // VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene();
     }
     public void OpenMainScreen()
     {
@@ -125,8 +134,11 @@ public class MenuManager : MonoBehaviour
             Destroy(category.gameObject);
         }
         GetAllWorlds();
-        foreach (var cat in dataBase.worldCategories)
+        bool filterPlacesNav = ProjectManager.instance.uiLayoutConfig != null && ProjectManager.instance.uiLayoutConfig.worldCategories != null &&
+                               ProjectManager.instance.uiLayoutConfig.worldCategories.Count > 0;
+        foreach (var cat in ActiveWorldCategories)
         {
+            if (filterPlacesNav && !cat.showInPlacesNav) continue;
             GameObject catObj = Instantiate(categoryPrefab, categoryParent);
             catObj.GetComponent<CategoryItemView>().SetCategory(cat);
         }
@@ -135,7 +147,7 @@ public class MenuManager : MonoBehaviour
     public void GetAllWorlds()
     {
         allWorlds.Clear();
-        foreach (var cat in dataBase.worldCategories)
+        foreach (var cat in ActiveWorldCategories)
         {
             foreach (var world in cat.environments)
             {

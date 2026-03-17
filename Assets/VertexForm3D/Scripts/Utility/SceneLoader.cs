@@ -61,16 +61,21 @@ namespace VertexFormCore
                 yield return new WaitForSeconds(1f);
             }
 
-            Debug.Log("addressable SceneName is : " + SceneName);
+            Debug.Log($"[SceneLoader] Preparing to load addressable scene via Fusion: {SceneName}");
             completePerchantage = 0;
-            SceneManager.LoadSceneAsync(2);
-
-            AsyncOperationHandle<SceneInstance> sceneHandle = Addressables.LoadSceneAsync(SceneName, LoadSceneMode.Additive, true);
-            sceneHandle.Completed += (x) =>
+            
+            // Load the base scene
+            var baseSceneOp = SceneManager.LoadSceneAsync("addressableScene");
+            while (!baseSceneOp.isDone)
             {
-                OnSceneLoaded(SceneName);
-            };
+                completePerchantage = baseSceneOp.progress * 50f; // Base scene is 50% of loading
+                yield return null;
+            }
+            
+            Debug.Log("[SceneLoader] Base scene loaded, waiting for scene to be ready...");
+            yield return new WaitForSeconds(0.5f);
 
+            // Handle XR reinitialization
             if (XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 XRGeneralSettings.Instance.Manager.StopSubsystems();
@@ -88,61 +93,57 @@ namespace VertexFormCore
                 }
             }
 
-            Debug.Log("LoadSceneAsync: " + SceneName);
-            while (!sceneHandle.IsDone)
-            {
-                completePerchantage = sceneHandle.PercentComplete * 100f;
-                Debug.Log("Scene is not done yet please wait");
-                yield return new WaitForSeconds(1f);
-            }
-            yield return sceneHandle;
-
-
-            if (sceneHandle.Status == AsyncOperationStatus.Succeeded)
-            {
-                completePerchantage = sceneHandle.PercentComplete * 100f;
-
-                yield return sceneHandle.Result.ActivateAsync();
-                Debug.Log("operation successful");
-            }
-            else
-            {
-                Debug.LogError("operation failed due to " + sceneHandle.OperationException);
-                if (VirtualRoomManager.Instance != null)
-                {
-                    VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene();
-                }
-                AssetBundle.UnloadAllAssetBundles(false);
-                Resources.UnloadUnusedAssets();
-            }
+            // DON'T load the addressable scene here - let Fusion do it!
+            // This ensures NetworkObjects in the addressable scene are properly networked
+            // Fusion will load it via CustomNetworkSceneManager
+            
+            // Just call OnSceneLoaded with the scene name to trigger the Fusion connection
+            // Fusion's CustomNetworkSceneManager will handle the actual addressable scene loading
+            OnSceneLoaded(SceneName);
+            
             loadSceneCoroutine = null;
         }
 
         string currentScene;
+        
         [ContextMenu("ActivateScene")]
         public void ActivateScene()
         {
             Scene sc = SceneManager.GetSceneByName(currentScene);
-            SceneManager.SetActiveScene(sc);
+            if (sc.IsValid())
+            {
+                SceneManager.SetActiveScene(sc);
+            }
         }
+        
         public void OnSceneLoaded(string sceneName)
         {
-            sceneIsLoaded = true;
             currentScene = sceneName;
-            Debug.Log(" scene loaded " + sceneName);
+            Debug.Log($"[SceneLoader] Base scene ready. Connecting to Fusion room: {sceneName}");
 
-            // Connect to Fusion room using the new scene name
-            // Note: Fusion will handle setting the active scene when it loads the networked version
+            // Connect to Fusion room
+            // Fusion's CustomNetworkSceneManager will load the addressable scene for all clients
+            // This ensures NetworkObjects in the addressable scene are properly networked
             if (RoomManager.Instance != null)
             {
                 RoomManager.Instance.ConnectToRoom(sceneName);
             }
-
-            // Don't set active scene here - Fusion's NetworkSceneManager will handle it
-            // when it loads the scene for networking. Setting it here causes duplicate activation.
+            else
+            {
+                Debug.LogError("[SceneLoader] RoomManager.Instance is null! Cannot connect to room.");
+            }
 
             Resources.UnloadUnusedAssets();
             Caching.ClearCache();
+        }
+        
+        public void OnFusionSceneLoaded(string sceneName)
+        {
+            // Called by RoomManager when Fusion has finished loading the addressable scene
+            sceneIsLoaded = true;
+            completePerchantage = 100f;
+            currentScene = sceneName;
+            Debug.Log($"[SceneLoader] Fusion addressable scene fully loaded: {sceneName}");
         }
     }
 }

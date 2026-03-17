@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class ProjectManager : MonoBehaviour
 {
-    public ProjectDataScriptableObject projectDataSO;
+    public UILayoutConfig uiLayoutConfig;
+    public PlatformAndSettings platformAndSettings;
     public static string UserName;
     public static ProjectManager instance;
 
@@ -17,15 +18,5 @@ public class ProjectManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-    }
-
-    void Start()
-    {
-        SetUpLogSetting();
-    }
-
-    public void SetUpLogSetting()
-    {
-        Debug.unityLogger.logEnabled = projectDataSO.projectData.DebugEnabled;
     }
 }

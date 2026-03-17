@@ -21,7 +21,6 @@ namespace VertexFormCore
         public Transform bodyParent;
         public Transform leftHandParent;
         public Transform rightHandParent;
-        public CustomAvatarScriptable customAvatarScriptable;
         public GameObject customAvatarSelection;
         public GameObject customAvatarSelectionUI;
         public AvatarHolder customavatarloader;
@@ -118,16 +117,16 @@ namespace VertexFormCore
 
         private void OnTrackedHandModeStarted()
         {
-                leftHandVisual.enabled = rightHandVisual.enabled = true;
-            
+            leftHandVisual.enabled = rightHandVisual.enabled = true;
+
             leftHandParent.gameObject.SetActive(false);
             rightHandParent.gameObject.SetActive(false);
         }
 
         public void InitializeAvatarSystem()
         {
-                OnTapCustomAvatarSelection();
-            
+            OnTapCustomAvatarSelection();
+
         }
         public void OnTapCustomAvatarSelection()
         {
@@ -156,7 +155,7 @@ namespace VertexFormCore
         public void NextAvatar()
         {
             avatarSelectionNumber += 1;
-            if (avatarSelectionNumber >= customAvatarScriptable.avatarDatas.Count)
+            if (avatarSelectionNumber >= ProjectManager.instance.uiLayoutConfig.avatarDatas.Count)
             {
                 avatarSelectionNumber = 0;
             }
@@ -173,7 +172,7 @@ namespace VertexFormCore
 
             if (avatarSelectionNumber < 0)
             {
-                avatarSelectionNumber = customAvatarScriptable.avatarDatas.Count - 1;
+                avatarSelectionNumber = ProjectManager.instance.uiLayoutConfig.avatarDatas.Count - 1;
             }
             PlayerPrefs.SetInt(MultiplayerVRConstants.AVATAR_SELECTION_NUMBER, avatarSelectionNumber);
             PlayerPrefs.SetString("IS_RPM", "false");
@@ -191,14 +190,14 @@ namespace VertexFormCore
             ClearChildren(headTransform);
             ClearChildren(bodyTransform);
             ClearChildren(bodyParent);
-            GameObject body = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].body);
+            GameObject body = Instantiate(ProjectManager.instance.uiLayoutConfig.avatarDatas[avatarIndex].body);
             body.transform.SetParent(bodyParent, false);
-            GameObject head = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].head);
+            GameObject head = Instantiate(ProjectManager.instance.uiLayoutConfig.avatarDatas[avatarIndex].head);
             head.transform.SetParent(headParent, false);
 
-            GameObject body1 = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].body);
+            GameObject body1 = Instantiate(ProjectManager.instance.uiLayoutConfig.avatarDatas[avatarIndex].body);
             body1.transform.SetParent(bodyTransform, false);
-            GameObject head1 = Instantiate(customAvatarScriptable.avatarDatas[avatarIndex].head);
+            GameObject head1 = Instantiate(ProjectManager.instance.uiLayoutConfig.avatarDatas[avatarIndex].head);
             head1.transform.SetParent(headTransform, false);
             body.transform.localPosition = body1.transform.localPosition = head.transform.localPosition = head1.transform.localPosition = Vector3.zero;
             customavatarloader.SetAvatar(head1, body1, true);
