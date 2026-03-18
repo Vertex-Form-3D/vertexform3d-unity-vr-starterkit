@@ -144,8 +144,8 @@ namespace VertexFormCore
             if (Object.HasInputAuthority)
             {
                 PlayerName = ProjectManager.UserName;
-                Platform = ProjectManager.instance != null && ProjectManager.instance.platformAndSettings != null
-                    ? ProjectManager.instance.platformAndSettings.platformChoice
+                Platform = ProjectManager.instance != null && ProjectManager.instance.platforms != null
+                    ? ProjectManager.instance.platforms.platformChoice
                     : platform.Desktop;
             }
             Debug.Log("-->spawning player");
@@ -177,8 +177,8 @@ namespace VertexFormCore
             {
                 Debug.Log("Setting player name to: " + playerName);
                 // PlayerName and Platform already set in Spawned() for immediate sync; ensure consistency here
-                if (ProjectManager.instance != null && ProjectManager.instance.platformAndSettings != null)
-                    Platform = ProjectManager.instance.platformAndSettings.platformChoice;
+                if (ProjectManager.instance != null && ProjectManager.instance.platforms != null)
+                    Platform = ProjectManager.instance.platforms.platformChoice;
             }
             Debug.Log("-->player name set");
             gameObject.name = $"player {PlayerName}";

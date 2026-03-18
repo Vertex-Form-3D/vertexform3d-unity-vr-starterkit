@@ -4,7 +4,7 @@ public class DesktopObjectDisable : MonoBehaviour
 {
     void Awake()
     {
-        if (ProjectManager.instance.platformAndSettings.platformChoice == platform.VR)
+        if (ProjectManager.instance.platforms.platformChoice == platform.VR)
         {
             gameObject.SetActive(false);
         }

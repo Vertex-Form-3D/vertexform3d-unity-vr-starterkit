@@ -49,7 +49,7 @@ namespace VertexFormCore
             {
                 string playerName = !string.IsNullOrEmpty(PlayerName_InputName.text) ?
                     PlayerName_InputName.text :
-                    ProjectManager.instance.platformAndSettings.anonymousUserNamePrefix + Random.Range(1111, 9999);
+                    ProjectManager.instance.settingsUI.anonymousUserNamePrefix + Random.Range(1111, 9999);
                 ProjectManager.UserName = playerName;
                 // Store player name for later use in Fusion
                 PlayerPrefs.SetString("PlayerName", playerName);

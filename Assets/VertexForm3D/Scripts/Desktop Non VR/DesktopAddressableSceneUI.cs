@@ -17,7 +17,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public Button flyButton;
     void Start()
     {
-        if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop && ProjectManager.instance.platformAndSettings.mode == Mode.player)
+        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
         {
             StartCoroutine(IEAssignModeEvent());
             modeImage.GetComponent<Button>().onClick.AddListener(() =>

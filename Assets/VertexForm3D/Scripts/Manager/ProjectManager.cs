@@ -3,7 +3,9 @@ using UnityEngine;
 public class ProjectManager : MonoBehaviour
 {
     public UILayoutConfig uiLayoutConfig;
-    public PlatformAndSettings platformAndSettings;
+    public Platforms platforms;
+    public SettingsUISO settingsUI;
+
     public static string UserName;
     public static ProjectManager instance;
 

@@ -14,6 +14,7 @@ public class MainMap : MonoBehaviour
     [Header("Optional section roots (assign to apply visibility from config)")]
     [SerializeField] protected GameObject leftSectionRoot;
     [SerializeField] protected GameObject rightSectionRoot;
+    [SerializeField] protected GameObject mirrorRoot;
 
     [Header("Optional left section text (from config.leftSectionText)")]
     [SerializeField] protected TMP_Text leftSectionTitleText;
@@ -37,10 +38,15 @@ public class MainMap : MonoBehaviour
 
         if (rightSectionRoot != null)
             rightSectionRoot.SetActive(uiLayoutConfig.rightSectionEnabled);
-        if (logoImage != null)
-            logoImage.sprite = uiLayoutConfig.mainSectionPanels[0].logoImage;
-        if (backgroundImage != null)
-            backgroundImage.sprite = uiLayoutConfig.mainSectionPanels[0].backgroundImage;
+        if (mirrorRoot != null)
+            mirrorRoot.SetActive(uiLayoutConfig.mirror);
+        if (uiLayoutConfig.mainSectionPanels != null && uiLayoutConfig.mainSectionPanels.Count > 0)
+        {
+            if (logoImage != null)
+                logoImage.sprite = uiLayoutConfig.mainSectionPanels[0].logoImage;
+            if (backgroundImage != null)
+                backgroundImage.sprite = uiLayoutConfig.mainSectionPanels[0].backgroundImage;
+        }
 
         if (leftSectionTitleText != null && !string.IsNullOrEmpty(uiLayoutConfig.leftSectionText))
             leftSectionTitleText.text = uiLayoutConfig.leftSectionText;

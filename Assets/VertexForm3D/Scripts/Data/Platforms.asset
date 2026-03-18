@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4df20d9f539cd0d409cb05fd4d049684, type: 3}
+  m_Name: Platforms
+  m_EditorClassIdentifier: Assembly-CSharp::Platforms
+  platformChoice: 0
+  platformGuides:
+  - title: "Android \xB7 VR"
+    subtitle: Meta Quest
+    steps:
+    - Select <b>VR</b> from the <b>Platform</b> dropdown in Project Data.
+    - "Go to <b>Edit \u2192 Build Profiles</b> and set <b>Android</b> as the active
+      platform."
+    note: 
+  - title: Desktop
+    subtitle: "Windows \xB7 PC"
+    steps:
+    - Select <b>Desktop</b> from the <b>Platform</b> dropdown in Project Data.
+    - "Go to <b>Edit \u2192 Build Profiles</b> and set <b>Windows</b> as the active
+      platform."
+    note: 
+  - title: Testing VR on Desktop via Quest Link
+    subtitle: "XR Plug-in Management \xB7 Windows tab"
+    steps:
+    - "Open <b>Edit \u2192 Project Settings \u2192 XR Plug-in Management</b>"
+    - Select the <b>Windows</b> tab in the XR Plug-in panel.
+    - Enable <b>Initialize XR on Startup</b>
+    note: "Why this matters: Enabling \u2018Initialize XR on Startup\u2019 ensures
+      your VR experience launches correctly when running the project on desktop through
+      Quest Link \u2014 without this, XR may not initialize at play time."

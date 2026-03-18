@@ -39,7 +39,7 @@ public class FlyingModeScript : MonoBehaviour
 
     void Update()
     {
-        if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
         {
             isFlying = Input.GetKey(KeyCode.F);
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
@@ -101,7 +101,7 @@ public class FlyingModeScript : MonoBehaviour
     {
         if (isFlying || testingInEditor)
         {
-            if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
                 if (characterController.GetComponent<XRRigController>().isThirdPerson)
                 {

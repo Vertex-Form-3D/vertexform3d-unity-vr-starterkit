@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEditor;
 
@@ -31,11 +33,19 @@ public class UILayoutConfigEditor : Editor
         _mirror = serializedObject.FindProperty("mirror");
         _avatarDatas = serializedObject.FindProperty("avatarDatas");
 
-        int c = _mainSectionPanels.arraySize;
-        if (_foldPanels == null || _foldPanels.Length != c)
+        serializedObject.Update();
+        while (_mainSectionPanels.arraySize > 3)
+            _mainSectionPanels.DeleteArrayElementAtIndex(_mainSectionPanels.arraySize - 1);
+        while (_mainSectionPanels.arraySize < 3)
+            _mainSectionPanels.arraySize++;
+        if (serializedObject.ApplyModifiedProperties())
+            EditorUtility.SetDirty(target);
+
+        const int panelCount = 3;
+        if (_foldPanels == null || _foldPanels.Length != panelCount)
         {
-            _foldPanels = new bool[Mathf.Max(c, 1)];
-            if (c > 0) _foldPanels[0] = true; // expand first panel by default
+            _foldPanels = new bool[panelCount];
+            _foldPanels[0] = true;
         }
     }
 
@@ -43,10 +53,16 @@ public class UILayoutConfigEditor : Editor
     {
         serializedObject.Update();
 
-        DrawSectionFoldout("Left Section", ref _foldLeft, DrawLeftSection);
-        DrawSectionFoldout("Main Section", ref _foldMain, DrawMainSection);
+        while (_mainSectionPanels.arraySize > 3)
+            _mainSectionPanels.DeleteArrayElementAtIndex(_mainSectionPanels.arraySize - 1);
+        while (_mainSectionPanels.arraySize < 3)
+            _mainSectionPanels.arraySize++;
+
+        DrawHighlightPrefabButton(MainMapPrefabFileName);
+        DrawSectionFoldout("Left Section", ref _foldLeft, DrawLeftSection, useLargeSectionTitle: true);
+        DrawSectionFoldout("Main Section", ref _foldMain, DrawMainSection, useLargeSectionTitle: true);
         GUILayout.Space(4);
-        DrawSectionFoldout("Right Section", ref _foldRight, DrawRightSection);
+        DrawSectionFoldout("Right Section", ref _foldRight, DrawRightSection, useLargeSectionTitle: true);
 
         GUILayout.Space(8);
         DrawApplyToSceneBlock();
@@ -58,55 +74,151 @@ public class UILayoutConfigEditor : Editor
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("Apply to prefabs", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("Assigns this config to every prefab that has a MainMap component. Saves the prefab assets.", MessageType.None);
+        EditorGUILayout.HelpBox("Saves pending edits to this asset, assigns it on MainMap.prefab, then bakes text/images/section visibility into that prefab (same idea as Apply Project Data).", MessageType.None);
         if (GUILayout.Button("Apply to Prefabs", GUILayout.Height(28)))
             ApplyConfigToPrefabs();
         EditorGUILayout.EndVertical();
         GUILayout.Space(6);
     }
 
+    private const string MainMapPrefabFileName = "MainMap.prefab";
+
+    /// <summary>All prefab assets named MainMap.prefab (avoids LoadPrefabContents on unrelated/broken prefabs).</summary>
+    private static List<string> FindMainMapPrefabPaths()
+    {
+        var paths = new List<string>();
+        foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (string.Equals(Path.GetFileName(path), MainMapPrefabFileName, System.StringComparison.OrdinalIgnoreCase))
+                paths.Add(path);
+        }
+        return paths;
+    }
+
     private void ApplyConfigToPrefabs()
     {
+        // Inspector changes are normally applied after OnInspectorGUI; flush now so baking uses latest text/panels.
+        serializedObject.ApplyModifiedProperties();
+        EditorUtility.SetDirty(target);
+
         var config = target as UILayoutConfig;
         if (config == null) return;
 
-        string[] prefabGuids = AssetDatabase.FindAssets("t:Prefab");
-        int appliedCount = 0;
-
-        foreach (string guid in prefabGuids)
+        List<string> mainMapPaths = FindMainMapPrefabPaths();
+        if (mainMapPaths.Count == 0)
         {
-            string path = AssetDatabase.GUIDToAssetPath(guid);
-            GameObject prefabRoot = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (prefabRoot == null) continue;
-
-            MainMap mainMaps = prefabRoot.GetComponent<MainMap>();
-            if (mainMaps == null) continue;
-
-            var so = new SerializedObject(mainMaps);
-            var prop = so.FindProperty("uiLayoutConfig");
-            if (prop != null)
-            {
-                prop.objectReferenceValue = config;
-                so.ApplyModifiedProperties();
-                appliedCount++;
-            }
-
-            EditorUtility.SetDirty(prefabRoot);
+            Debug.LogWarning($"UILayoutConfig: No '{MainMapPrefabFileName}' found. Rename your menu prefab to MainMap.prefab or assign uiLayoutConfig on it manually.");
+            return;
         }
 
-        if (appliedCount > 0)
-            AssetDatabase.SaveAssets();
+        int prefabsModified = 0;
+        int refsUpdated = 0;
 
-        if (appliedCount == 0)
-            Debug.LogWarning("UILayoutConfig: No prefab with a MainMap component found in the project.");
-        else
-            Debug.Log($"UILayoutConfig: Applied to {appliedCount} MainMap component(s) across prefabs.");
+        foreach (string path in mainMapPaths)
+        {
+            GameObject contents = null;
+            try
+            {
+                contents = PrefabUtility.LoadPrefabContents(path);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"UILayoutConfig: Could not open '{path}': {e.Message}");
+                continue;
+            }
+
+            if (contents == null) continue;
+
+            MainMap[] mainMaps = contents.GetComponentsInChildren<MainMap>(true);
+            if (mainMaps.Length == 0)
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+                Debug.LogWarning($"UILayoutConfig: '{path}' has no MainMap component.");
+                continue;
+            }
+
+            foreach (MainMap mm in mainMaps)
+            {
+                var so = new SerializedObject(mm);
+                var prop = so.FindProperty("uiLayoutConfig");
+                if (prop != null)
+                {
+                    if (prop.objectReferenceValue != config)
+                    {
+                        prop.objectReferenceValue = config;
+                        so.ApplyModifiedProperties();
+                        refsUpdated++;
+                    }
+                    else
+                        so.ApplyModifiedProperties();
+                }
+
+                Undo.RecordObject(mm, "Apply UILayoutConfig to MainMap");
+                mm.ApplyLayoutFromConfig();
+                EditorUtility.SetDirty(mm);
+            }
+
+            PrefabUtility.SaveAsPrefabAsset(contents, path);
+            prefabsModified++;
+            PrefabUtility.UnloadPrefabContents(contents);
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log($"UILayoutConfig: Baked config into {prefabsModified} MainMap.prefab (asset). Reference updates: {refsUpdated}. Ensure ProjectManager in your bootstrap scene uses this same config for Places/avatars.");
     }
 
-    private void DrawSectionFoldout(string title, ref bool foldout, System.Action drawContent)
+    private static void DrawHighlightPrefabButton(string prefabFileName)
+    {
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+        if (GUILayout.Button("Highlight Prefab", EditorStyles.miniButton, GUILayout.Width(110)))
+        {
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (string.Equals(Path.GetFileName(path), prefabFileName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    var obj = AssetDatabase.LoadAssetAtPath<Object>(path);
+                    if (obj != null)
+                    {
+                        EditorGUIUtility.PingObject(obj);
+                        Selection.activeObject = obj;
+                    }
+                    break;
+                }
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private static GUIStyle _largeSectionFoldoutStyle;
+
+    private static GUIStyle LargeSectionFoldoutStyle
+    {
+        get
+        {
+            if (_largeSectionFoldoutStyle == null)
+            {
+                _largeSectionFoldoutStyle = new GUIStyle(EditorStyles.foldoutHeader)
+                {
+                    fontSize = EditorStyles.foldoutHeader.fontSize + 3,
+                    fontStyle = FontStyle.Bold
+                };
+            }
+            return _largeSectionFoldoutStyle;
+        }
+    }
+
+    private void DrawSectionFoldout(string title, ref bool foldout, System.Action drawContent, bool useLargeSectionTitle = false)
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        foldout = EditorGUILayout.BeginFoldoutHeaderGroup(foldout, title);
+        if (useLargeSectionTitle)
+            foldout = EditorGUILayout.BeginFoldoutHeaderGroup(foldout, title, LargeSectionFoldoutStyle);
+        else
+            foldout = EditorGUILayout.BeginFoldoutHeaderGroup(foldout, title);
         EditorGUILayout.EndFoldoutHeaderGroup();
         if (foldout)
         {
@@ -141,91 +253,46 @@ public class UILayoutConfigEditor : Editor
 
     private void DrawMainSection()
     {
-        int c = _mainSectionPanels.arraySize;
-        if (_foldPanels == null || _foldPanels.Length != c)
-            System.Array.Resize(ref _foldPanels, Mathf.Max(c, 1));
-
-        for (int i = 0; i < c; i++)
+        for (int i = 0; i < 3; i++)
         {
             var panel = _mainSectionPanels.GetArrayElementAtIndex(i);
-            var panelName = panel.FindPropertyRelative("panelName").stringValue;
-            var panelType = (MainPanelType)panel.FindPropertyRelative("panelType").enumValueIndex;
-
-            string header = $"Panel {i + 1} - {panelName}";
+            string header = i == UILayoutConfig.MainPanelIndex ? "Main"
+                : i == UILayoutConfig.PlacesPanelIndex ? "Places"
+                : "Guide";
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-
-            EditorGUILayout.BeginHorizontal();
             _foldPanels[i] = EditorGUILayout.Foldout(_foldPanels[i], header, true);
-            if (GUILayout.Button("⋮", GUILayout.Width(22)))
-            {
-                var menu = new GenericMenu();
-                menu.AddItem(new GUIContent("Duplicate"), false, () => DuplicatePanel(i));
-                menu.AddItem(new GUIContent("Remove"), false, () => RemovePanel(i));
-                menu.ShowAsContext();
-            }
-            EditorGUILayout.EndHorizontal();
 
             if (_foldPanels[i])
             {
                 EditorGUI.indentLevel++;
 
-                if (panelType == MainPanelType.Main)
+                if (i == UILayoutConfig.MainPanelIndex)
                 {
                     EditorGUILayout.PropertyField(panel.FindPropertyRelative("backgroundImage"), new GUIContent("Background Image"));
                     EditorGUILayout.PropertyField(panel.FindPropertyRelative("logoImage"), new GUIContent("Logo Image"));
                 }
-                else if (panelType == MainPanelType.Places)
+                else if (i == UILayoutConfig.PlacesPanelIndex)
                 {
                     EditorGUILayout.HelpBox("Toggle per-category visibility with Show In Places Nav.", MessageType.None);
                     EditorGUILayout.PropertyField(_worldCategories, new GUIContent("World Categories"), true);
                 }
                 else
                 {
-                    EditorGUILayout.PropertyField(panel.FindPropertyRelative("guideOrCustomText"), new GUIContent("Content"));
+                    EditorGUILayout.BeginHorizontal();
+                    var lockIcon = EditorGUIUtility.IconContent("AssemblyLock");
+                    if (lockIcon != null && lockIcon.image != null)
+                        GUILayout.Label(lockIcon, GUILayout.Width(20), GUILayout.Height(20));
+                    else
+                        GUILayout.Label("🔒", GUILayout.Width(20));
+                    EditorGUILayout.LabelField("Do not edit", EditorStyles.boldLabel);
+                    EditorGUILayout.EndHorizontal();
                 }
-
-                EditorGUILayout.PropertyField(panel.FindPropertyRelative("panelName"));
-                EditorGUILayout.PropertyField(panel.FindPropertyRelative("panelType"));
 
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndVertical();
         }
-    }
-
-    private void AddPanel(MainPanelType type)
-    {
-        int i = _mainSectionPanels.arraySize;
-        _mainSectionPanels.arraySize++;
-        var panel = _mainSectionPanels.GetArrayElementAtIndex(i);
-        panel.FindPropertyRelative("panelName").stringValue = type == MainPanelType.Main ? "Main" : type == MainPanelType.Places ? "Places" : type == MainPanelType.Guide ? "Guide" : "Custom";
-        panel.FindPropertyRelative("panelType").enumValueIndex = (int)type;
-        System.Array.Resize(ref _foldPanels, Mathf.Max(_foldPanels?.Length ?? 0, i + 1));
-    }
-
-    private void DuplicatePanel(int index)
-    {
-        _mainSectionPanels.InsertArrayElementAtIndex(index + 1);
-        var src = _mainSectionPanels.GetArrayElementAtIndex(index);
-        var dst = _mainSectionPanels.GetArrayElementAtIndex(index + 1);
-        CopyPanelProperties(src, dst);
-        System.Array.Resize(ref _foldPanels, _mainSectionPanels.arraySize);
-    }
-
-    private void RemovePanel(int index)
-    {
-        _mainSectionPanels.DeleteArrayElementAtIndex(index);
-        System.Array.Resize(ref _foldPanels, Mathf.Max(_mainSectionPanels.arraySize, 1));
-    }
-
-    private void CopyPanelProperties(SerializedProperty src, SerializedProperty dst)
-    {
-        dst.FindPropertyRelative("panelName").stringValue = src.FindPropertyRelative("panelName").stringValue + " (Copy)";
-        dst.FindPropertyRelative("panelType").enumValueIndex = src.FindPropertyRelative("panelType").enumValueIndex;
-        dst.FindPropertyRelative("backgroundImage").objectReferenceValue = src.FindPropertyRelative("backgroundImage").objectReferenceValue;
-        dst.FindPropertyRelative("logoImage").objectReferenceValue = src.FindPropertyRelative("logoImage").objectReferenceValue;
-        dst.FindPropertyRelative("guideOrCustomText").stringValue = src.FindPropertyRelative("guideOrCustomText").stringValue;
     }
 
     private void DrawRightSection()

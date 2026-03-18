@@ -70,7 +70,6 @@ namespace VertexFormCore
             }
 
             Debug.Log("1-> Successfully left Fusion room");
-            ProjectManager.instance.platformAndSettings.mode = Mode.OnBoarding;
             SceneManager.LoadScene(0);
         }
         private void LoadHomeScene()

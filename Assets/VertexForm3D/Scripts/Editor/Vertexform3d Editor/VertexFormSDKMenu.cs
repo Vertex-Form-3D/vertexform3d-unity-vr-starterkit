@@ -31,41 +31,52 @@ namespace VertexFormCore.Editor
                 var config = ScriptableObject.CreateInstance<UILayoutConfig>();
                 AssetDatabase.CreateAsset(config, path);
                 AssetDatabase.SaveAssets();
-                Selection.activeObject = config;
-                EditorUtility.FocusProjectWindow();
                 EditorUtility.OpenPropertyEditor(config);
                 Debug.Log("Created and opened Main UI Database: " + path);
                 return;
             }
             string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
             UILayoutConfig configAsset = AssetDatabase.LoadAssetAtPath<UILayoutConfig>(assetPath);
-            Selection.activeObject = configAsset;
-            EditorUtility.FocusProjectWindow();
             EditorUtility.OpenPropertyEditor(configAsset);
             Debug.Log("Opened Main Map UI Database: " + assetPath);
         }
-        [MenuItem("VertexForm3D SDK/Platform and Settings", false, 2)]
+        [MenuItem("VertexForm3D SDK/Platforms", false, 2)]
         public static void OpenPlatformAndSettings()
         {
-            string[] guids = AssetDatabase.FindAssets("t:PlatformAndSettings");
+            string[] guids = AssetDatabase.FindAssets("t:Platforms");
             if (guids.Length == 0)
             {
-                string path = "Assets/VertexForm3D/ScriptableObjects/Platform and Settings.asset";
-                var config = ScriptableObject.CreateInstance<PlatformAndSettings>();
+                string path = "Assets/VertexForm3D/ScriptableObjects/Platforms.asset";
+                var config = ScriptableObject.CreateInstance<Platforms>();
                 AssetDatabase.CreateAsset(config, path);
                 AssetDatabase.SaveAssets();
-                Selection.activeObject = config;
-                EditorUtility.FocusProjectWindow();
                 EditorUtility.OpenPropertyEditor(config);
                 Debug.Log("Created and opened Platform and Settings: " + path);
                 return;
             }
             string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-            PlatformAndSettings configAsset = AssetDatabase.LoadAssetAtPath<PlatformAndSettings>(assetPath);
-            Selection.activeObject = configAsset;
-            EditorUtility.FocusProjectWindow();
+            Platforms configAsset = AssetDatabase.LoadAssetAtPath<Platforms>(assetPath);
             EditorUtility.OpenPropertyEditor(configAsset);
             Debug.Log("Opened Platform and Settings: " + assetPath);
+        }
+        [MenuItem("VertexForm3D SDK/SettingsUI", false, 2)]
+        public static void OpenSettingsUI()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:SettingsUI");
+            if (guids.Length == 0)
+            {
+                string path = "Assets/VertexForm3D/ScriptableObjects/SettingsUI.asset";
+                var config = ScriptableObject.CreateInstance<SettingsUISO>();
+                AssetDatabase.CreateAsset(config, path);
+                AssetDatabase.SaveAssets();
+                EditorUtility.OpenPropertyEditor(config);
+                Debug.Log("Created and opened SettingsUI: " + path);
+                return;
+            }
+            string assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            SettingsUISO configAsset = AssetDatabase.LoadAssetAtPath<SettingsUISO>(assetPath);
+            EditorUtility.OpenPropertyEditor(configAsset);
+            Debug.Log("Opened SettingsUI: " + assetPath);
         }
 
         [MenuItem("VertexForm3D SDK/Creator Toolkit/Favorites", false, 4)]

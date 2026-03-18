@@ -45,7 +45,7 @@ public class OrbitCamera : MonoBehaviour
     private void Awake()
     {
         Debug.Log("[OrbitCamera] Awake started");
-        if (ProjectManager.instance.platformAndSettings.platformChoice == platform.VR)
+        if (ProjectManager.instance.platforms.platformChoice == platform.VR)
         {
             Destroy(this);
             return;

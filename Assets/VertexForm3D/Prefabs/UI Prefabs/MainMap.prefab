@@ -1079,6 +1079,7 @@ MonoBehaviour:
   uiLayoutConfig: {fileID: 11400000, guid: f8ca18bb76527834c8057a7c7eadeb8c, type: 2}
   leftSectionRoot: {fileID: 2424664300058269200}
   rightSectionRoot: {fileID: 4053946586054269666}
+  mirrorRoot: {fileID: 4528284302948393846}
   leftSectionTitleText: {fileID: 6228977531938619661}
   logoImage: {fileID: 5866959580745925171}
   backgroundImage: {fileID: 3542143310557558492}
@@ -4751,7 +4752,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 150.6, y: -75}
-  m_SizeDelta: {x: 0, y: 100}
+  m_SizeDelta: {x: 241.2, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7332457905815138529
 CanvasRenderer:
@@ -8245,10 +8246,17 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Vertex Form 3D is an open-source VR multiplayer framework for building
+  m_text: 'Vertex Form 3D is an open-source VR multiplayer framework for building
     social applications in Unity. Designed with 3D artists in mind, this package
     provides essential tools for creating scalable VR environments across Meta Quest
     and other platforms.
+
+
+    info@vertexform3d.com
+
+    vertexform3d.com
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

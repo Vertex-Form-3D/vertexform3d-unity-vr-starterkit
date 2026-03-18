@@ -82,10 +82,10 @@ public class XRRigController : MonoBehaviour
         }
         else
         {
-            Debug.Log("Single-player path: " + ProjectManager.instance.platformAndSettings.platformChoice + " " + platform.VR);
-            SetPlatformProperty(ProjectManager.instance.platformAndSettings.platformChoice == platform.VR);
-            bool isVR = ProjectManager.instance.platformAndSettings.platformChoice == platform.VR;
-            Debug.Log($"[XRRigController] Single-player path - isVR={isVR}, platform={ProjectManager.instance.platformAndSettings.platformChoice}");
+            Debug.Log("Single-player path: " + ProjectManager.instance.platforms.platformChoice + " " + platform.VR);
+            SetPlatformProperty(ProjectManager.instance.platforms.platformChoice == platform.VR);
+            bool isVR = ProjectManager.instance.platforms.platformChoice == platform.VR;
+            Debug.Log($"[XRRigController] Single-player path - isVR={isVR}, platform={ProjectManager.instance.platforms.platformChoice}");
 
             foreach (GameObject go in VRObjects)
             {
@@ -100,7 +100,7 @@ public class XRRigController : MonoBehaviour
                 tpd.enabled = isVR;
             }
             IAM.enabled = XRIMM.enabled = isVR;
-            if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
                 Debug.Log("[XRRigController] Single-player Desktop: calling AssignInputActions");
                 AssignInputActions();
@@ -263,26 +263,19 @@ public class XRRigController : MonoBehaviour
                 return;
             }
         }
-        if (ProjectManager.instance.platformAndSettings.mode == Mode.player)
+
+        HandleMovement();
+        _loggedWrongMode = false;
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            HandleMovement();
-            _loggedWrongMode = false;
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (isMultiplayer)
             {
-                if (isMultiplayer)
-                {
-                    RoomManager.Instance.LeaveRoomAndLoadOnBoardingScene();
-                }
-                else
-                {
-                    SceneManager.LoadScene(0);
-                }
+                RoomManager.Instance.LeaveRoomAndLoadOnBoardingScene();
             }
-        }
-        else if (!_loggedWrongMode)
-        {
-            Debug.Log($"[XRRigController] Update: current mode is '{ProjectManager.instance?.platformAndSettings?.mode}' (not Player) - movement/input not processed.");
-            _loggedWrongMode = true;
+            else
+            {
+                SceneManager.LoadScene(0);
+            }
         }
     }
 
@@ -303,7 +296,7 @@ public class XRRigController : MonoBehaviour
             return isVR;
         }
         // Single-player or missing refs: use local ProjectManager
-        bool singlePlayerVR = ProjectManager.instance != null && ProjectManager.instance.platformAndSettings.platformChoice == platform.VR;
+        bool singlePlayerVR = ProjectManager.instance != null && ProjectManager.instance.platforms.platformChoice == platform.VR;
         Debug.Log("GetPlatformProperty (single): " + singlePlayerVR);
         return singlePlayerVR;
     }
@@ -318,7 +311,6 @@ public class XRRigController : MonoBehaviour
 
     public void AssignInputActions()
     {
-        Debug.Log($"[XRRigController] AssignInputActions called - current mode={ProjectManager.instance?.platformAndSettings?.mode}");
         // Validate InputAction references (must be assigned in Inspector)
         if (pressed == null) { Debug.LogError("[XRRigController] 'pressed' InputAction is NULL - assign it in the Inspector!"); return; }
         if (axis == null) { Debug.LogError("[XRRigController] 'axis' InputAction is NULL - assign it in the Inspector!"); return; }

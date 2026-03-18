@@ -5,10 +5,15 @@ using UnityEngine;
 /// <summary>
 /// Main UI Database configuration. Defines the three-section layout (Left, Main, Right),
 /// platform selection, and settings UI. Use the custom editor via VertexForm3D SDK menu.
+/// Main section panels are fixed: [0] Main, [1] Places, [2] Guide.
 /// </summary>
 [CreateAssetMenu(fileName = "Main UI Database", menuName = "VertexForm3D/Main UI Database", order = 0)]
 public class UILayoutConfig : ScriptableObject
 {
+    public const int MainPanelIndex = 0;
+    public const int PlacesPanelIndex = 1;
+    public const int GuidePanelIndex = 2;
+
     [Header("Left Section")]
     public bool leftSectionEnabled = true;
     public string leftSectionText = "";
@@ -39,21 +44,9 @@ public class UILayoutConfig : ScriptableObject
         }
         if (mainSectionPanels != null && mainSectionPanels.Count == 0)
         {
-            mainSectionPanels.Add(new MainSectionPanel
-            {
-                panelName = "Main",
-                panelType = MainPanelType.Main
-            });
-            mainSectionPanels.Add(new MainSectionPanel
-            {
-                panelName = "Places",
-                panelType = MainPanelType.Places
-            });
-            mainSectionPanels.Add(new MainSectionPanel
-            {
-                panelName = "Guide",
-                panelType = MainPanelType.Guide
-            });
+            mainSectionPanels.Add(new MainSectionPanel());
+            mainSectionPanels.Add(new MainSectionPanel());
+            mainSectionPanels.Add(new MainSectionPanel());
         }
     }
 }
@@ -66,28 +59,13 @@ public class LeftSectionItem
 }
 
 /// <summary>
-/// Panel types: Main (branding/background), Places (category toggles), Guide (read-only), Custom.
+/// Per-row data: index 0 = branding (background/logo); 1–2 are used by the layout editor only.
 /// </summary>
 [Serializable]
 public class MainSectionPanel
 {
-    public string panelName = "Panel";
-    public MainPanelType panelType = MainPanelType.Main;
-
-    [Header("Main panel")]
+    [Header("Main panel (first slot only)")]
     public Sprite backgroundImage;
 
     public Sprite logoImage;
-
-    [Header("Guide / Custom")]
-    [TextArea(2, 4)]
-    public string guideOrCustomText = "";
-}
-
-public enum MainPanelType
-{
-    Main,
-    Places,
-    Guide,
-    Custom
 }

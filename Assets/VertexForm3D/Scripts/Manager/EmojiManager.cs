@@ -38,7 +38,7 @@ public class EmojiManager : NetworkBehaviour
 
     void Update()
     {
-        if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
         {
             return;
         }

@@ -128,7 +128,7 @@ namespace VertexFormCore
 
         public void ManageEmojiPanel()
         {
-            if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
                 emojiPanel.GetComponentInChildren<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
                 emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
@@ -149,7 +149,7 @@ namespace VertexFormCore
         }
         public void InitializeAllSettings()
         {
-            isStanding = ProjectManager.instance.platformAndSettings.defaultSettings.standDefault == toggle.on;
+            isStanding = ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on;
 
             // Posture
             if (isStanding)
@@ -158,22 +158,22 @@ namespace VertexFormCore
                 Sit();
 
             // Voice
-            if (ProjectManager.instance.platformAndSettings.defaultSettings.micType == micType.mute)
+            if (ProjectManager.instance.settingsUI.defaultSettings.micType == micType.mute)
                 MuteVoice();
             else
                 UnmuteVoice();
 
             // Grab Mode
-            isNearGrab = ProjectManager.instance.platformAndSettings.defaultSettings.grabMode == grabMode.near;
+            isNearGrab = ProjectManager.instance.settingsUI.defaultSettings.grabMode == grabMode.near;
             ApplyGrabMode();
 
             // Megaphone
-            isMegaphone = ProjectManager.instance.platformAndSettings.defaultSettings.megaphone == toggle.on;
+            isMegaphone = ProjectManager.instance.settingsUI.defaultSettings.megaphone == toggle.on;
             ApplyMegaphoneMode();
 
             // Fly Mode
             canFlyGlobally = SceneLoader.Instance.isFlyModeEnabled;
-            bool defaultFlyOn = ProjectManager.instance.platformAndSettings.defaultSettings.flyMode == toggle.on;
+            bool defaultFlyOn = ProjectManager.instance.settingsUI.defaultSettings.flyMode == toggle.on;
             isFlying = canFlyGlobally && defaultFlyOn;
             ApplyFlyMode();
 
@@ -372,7 +372,7 @@ namespace VertexFormCore
         // ==================== UI Positioning ====================
         public void HandleMenuUI()
         {
-            if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
                 desktopMenuUI.SetActive(!desktopMenuUI.activeInHierarchy);
                 menuUI.SetActive(false);
@@ -402,7 +402,7 @@ namespace VertexFormCore
 
         public void HandleSettingUI()
         {
-            if (ProjectManager.instance.platformAndSettings.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
                 settingUI.GetComponentInChildren<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
                 settingUI.SetActive(!settingUI.activeInHierarchy);
@@ -435,7 +435,7 @@ namespace VertexFormCore
 
         void MoveCanvasToCamera(GameObject UIObject)
         {
-            if (ProjectManager.instance.platformAndSettings.platformChoice == platform.VR)
+            if (ProjectManager.instance.platforms.platformChoice == platform.VR)
             {
                 UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
                 Vector3 flatForward = xrCameraTransform.forward;
