@@ -7,10 +7,15 @@ namespace VertexFormCore
 
         public Transform MainAvatarTransform;
         public Transform HeadTransform;
+
         public Transform ShadowHeadTransform;
+        public Transform ShadowBodyTransform;
         public Transform BodyTransform;
         public Transform HandLeftTransform;
         public Transform HandRightTransform;
+
+        public SkinnedMeshRenderer LeftHandVisual;
+        public SkinnedMeshRenderer RightHandVisual;
         [SerializeField] private bool initLayer;
         private void Start()
         {

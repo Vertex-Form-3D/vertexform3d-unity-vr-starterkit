@@ -39,7 +39,8 @@ public class AddressablesDownloader : MonoBehaviour
     private void Start()
     {
         Application.targetFrameRate = 75;
-        if (ProjectManager.instance.projectDataSO.projectData.onlyLocalBundles)
+
+        if (!ProjectManager.instance.settingsUI.onlyLocalBundles)
         {
             Addressables.InitializeAsync();
             isCatelogUpdated = true;
@@ -49,6 +50,7 @@ public class AddressablesDownloader : MonoBehaviour
         {
             DownloadCatalogFile();
         }
+
     }
 
     string catalogFilePath;
@@ -61,14 +63,13 @@ public class AddressablesDownloader : MonoBehaviour
 #if UNITY_EDITOR
             catalogFilePath = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.profileSettings.GetValueByName(UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.activeProfileId, "Remote.LoadPath");
             catalogFilePath = catalogFilePath.Replace("[BuildTarget]", UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString());
-            catalogFilePath = catalogFilePath + "/" + ProjectManager.instance.projectDataSO.projectData.catalogFileName + ".json";
+            catalogFilePath = catalogFilePath + "/" + ProjectManager.instance.settingsUI.addressableCatalogFileName + ".json";
             AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
             DownloadingCatalog.Completed += OnCatalogDownload;
 #else
-            ProjectDataScriptableObject pso = Resources.Load("Project Data SO") as ProjectDataScriptableObject;
-            catalogFilePath = pso.projectData.addressableCatalogFilePath;
-                      AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
-                      DownloadingCatalog.Completed += OnCatalogDownload;
+            catalogFilePath = ProjectManager.instance.settingsUI.addressableCatalogFileName;
+            AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
+            DownloadingCatalog.Completed += OnCatalogDownload;
 #endif
         }
     }

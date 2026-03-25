@@ -1,4 +1,6 @@
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
@@ -13,13 +15,22 @@ public class SitSpot : NetworkBehaviour
 
     [Networked] public bool isOccupied { get; set; }
     public Transform SitPoint;
+
     [SerializeField] private float interactionRange = 1.2f;
     [SerializeField] private float movementThreshold = 0.3f; // Distance threshold to detect movement
     [SerializeField] private Canvas uiCanvas;
     [SerializeField] private Button sitButton;
 
+    [Header("Special Seat")]
+    [SerializeField] private Button specialSeatButton;
+    [SerializeField] private UnityEvent onSpecialSeatButtonClicked;
+
     private bool isPlayerNearby;
-    private Transform sittingPlayerTransform; // Track which player is sitting
+    private Transform sittingPlayerTransform; // Transform that we move (PlayerNetworkSetup), so distance check matches
+    private float sitStartTime; // Grace period after sitting before we check "moved away"
+    [SerializeField][Min(0.5f)] private float sitGracePeriod = 1.5f;
+    [SerializeField] private bool isSpecialSeat = false;
+    private const float MinGracePeriod = 1.2f; // Enforced minimum so prefabs with 0 still work
 
     private void Start()
     {
@@ -33,6 +44,12 @@ public class SitSpot : NetworkBehaviour
         uiCanvas.enabled = false;
         sitButton.onClick.AddListener(() => { HandleSit(); });
 
+        if (specialSeatButton != null)
+        {
+            specialSeatButton.gameObject.SetActive(false);
+            specialSeatButton.onClick.AddListener(OnSpecialSeatButtonClicked);
+        }
+
         var col = GetComponent<SphereCollider>();
         col.isTrigger = true;
         col.radius = interactionRange;
@@ -44,14 +61,15 @@ public class SitSpot : NetworkBehaviour
 
         if (RoomManager.Instance != null)
         {
-            var playerNetworkSetup = RoomManager.Instance.localVRPlayer.GetComponentInChildren<PlayerNetworkSetup>();
+            var playerNetworkSetup = RoomManager.Instance.GetLocalPlayerSetup();
             if (playerNetworkSetup != null)
             {
-                // Store reference to the sitting player's transform
-                sittingPlayerTransform = RoomManager.Instance.localVRPlayer.transform;
+                sittingPlayerTransform = playerNetworkSetup.transform;
+                sitStartTime = Time.time;
                 SetOccupied(true);
                 playerNetworkSetup.SittingOnObject(SitPoint);
-                //RoomManager.Instance.localVRPlayer.GetComponentInChildren<PlayerNetworkSetup>().CallSetSittingHeightRPC();
+                playerNetworkSetup.SetCurrentSitSpot(this);
+                Debug.Log($"[SitSpot] Player started sitting on {gameObject.name}");
             }
         }
     }
@@ -62,16 +80,16 @@ public class SitSpot : NetworkBehaviour
 
         if (RoomManager.Instance != null)
         {
-            var playerNetworkSetup = RoomManager.Instance.localVRPlayer.GetComponentInChildren<PlayerNetworkSetup>();
+            var playerNetworkSetup = RoomManager.Instance.GetLocalPlayerSetup();
             if (playerNetworkSetup != null)
             {
-                // Reset player height to normal standing height
-                playerNetworkSetup.CallSetStandingHeightRPC();
+                playerNetworkSetup.ClearCurrentSitSpot();
+                playerNetworkSetup.SetStandingHeight(true);
             }
-            // Clear the sitting player reference
+            // Clear the sitting player reference and grace period
             sittingPlayerTransform = null;
             SetOccupied(false);
-            Debug.Log("Player left the seat");
+            Debug.Log($"[SitSpot] Player left the seat ({gameObject.name})");
         }
     }
 
@@ -103,22 +121,24 @@ public class SitSpot : NetworkBehaviour
         // Only check movement if the NetworkBehaviour is spawned
         if (Runner == null) return;
 
-        // Check if player has moved away from the seat
-        if (isOccupied && sittingPlayerTransform != null && SitPoint != null)
+        // Check if player has moved away from the seat (after grace period to avoid one-frame glitches)
+        float grace = Mathf.Max(sitGracePeriod, MinGracePeriod);
+        if (isOccupied && sittingPlayerTransform != null && SitPoint != null && (Time.time - sitStartTime) >= grace)
         {
             // Calculate horizontal distance (ignore Y axis for movement detection)
             Vector3 sitPosition = SitPoint.position;
             Vector3 playerPosition = sittingPlayerTransform.position;
-            
+
             // Only check horizontal movement (X and Z axes)
             Vector2 sitPos2D = new Vector2(sitPosition.x, sitPosition.z);
             Vector2 playerPos2D = new Vector2(playerPosition.x, playerPosition.z);
-            
+
             float horizontalDistance = Vector2.Distance(sitPos2D, playerPos2D);
-            
+
             if (horizontalDistance > movementThreshold)
             {
                 // Player has moved away, automatically leave the seat
+                Debug.Log($"[SitSpot] Player moved away from seat (distance: {horizontalDistance:F2} > {movementThreshold}), leaving.");
                 HandleLeave();
             }
         }
@@ -137,18 +157,36 @@ public class SitSpot : NetworkBehaviour
         if (Runner == null)
         {
             uiCanvas.enabled = false;
+            if (specialSeatButton != null) specialSeatButton.gameObject.SetActive(false);
             return;
         }
 
-        // Only show UI when player is nearby AND seat is not occupied
-        if (isPlayerNearby && !isOccupied)
+        bool localPlayerSitting = isOccupied && sittingPlayerTransform != null;
+        bool showSpecialButton = isSpecialSeat && specialSeatButton != null && localPlayerSitting;
+
+        if (showSpecialButton)
         {
             uiCanvas.enabled = true;
+            sitButton.gameObject.SetActive(false);
+            specialSeatButton.gameObject.SetActive(true);
+        }
+        else if (isPlayerNearby && !isOccupied)
+        {
+            uiCanvas.enabled = true;
+            sitButton.gameObject.SetActive(true);
+            if (specialSeatButton != null) specialSeatButton.gameObject.SetActive(false);
         }
         else
         {
             uiCanvas.enabled = false;
+            if (specialSeatButton != null) specialSeatButton.gameObject.SetActive(false);
         }
+    }
+
+    /// <summary>Called when the special seat button is clicked. Override or use OnSpecialSeatButtonClicked event in inspector.</summary>
+    protected virtual void OnSpecialSeatButtonClicked()
+    {
+        onSpecialSeatButtonClicked?.Invoke();
     }
 
 #if UNITY_EDITOR

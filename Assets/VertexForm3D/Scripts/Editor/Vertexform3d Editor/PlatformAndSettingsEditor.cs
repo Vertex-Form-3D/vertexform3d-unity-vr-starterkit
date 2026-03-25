@@ -1,0 +1,134 @@
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+
+[CustomEditor(typeof(Platforms))]
+public class PlatformAndSettingsEditor : Editor
+{
+    /// <summary>Below this inspector width, first two guides stack vertically so text stays readable.</summary>
+    private const float MinWidthSideBySide = 420f;
+
+    private static GUIStyle s_RichWordWrap;
+
+    private static GUIStyle RichWordWrapStyle
+    {
+        get
+        {
+            if (s_RichWordWrap == null)
+                s_RichWordWrap = new GUIStyle(EditorStyles.wordWrappedLabel) { richText = true };
+            return s_RichWordWrap;
+        }
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        using (new EditorGUI.DisabledScope(true))
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("platformChoice"));
+
+        EditorGUILayout.Space(8);
+
+        var platforms = (Platforms)target;
+        List<PlatformSetupGuide> guides = platforms.platformGuides;
+
+        if (guides == null || guides.Count == 0)
+        {
+            EditorGUILayout.HelpBox("No platform guides configured. Right-click the asset and select Reset to populate defaults.", MessageType.Info);
+            serializedObject.ApplyModifiedProperties();
+            return;
+        }
+
+        EditorGUILayout.LabelField("Platform Setup Guide", EditorStyles.boldLabel);
+        EditorGUILayout.Space(4);
+
+        float viewW = EditorGUIUtility.currentViewWidth;
+        float usableW = Mathf.Max(100f, viewW - 20f);
+        int helpBoxPadH = EditorStyles.helpBox.padding.left + EditorStyles.helpBox.padding.right;
+
+        if (guides.Count >= 2)
+        {
+            bool sideBySide = viewW >= MinWidthSideBySide;
+            float gutter = 6f;
+
+            if (sideBySide)
+            {
+                float colOuter = (usableW - gutter) * 0.5f;
+                float innerPerCol = Mathf.Max(80f, colOuter - helpBoxPadH);
+
+                EditorGUILayout.BeginHorizontal(GUILayout.ExpandWidth(true));
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(colOuter), GUILayout.ExpandWidth(false));
+                DrawCardContent(guides[0], innerPerCol);
+                EditorGUILayout.EndVertical();
+                GUILayout.Space(gutter);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(colOuter), GUILayout.ExpandWidth(false));
+                DrawCardContent(guides[1], innerPerCol);
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.EndHorizontal();
+            }
+            else
+            {
+                float innerFull = Mathf.Max(100f, usableW - helpBoxPadH);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                DrawCardContent(guides[0], innerFull);
+                EditorGUILayout.EndVertical();
+                EditorGUILayout.Space(6);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                DrawCardContent(guides[1], innerFull);
+                EditorGUILayout.EndVertical();
+            }
+
+            for (int i = 2; i < guides.Count; i++)
+            {
+                EditorGUILayout.Space(6);
+                float innerFull = Mathf.Max(100f, usableW - helpBoxPadH);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                DrawCardContent(guides[i], innerFull);
+                EditorGUILayout.EndVertical();
+            }
+        }
+        else
+        {
+            float innerFull = Mathf.Max(100f, usableW - helpBoxPadH);
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            DrawCardContent(guides[0], innerFull);
+            EditorGUILayout.EndVertical();
+        }
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    /// <param name="innerContentWidth">Width inside the help box for one row (after horizontal padding).</param>
+    private static void DrawCardContent(PlatformSetupGuide guide, float innerContentWidth)
+    {
+        EditorGUILayout.LabelField(guide.title, EditorStyles.boldLabel);
+        if (!string.IsNullOrEmpty(guide.subtitle))
+            EditorGUILayout.LabelField(guide.subtitle, EditorStyles.miniLabel);
+
+        EditorGUILayout.Space(4);
+
+        const float numCol = 22f;
+        float textWidth = Mathf.Max(40f, innerContentWidth - numCol - 8f);
+
+        for (int i = 0; i < guide.steps.Count; i++)
+        {
+            var content = new GUIContent(guide.steps[i]);
+            float lineHeight = RichWordWrapStyle.CalcHeight(content, textWidth);
+            lineHeight = Mathf.Max(lineHeight, EditorGUIUtility.singleLineHeight);
+
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField($"{i + 1}.", GUILayout.Width(numCol), GUILayout.Height(lineHeight));
+            EditorGUILayout.LabelField(content, RichWordWrapStyle, GUILayout.Width(textWidth), GUILayout.Height(lineHeight));
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.Space(2);
+        }
+
+        if (!string.IsNullOrEmpty(guide.note))
+        {
+            EditorGUILayout.Space(4);
+            EditorGUILayout.HelpBox(guide.note, MessageType.Info);
+        }
+    }
+}

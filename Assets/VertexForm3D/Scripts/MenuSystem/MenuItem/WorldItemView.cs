@@ -27,7 +27,10 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         infoBtn.onClick.AddListener(ShowInfo);
         downloadBtn.onClick.AddListener(OnDownloadCliked);
         starBtn.onClick.AddListener(OnTapStar);
-        InvokeRepeating(nameof(SetPlayerCountText), 0, 1);
+        if (ProjectManager.UsesPhotonSessionLobbyRunner)
+            InvokeRepeating(nameof(SetPlayerCountText), 0, 1);
+        else if (playerCountTxt != null)
+            playerCountTxt.gameObject.SetActive(false);
         if (InitalizeInStart)
         {
             UpdateView(worlddata);
@@ -62,6 +65,9 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void SetPlayerCountText()
     {
+        if (!ProjectManager.UsesPhotonSessionLobbyRunner || playerCountTxt == null)
+            return;
+
         int playersInSession = 0;
         int maxPlayersInSession = 100; // Default value if session info is not available
         if (NetworkLobby.Instance != null)

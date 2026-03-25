@@ -39,12 +39,13 @@ public class PlayerTeleportationHandler : MonoBehaviour
     Coroutine GetXrOriginCoroutine;
     IEnumerator IEGetXROrigin()
     {
-        while (RoomManager.Instance.localVRPlayer == null)
+        while (RoomManager.Instance.localVRPlayer == null || RoomManager.Instance.GetLocalPlayerSetup() == null)
         {
             yield return new WaitForSeconds(1);
         }
         xrOrigin = RoomManager.Instance.localVRPlayer.GetComponentInChildren<XROrigin>();
-        teleportationProvider = RoomManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().tp;
+        var pns = RoomManager.Instance.GetLocalPlayerSetup();
+        if (pns != null) teleportationProvider = pns.tp;
     }
 
     // Call this method to teleport (e.g., from a button, trigger, or UI)

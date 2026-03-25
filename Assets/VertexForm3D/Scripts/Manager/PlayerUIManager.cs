@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,9 +10,12 @@ namespace VertexFormCore
 {
     public class PlayerUIManager : MonoBehaviour
     {
-        [SerializeField] GameObject GoHome_Button;
+        [SerializeField] GameObject GoHome_Button_Desktop;
+        [SerializeField] GameObject GoHome_Button_VR;
         [SerializeField] GameObject menuUI;
+        [SerializeField] GameObject desktopMenuUI;
         [SerializeField] GameObject settingUI;
+
         [SerializeField] GameObject emojiPanel;
         [SerializeField] InputData _inputData;
         [SerializeField] PlayerNetworkSetup networkSetup;
@@ -30,10 +33,14 @@ namespace VertexFormCore
         [SerializeField] private SettingButton audioUISetting; // Toggles Megaphone On/Off
         [SerializeField] private SettingButton emojiUISetting; // Toggles Megaphone On/Off
 
+        [Header("Voice - Microphone Selection")]
+        [SerializeField] private TMP_Dropdown microphoneDropdown;
+
         [SerializeField] private NearFarInteractor[] nearFarInteractors;
         [SerializeField] private NearFarInteractor[] UIInteractors;
         [SerializeField] private NotificationHandler notificationHandler;
 
+        public event Action onFlyModeChanged;
         public float distanceFromCamera = 1.5f;
         public Transform xrCameraTransform;
         public NetworkObject networkObject;
@@ -46,12 +53,14 @@ namespace VertexFormCore
         private bool isNearGrab = true; // true = Near Grab, false = Distance Grab
         private bool isFlying = false; // true = Flying, false = Grounded
         private bool isMegaphone = false; // true = Megaphone On, false = Off
-        private bool canFlyGlobally = false; // Set by scene/project
+        public bool canFlyGlobally = false; // Set by scene/project
+        public bool IsFlying() { return isFlying; } // Set by scene/project
 
         void Start()
         {
             // Assign button events programmatically
-            GoHome_Button.GetComponent<Button>().onClick.AddListener(VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene);
+            GoHome_Button_Desktop.GetComponent<Button>().onClick.AddListener(VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene);
+            GoHome_Button_VR.GetComponent<Button>().onClick.AddListener(VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene);
             selfieButton.onClick.AddListener(OnTapSelfieStick);
 
             postureUISetting.button.onClick.RemoveAllListeners();
@@ -72,24 +81,75 @@ namespace VertexFormCore
             emojiUISetting.button.onClick.RemoveAllListeners();
             emojiUISetting.button.onClick.AddListener(ManageEmojiPanel);
 
+            SetupMicrophoneDropdown();
+
             if (networkObject.HasInputAuthority)
             {
                 InitializeAllSettings();
             }
         }
 
+        /// <summary>
+        /// Populates the microphone dropdown with available devices and wires selection to Fusion Voice.
+        /// </summary>
+        private void SetupMicrophoneDropdown()
+        {
+            if (microphoneDropdown == null) return;
+            if (VoiceRecorderManager.Instance == null) return;
+
+            microphoneDropdown.onValueChanged.RemoveAllListeners();
+
+            string[] devices = VoiceRecorderManager.Instance.GetMicrophoneDevices();
+            microphoneDropdown.ClearOptions();
+            if (devices != null && devices.Length > 0)
+            {
+                microphoneDropdown.AddOptions(new System.Collections.Generic.List<string>(devices));
+                int currentIndex = VoiceRecorderManager.Instance.GetCurrentMicrophoneDeviceIndex();
+                currentIndex = Mathf.Clamp(currentIndex, 0, devices.Length - 1);
+                microphoneDropdown.SetValueWithoutNotify(currentIndex);
+                microphoneDropdown.RefreshShownValue();
+            }
+            else
+            {
+                microphoneDropdown.AddOptions(new System.Collections.Generic.List<string> { "No microphone found" });
+                microphoneDropdown.interactable = false;
+            }
+
+            microphoneDropdown.onValueChanged.AddListener(OnMicrophoneDropdownChanged);
+        }
+
+        private void OnMicrophoneDropdownChanged(int index)
+        {
+            if (VoiceRecorderManager.Instance == null) return;
+            string[] devices = VoiceRecorderManager.Instance.GetMicrophoneDevices();
+            if (devices == null || index < 0 || index >= devices.Length) return;
+            VoiceRecorderManager.Instance.SetMicrophoneDevice(index);
+        }
+
         public void ManageEmojiPanel()
         {
-            if (!emojiPanel.activeInHierarchy)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
-                HandleSettingUI();
+                emojiPanel.GetComponentInChildren<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
+                emojiPanel.transform.GetChild(0).localScale = Vector3.one * 0.5f;
+                desktopMenuUI.SetActive(false);
             }
-            MoveCanvasToCamera(emojiPanel);
-            emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
+            else
+            {
+                emojiPanel.GetComponentInChildren<Canvas>().renderMode = RenderMode.WorldSpace;
+                if (!emojiPanel.activeInHierarchy)
+                {
+                    HandleSettingUI();
+                }
+                MoveCanvasToCamera(emojiPanel);
+                emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
+            }
+
         }
         public void InitializeAllSettings()
         {
-            isStanding = ProjectManager.instance.projectDataSO.projectData.defaultSetting.standDefault == toggle.on;
+            isStanding = ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on;
 
             // Posture
             if (isStanding)
@@ -98,22 +158,22 @@ namespace VertexFormCore
                 Sit();
 
             // Voice
-            if (ProjectManager.instance.projectDataSO.projectData.defaultSetting.micType == micType.mute)
+            if (ProjectManager.instance.settingsUI.defaultSettings.micType == micType.mute)
                 MuteVoice();
             else
                 UnmuteVoice();
 
             // Grab Mode
-            isNearGrab = ProjectManager.instance.projectDataSO.projectData.defaultSetting.grabMode == grabMode.near;
+            isNearGrab = ProjectManager.instance.settingsUI.defaultSettings.grabMode == grabMode.near;
             ApplyGrabMode();
 
             // Megaphone
-            isMegaphone = ProjectManager.instance.projectDataSO.projectData.defaultSetting.megaphone == toggle.on;
+            isMegaphone = ProjectManager.instance.settingsUI.defaultSettings.megaphone == toggle.on;
             ApplyMegaphoneMode();
 
             // Fly Mode
             canFlyGlobally = SceneLoader.Instance.isFlyModeEnabled;
-            bool defaultFlyOn = ProjectManager.instance.projectDataSO.projectData.defaultSetting.flyMode == toggle.on;
+            bool defaultFlyOn = ProjectManager.instance.settingsUI.defaultSettings.flyMode == toggle.on;
             isFlying = canFlyGlobally && defaultFlyOn;
             ApplyFlyMode();
 
@@ -151,7 +211,7 @@ namespace VertexFormCore
                 HandleSettingUI();
                 Vector3 pos = xrCameraTransform.position + xrCameraTransform.forward * 0.5f;
                 pos.y -= 0.4f;
-                Debug.Log("Spawning Selfie Stick at: " + pos+"  "+ (xrCameraTransform.forward * 0.5f) );
+                Debug.Log("Spawning Selfie Stick at: " + pos + "  " + (xrCameraTransform.forward * 0.5f));
                 spawnedSelfieStick = networkRunner.Spawn(selfieStickPrefab, pos, Quaternion.identity, networkRunner.LocalPlayer);
             }
         }
@@ -225,14 +285,22 @@ namespace VertexFormCore
         // ==================== APPLY FUNCTIONS ====================
         private void Sit()
         {
-            networkSetup.CallSetSittingHeightRPC();
+            if (networkSetup.IsSitting)
+            {
+                return;
+            }
+            networkSetup.SetSittingHeight(false);
             isStanding = false;
             postureUISetting.Disable(); // Sets disableSprite + disableText
         }
 
         private void Stand()
         {
-            networkSetup.CallSetStandingHeightRPC();
+            if (networkSetup.IsSitting)
+            {
+                return;
+            }
+            networkSetup.SetStandingHeight(false);
             isStanding = true;
             postureUISetting.Enable(); // Sets enableSprite + enableText
         }
@@ -283,6 +351,7 @@ namespace VertexFormCore
                 networkSetup.gp.useGravity = true;
                 flyUISetting.Disable();
             }
+            onFlyModeChanged?.Invoke();
         }
 
         private void ApplyMegaphoneMode()
@@ -303,34 +372,79 @@ namespace VertexFormCore
         // ==================== UI Positioning ====================
         public void HandleMenuUI()
         {
-            if (menuUI == null) return;
-            menuUI.SetActive(!menuUI.activeInHierarchy);
-            if (menuUI.activeInHierarchy)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
-                MoveCanvasToCamera(menuUI);
+                desktopMenuUI.SetActive(!desktopMenuUI.activeInHierarchy);
+                menuUI.SetActive(false);
                 settingUI.SetActive(false);
             }
+            else
+            {
+
+                distanceFromCamera = 3;
+                if (menuUI == null)
+                {
+                    return;
+                }
+                if (menuUI.activeInHierarchy)
+                {
+                    menuUI.SetActive(false);
+                }
+                else
+                {
+                    MoveCanvasToCamera(menuUI);
+                    menuUI.SetActive(true);
+                    settingUI.SetActive(false);
+                }
+            }
+
         }
 
         public void HandleSettingUI()
         {
-            if (settingUI == null) return;
-            settingUI.SetActive(!settingUI.activeInHierarchy);
-            if (settingUI.activeInHierarchy)
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
-                MoveCanvasToCamera(settingUI);
-                menuUI.SetActive(false);
+                settingUI.GetComponentInChildren<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+                settingUI.SetActive(!settingUI.activeInHierarchy);
+                desktopMenuUI.SetActive(false);
+                if (settingUI.activeInHierarchy)
+                    SetupMicrophoneDropdown();
             }
+            else
+            {
+                settingUI.GetComponentInChildren<Canvas>().renderMode = RenderMode.WorldSpace;
+                distanceFromCamera = 2;
+                if (settingUI == null)
+                {
+                    return;
+                }
+                if (settingUI.activeInHierarchy)
+                {
+                    settingUI.SetActive(false);
+                }
+                else
+                {
+                    MoveCanvasToCamera(settingUI);
+                    settingUI.SetActive(true);
+                    menuUI.SetActive(false);
+                    SetupMicrophoneDropdown(); // Refresh device list when opening settings
+                }
+            }
+
         }
 
         void MoveCanvasToCamera(GameObject UIObject)
         {
-            UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
-            Vector3 flatForward = xrCameraTransform.forward;
-            flatForward.y = 0;
-            flatForward.Normalize();
-            UIObject.transform.forward = -flatForward;
-            UIObject.transform.rotation = Quaternion.Euler(0, UIObject.transform.eulerAngles.y + 180, 0);
+            if (ProjectManager.instance.platforms.platformChoice == platform.VR)
+            {
+                UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
+                Vector3 flatForward = xrCameraTransform.forward;
+                flatForward.y = 0;
+                flatForward.Normalize();
+                UIObject.transform.forward = -flatForward;
+                UIObject.transform.rotation = Quaternion.Euler(0, UIObject.transform.eulerAngles.y + 180, 0);
+            }
+
         }
     }
 

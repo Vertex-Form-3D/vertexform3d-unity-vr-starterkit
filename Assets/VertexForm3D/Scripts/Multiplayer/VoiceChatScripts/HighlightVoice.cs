@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using Photon.Voice.Fusion;
 using Fusion;
@@ -139,14 +139,12 @@ namespace VertexFormCore
             }
 
             // LookAt for remote players
-            if (networkObject != null && !isLocalPlayer && RoomManager.Instance?.localVRPlayer != null)
+            if (networkObject != null && !isLocalPlayer && RoomManager.Instance != null)
             {
-                if (localPlayerCam == null)
-                {
-                    var localPlayerSetup = RoomManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>();
-                    localPlayerCam= localPlayerSetup.cam.transform;
-                }
-               
+                var localPlayerSetup = RoomManager.Instance.GetLocalPlayerSetup();
+                if (localPlayerSetup != null && localPlayerCam == null)
+                    localPlayerCam = localPlayerSetup.cam.transform;
+
                 if (localPlayerCam != null)
                 {
                     transform.LookAt(localPlayerCam);

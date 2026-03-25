@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "Project Data SO", menuName = "ScriptableObjects/Project Data System", order = 1)]
 public class ProjectDataScriptableObject : ScriptableObject
@@ -8,9 +9,16 @@ public class ProjectDataScriptableObject : ScriptableObject
     public Mode mode;
 }
 
+public enum platform
+{
+    VR,
+    Desktop
+}
 [Serializable]
 public class ProjectData
 {
+    [FormerlySerializedAs("platform")]
+    public platform platformSelection;
     public bool DebugEnabled;
     public string anonymousUserNamePrefix = "Mystery Guest_";
     public bool onlyLocalBundles = true;
@@ -19,6 +27,24 @@ public class ProjectData
     public SettingClass defaultSetting;
     public string currentPackageVersion = "1.0.0";
     public string versionJsonUrl = "https://storage.googleapis.com/your_bucket_name/version.json";
+
+    public HomeSceneData homeSceneData;
+}
+[Serializable]
+public class HomeSceneData
+{
+    [Header("Project branding (home / main map UI)")]
+    [TextArea(3, 10)]
+    [Tooltip("Short description shown on the main map / home panel.")]
+    public string projectDescription = "Vertex Form 3D is an open-source VR multiplayer framework for building social applications in Unity. Designed with 3D artists in mind, this package provides essential tools for creating scalable VR environments across Meta Quest and other platforms.";
+
+    [TextArea(3, 10)]
+    [Tooltip("Contact emails and/or website (one per line).")]
+    public string projectEmails = "info@vertexform3d.com\nvertexform3d.com";
+    [Tooltip("Logo image shown on the main map panel.")]
+    public Sprite projectLogo;
+    [Tooltip("Optional background image for the logo panel (e.g. gradient).")]
+    public Sprite projectBackgroundImage;
 }
 
 public enum micType
@@ -42,7 +68,7 @@ public enum toggle
 public enum Mode
 {
     player,
-    Spectator
+    OnBoarding
 }
 
 [System.Serializable]
@@ -52,6 +78,7 @@ public class SettingClass
     public micType micType = micType.mute;
     public grabMode grabMode;
     public toggle flyMode;
-    public toggle megaphone;
+    public toggle megaphone = toggle.off;
 
 }
+

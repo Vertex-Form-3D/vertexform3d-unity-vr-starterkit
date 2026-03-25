@@ -27,7 +27,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1635298352884558886}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7149914, z: -0, w: 0.6991333}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -2.252, y: 0.533, z: 1.589}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -35,7 +35,7 @@ Transform:
   - {fileID: 2906207610455069124}
   - {fileID: 71935562088421609}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 91.285, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &1136225466298574024
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -75,8 +75,15 @@ MonoBehaviour:
   _isOccupied: 0
   SitPoint: {fileID: 2906207610455069124}
   interactionRange: 1.2
+  movementThreshold: 0.3
   uiCanvas: {fileID: 4140068181888565589}
   sitButton: {fileID: 7574602762912743796}
+  specialSeatButton: {fileID: 0}
+  onSpecialSeatButtonClicked:
+    m_PersistentCalls:
+      m_Calls: []
+  sitGracePeriod: 1.5
+  isSpecialSeat: 0
 --- !u!114 &5249415501699143318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,7 +171,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -157.957, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -0.585, y: 0.583}
+  m_AnchoredPosition: {x: 0, y: 0.74}
   m_SizeDelta: {x: 225.911, y: 160.5228}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &4140068181888565589

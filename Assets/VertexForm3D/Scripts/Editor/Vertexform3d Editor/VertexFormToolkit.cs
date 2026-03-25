@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,6 +174,7 @@ namespace VertexFormCore.Editor
             tabGroups.Add(new PlayerPositionTab());  // Renamed in the class definition
             tabGroups.Add(new UIElementsTab());     // New consolidated tab
             tabGroups.Add(new PresentationTab());     // New consolidated tab
+            tabGroups.Add(new AvatarsTab());
             tabGroups.Add(new DevToolsTab());
 
             // Initialize all tabs

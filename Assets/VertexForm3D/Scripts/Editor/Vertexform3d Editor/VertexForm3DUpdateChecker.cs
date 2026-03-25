@@ -16,7 +16,22 @@ using Process = System.Diagnostics.Process;
 public static class VertexForm3DUpdateChecker
 {
     private const string SessionCheckKey = "VertexForm3D_SessionCheck";
+    private const string PrefKey_SuppressAutomaticUpdatePrompt = "VertexForm3D_SuppressAutomaticUpdatePrompt";
     private static bool hasCheckedThisSession = false;
+
+    /// <summary>
+    /// Clears the "do not show again" preference so startup update prompts resume.
+    /// </summary>
+    public static void ClearAutomaticUpdatePromptSuppression()
+    {
+        EditorPrefs.DeleteKey(PrefKey_SuppressAutomaticUpdatePrompt);
+    }
+
+    internal static void ApplyDoNotShowAutomaticUpdatePrompt(bool doNotShowAgain)
+    {
+        if (doNotShowAgain)
+            EditorPrefs.SetBool(PrefKey_SuppressAutomaticUpdatePrompt, true);
+    }
 
     static VertexForm3DUpdateChecker()
     {
@@ -77,8 +92,24 @@ public static class VertexForm3DUpdateChecker
         EditorCoroutineUtility.StartCoroutineOwnerless(CheckForUpdatesCoroutine(forceCheck: true));
     }
 
+    // [MenuItem("VertexForm3D SDK/Enable SDK Update Startup Prompt", false, 16)]
+    // private static void MenuEnableSdkUpdateStartupPrompt()
+    // {
+    //     ClearAutomaticUpdatePromptSuppression();
+    //     Debug.Log("VertexForm3D: Automatic SDK update prompts are enabled again on editor startup.");
+    // }
+
+    // [MenuItem("VertexForm3D SDK/Enable SDK Update Startup Prompt", true)]
+    // private static bool MenuEnableSdkUpdateStartupPromptValidate()
+    // {
+    //     return EditorPrefs.GetBool(PrefKey_SuppressAutomaticUpdatePrompt, false);
+    // }
+
     private static IEnumerator CheckForUpdatesCoroutine(bool forceCheck = false)
     {
+        if (!forceCheck && EditorPrefs.GetBool(PrefKey_SuppressAutomaticUpdatePrompt, false))
+            yield break;
+
         // Load project data
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso == null)
@@ -202,24 +233,7 @@ public static class VertexForm3DUpdateChecker
                                     $"All intermediate versions will be downloaded sequentially.\n" +
                                     $"Would you like to update now?";
 
-                    int result = EditorUtility.DisplayDialogComplex(
-                        "Vertex Form 3D SDK Update Available",
-                        message,
-                        "Update Now",
-                        "Later",
-                        "Open Update Window"
-                    );
-
-                    if (result == 0) // Update Now
-                    {
-                        // Open window and set it to auto-start download after fetching versions
-                        var window = PackageUpdaterWindow.ShowWindow();
-                        window.SetAutoStartDownload(true);
-                    }
-                    else if (result == 2) // Open Update Window
-                    {
-                        PackageUpdaterWindow.ShowWindow();
-                    }
+                    VertexForm3DUpdatePromptWindow.ShowPrompt(message);
                 }
                 else
                 {
@@ -282,6 +296,57 @@ public static class VertexForm3DUpdateChecker
         return null;
     }
 
+}
+
+/// <summary>
+/// Startup update prompt with a "do not show again" option (EditorUtility dialogs cannot show toggles).
+/// </summary>
+public class VertexForm3DUpdatePromptWindow : EditorWindow
+{
+    private string bodyText;
+    private Vector2 scrollPosition;
+    private bool doNotShowAgain;
+
+    public static void ShowPrompt(string body)
+    {
+        var window = CreateInstance<VertexForm3DUpdatePromptWindow>();
+        window.bodyText = body ?? string.Empty;
+        window.titleContent = new GUIContent("Vertex Form 3D SDK Update Available");
+        window.minSize = new Vector2(460, 320);
+        window.ShowUtility();
+    }
+
+    private void OnGUI()
+    {
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+        EditorGUILayout.LabelField(bodyText, EditorStyles.wordWrappedLabel);
+        EditorGUILayout.EndScrollView();
+
+        EditorGUILayout.Space(6);
+        doNotShowAgain = EditorGUILayout.ToggleLeft("Do not show again (automatic startup checks only)", doNotShowAgain);
+
+        EditorGUILayout.Space(10);
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Update Now", GUILayout.Height(30)))
+        {
+            VertexForm3DUpdateChecker.ApplyDoNotShowAutomaticUpdatePrompt(doNotShowAgain);
+            var updater = PackageUpdaterWindow.ShowWindow();
+            updater.SetAutoStartDownload(true);
+            Close();
+        }
+        if (GUILayout.Button("Later", GUILayout.Height(30)))
+        {
+            VertexForm3DUpdateChecker.ApplyDoNotShowAutomaticUpdatePrompt(doNotShowAgain);
+            Close();
+        }
+        if (GUILayout.Button("Open Update Window", GUILayout.Height(30)))
+        {
+            VertexForm3DUpdateChecker.ApplyDoNotShowAutomaticUpdatePrompt(doNotShowAgain);
+            PackageUpdaterWindow.ShowWindow();
+            Close();
+        }
+        EditorGUILayout.EndHorizontal();
+    }
 }
 
 /// <summary>

@@ -20,12 +20,14 @@ namespace VertexFormCore
 
         IEnumerator IESetUpScene()
         {
-            while (RoomManager.Instance.localVRPlayer == null)
+            while (RoomManager.Instance == null || RoomManager.Instance.localVRPlayer == null || RoomManager.Instance.GetLocalPlayerSetup() == null)
             {
                 yield return new WaitForSeconds(.5f);
             }
-            SetTeleportationProvider(RoomManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().tp);
-            SetClimpProvider(RoomManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().cp);
+            var pns = RoomManager.Instance.GetLocalPlayerSetup();
+            if (pns == null) yield break;
+            SetTeleportationProvider(pns.tp);
+            SetClimpProvider(pns.cp);
             yield return new WaitForSeconds(1f);
             RoomManager.Instance.localVRPlayer.transform.rotation = Quaternion.identity;
             SetUpLocomotionManager();
@@ -58,7 +60,9 @@ namespace VertexFormCore
 
         void SetUpLocomotionManager()
         {
-            locomotionSetup.m_Manager = RoomManager.Instance.localVRPlayer.GetComponent<PlayerNetworkSetup>().locomotionManager;
+            var pns = RoomManager.Instance.GetLocalPlayerSetup();
+            if (pns != null)
+                locomotionSetup.m_Manager = pns.locomotionManager;
         }
     }
 }

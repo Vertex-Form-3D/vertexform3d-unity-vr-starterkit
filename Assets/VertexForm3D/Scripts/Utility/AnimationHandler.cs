@@ -56,13 +56,14 @@ public class AnimationHandler : MonoBehaviour
     private void Awake()
     {
         // Store initial transforms
-        initialPosition = transform.position;
-        initialRotation = transform.rotation;
-        initialScale = transform.localScale;
+
     }
 
     private void Start()
     {
+        initialPosition = transform.localPosition;
+        initialRotation = transform.localRotation;
+        initialScale = transform.localScale;
         if (AnimateInStart)
         {
             StartAnimation();
@@ -83,14 +84,14 @@ public class AnimationHandler : MonoBehaviour
         switch (animationType)
         {
             case AnimationType.Position:
-                currentTween = transform.DOMove(endValue, duration)
+                currentTween = transform.DOLocalMove(endValue, duration)
                     .SetEase(easeType)
                     .SetLoops(isLooping ? loopCount : 0, loopType)
                     .SetRelative(isRelative);
                 break;
 
             case AnimationType.Rotation:
-                currentTween = transform.DORotate(endValue, duration, RotateMode.FastBeyond360)
+                currentTween = transform.DOLocalRotate(endValue, duration, RotateMode.FastBeyond360)
                     .SetEase(easeType)
                     .SetLoops(isLooping ? loopCount : 0, loopType)
                     .SetRelative(isRelative);
@@ -119,10 +120,10 @@ public class AnimationHandler : MonoBehaviour
         switch (animationType)
         {
             case AnimationType.Position:
-                transform.position = initialPosition;
+                transform.localPosition = initialPosition;
                 break;
             case AnimationType.Rotation:
-                transform.rotation = initialRotation;
+                transform.localRotation = initialRotation;
                 break;
             case AnimationType.Scale:
                 transform.localScale = initialScale;
@@ -186,7 +187,7 @@ public class AnimationScriptEditor : Editor
         {
             animationScript.ResetAnimation();
         }
-        
+
         if (GUILayout.Button("Restart Animation"))
         {
             animationScript.RestartAnimation();
