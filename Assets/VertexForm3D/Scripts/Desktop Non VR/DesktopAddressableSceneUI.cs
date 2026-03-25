@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VertexFormCore;
 using UnityEngine.SceneManagement;
+using System;
 
 public class DesktopAddressableSceneUI : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public Sprite thirdPersonSprite;
     public TMP_Text[] flyText;
     public Button flyButton;
+
     void Start()
     {
         if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
@@ -39,7 +41,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
 
     public void ManageFlyUI()
     {
-        flyButton.interactable = SceneLoader.Instance.isFlyModeEnabled;
+        flyButton.interactable = true;
         var pns = RoomManager.Instance?.GetLocalPlayerSetup();
         if (pns != null && pns.playerUIManager.IsFlying())
         {
@@ -62,6 +64,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             flyText[1].text = "- Fly is off";
         }
     }
+
     IEnumerator IEAssignModeEvent()
     {
         while (RoomManager.Instance == null || RoomManager.Instance.GetLocalPlayerSetup() == null)
