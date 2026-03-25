@@ -6,10 +6,20 @@ using UnityEditor;
 public class SettingsUIEditor : Editor
 {
     private const string SettingsUIPrefabFileName = "SettingsUI.prefab";
+    private bool hasInitializedDefaultSettingsFoldout;
 
     private static readonly string DefaultSettingsHelp =
         "These are the default settings that are enabled or disabled by default. " +
         "The settings UI is accessible via the left controller on the Y button.";
+
+    private static readonly string PhotonCcuHelp =
+        "Photon CCU: the session-list lobby uses a second NetworkRunner (one extra CCU) so worlds can show live player counts. " +
+        "Choose game-sessions-only to skip that runner and hide counts, freeing a CCU for more players in rooms.";
+
+    private void OnEnable()
+    {
+        hasInitializedDefaultSettingsFoldout = false;
+    }
 
     public override void OnInspectorGUI()
     {
@@ -35,15 +45,29 @@ public class SettingsUIEditor : Editor
             }
         }
         EditorGUILayout.EndHorizontal();
+        EditorGUILayout.HelpBox(DefaultSettingsHelp, MessageType.Info);
 
         using (new EditorGUI.DisabledScope(true))
             EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
 
         EditorGUILayout.PropertyField(serializedObject.FindProperty("anonymousUserNamePrefix"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("defaultSettings"));
+
+        SerializedProperty defaultSettingsProperty = serializedObject.FindProperty("defaultSettings");
+        if (defaultSettingsProperty != null)
+        {
+            // Expand once by default, then let the user control foldout state.
+            if (!hasInitializedDefaultSettingsFoldout)
+            {
+                defaultSettingsProperty.isExpanded = true;
+                hasInitializedDefaultSettingsFoldout = true;
+            }
+            EditorGUILayout.PropertyField(defaultSettingsProperty, true);
+        }
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("photonCcuAllocation"));
 
         EditorGUILayout.Space(2);
-        EditorGUILayout.HelpBox(DefaultSettingsHelp, MessageType.Info);
+        EditorGUILayout.HelpBox(PhotonCcuHelp, MessageType.Info);
 
         serializedObject.ApplyModifiedProperties();
     }

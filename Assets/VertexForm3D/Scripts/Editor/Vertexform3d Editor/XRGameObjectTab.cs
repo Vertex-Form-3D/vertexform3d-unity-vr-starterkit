@@ -43,11 +43,11 @@ namespace VertexFormCore.Editor
             //     "",
             //     CreateRespawnableGrabNetworkedObject));
 
-            items.Add(new ToolkitItem(
-                "Create SnapAndSwap",
-                "Adds a pair of grabbable sample Game Objects to the Scene, with snapping and swapping enabled between the two.",
-                "",
-                CreateSnapAndSwap));
+            // items.Add(new ToolkitItem(
+            //     "Create SnapAndSwap",
+            //     "Adds a pair of grabbable sample Game Objects to the Scene, with snapping and swapping enabled between the two.",
+            //     "",
+            //     CreateSnapAndSwap));
 
             // Grabbing Category Items
             items.Add(new ToolkitItem(
@@ -93,6 +93,12 @@ namespace VertexFormCore.Editor
                 "Disable gravity on the selected objects.",
                 "",
                 () => HandleGravity(false)));
+
+            items.Add(new ToolkitItem(
+                "Create Toggle Object Example (Suzanne)",
+                "Creates a Toggle Object Example (Suzanne) in the Scene.",
+                "",
+                CreateToggleObjectExampleSuzanne));
         }
 
         #region OBJECT INTERACTION METHODS
@@ -114,6 +120,13 @@ namespace VertexFormCore.Editor
             }
         }
 
+
+        public void CreateToggleObjectExampleSuzanne()
+        {
+            GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/ToggleObjectController"));
+            g.name = "ToggleObjectController";
+            EditorGUIUtility.PingObject(g);
+        }
 
         public void AttachScaling()
         {

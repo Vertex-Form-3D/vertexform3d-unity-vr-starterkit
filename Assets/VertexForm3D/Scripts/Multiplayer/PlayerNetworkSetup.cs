@@ -24,8 +24,8 @@ namespace VertexFormCore
         [SerializeField] private TextMeshProUGUI PlayerName_Text;
         [SerializeField] private GameObject cameraOffset;
         [SerializeField] private XROrigin xROrigin;
-        public float maxHeight;
-        public float normalHeight;
+        public float standingHeight;
+        public float sittingHeight;
         public TeleportationProvider tp;
         public GravityProvider gp;
         public GameObject leftHand;
@@ -42,7 +42,11 @@ namespace VertexFormCore
         [SerializeField] XRInputModalityManager XRIMM;
 
         [Header("Notification")]
-        public RectTransform notificationParent;
+        public RectTransform notificationParentDesktop;
+        public RectTransform notificationParentVR;
+
+
+        public Canvas notificationCanvas;
         // Individual voice components - better approach
         [Header("Voice Components")]
         [SerializeField] private VoiceNetworkObject voiceNetworkObject;
@@ -157,6 +161,11 @@ namespace VertexFormCore
 
         private IEnumerator InitializePlayer()
         {
+            var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
+            if (xrRig != null)
+            {
+                xrRig.orbitCamera.SetTargetOffsetToDefault();
+            }
             Debug.Log("-->initializing player");
             // Wait for network runner to be ready
             while (Runner == null || !Runner.IsClient)
@@ -178,7 +187,15 @@ namespace VertexFormCore
                 Debug.Log("Setting player name to: " + playerName);
                 // PlayerName and Platform already set in Spawned() for immediate sync; ensure consistency here
                 if (ProjectManager.instance != null && ProjectManager.instance.platforms != null)
+                {
+
                     Platform = ProjectManager.instance.platforms.platformChoice;
+                    if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+                    {
+                        notificationCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                    }
+                }
+
             }
             Debug.Log("-->player name set");
             gameObject.name = $"player {PlayerName}";
@@ -363,7 +380,10 @@ namespace VertexFormCore
             // Sync desktop camera/orbit to face the seat forward (so we look in sitting direction)
             var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
             if (xrRig != null)
+            {
                 xrRig.SetLookRotation(sittingPosition.rotation);
+                xrRig.orbitCamera.targetOffset = new Vector3(0, 0.8f, 0);
+            }
 
             Debug.Log($"[PlayerNetworkSetup] Player moved to sitting position: {sittingPosition.position}");
         }
@@ -380,7 +400,7 @@ namespace VertexFormCore
                 IsSitting = true;
             }
             IsSittingHeightFixed = true;
-            cameraOffset.transform.localPosition = Vector3.up * 1f;
+            cameraOffset.transform.localPosition = Vector3.up * sittingHeight;
         }
 
         public void SetStandingHeight(bool calledFromSitSpot)
@@ -390,7 +410,15 @@ namespace VertexFormCore
                 IsSitting = false;
             }
             IsSittingHeightFixed = false;
-            cameraOffset.transform.localPosition = Vector3.up * 1.2f;
+            cameraOffset.transform.localPosition = Vector3.up * standingHeight;
+            var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
+            if (xrRig != null)
+            {
+                Debug.Log("Resetting orbit camera target offset");
+
+                xrRig.orbitCamera.ResetTargetOffset();
+
+            }
         }
         public void ResetPosition()
         {
@@ -448,7 +476,7 @@ namespace VertexFormCore
                 VoiceRecorderManager.Instance.recorder = playerRecorder;
 
                 // Ensure recorder is properly configured
-                playerRecorder.TransmitEnabled = true;
+                playerRecorder.TransmitEnabled = false;
                 playerRecorder.RecordingEnabled = true;
 
                 Debug.Log($"[PlayerNetworkSetup] Recorder setup complete - TransmitEnabled: {playerRecorder.TransmitEnabled}, RecordingEnabled: {playerRecorder.RecordingEnabled}");

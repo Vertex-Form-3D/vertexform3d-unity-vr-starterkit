@@ -40,7 +40,16 @@ public class AddressablesDownloader : MonoBehaviour
     {
         Application.targetFrameRate = 75;
 
-        DownloadCatalogFile();
+        if (!ProjectManager.instance.settingsUI.onlyLocalBundles)
+        {
+            Addressables.InitializeAsync();
+            isCatelogUpdated = true;
+            isDownloading = false;
+        }
+        else
+        {
+            DownloadCatalogFile();
+        }
 
     }
 
@@ -58,7 +67,7 @@ public class AddressablesDownloader : MonoBehaviour
             AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
             DownloadingCatalog.Completed += OnCatalogDownload;
 #else
-            catalogFilePath = ProjectManager.instance.settingsUI.addressableCatalogFilePath;
+            catalogFilePath = ProjectManager.instance.settingsUI.addressableCatalogFileName;
             AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
             DownloadingCatalog.Completed += OnCatalogDownload;
 #endif

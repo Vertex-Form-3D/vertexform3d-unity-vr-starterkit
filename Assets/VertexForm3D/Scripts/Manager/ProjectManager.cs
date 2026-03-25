@@ -21,4 +21,12 @@ public class ProjectManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    /// <summary>
+    /// When false, the session-list lobby runner is off and UI should not show per-world player counts (saves one CCU).
+    /// If SettingsUI is not assigned, defaults to true so existing projects keep lobby behavior.
+    /// </summary>
+    public static bool UsesPhotonSessionLobbyRunner =>
+        instance == null || instance.settingsUI == null ||
+        instance.settingsUI.photonCcuAllocation == PhotonCcuAllocation.SessionLobbyAndPlayerCounts;
 }

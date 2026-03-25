@@ -98,14 +98,16 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             modeImage.sprite = thirdPersonSprite;
             modeText.text = "Third Person mode";
         });
-        if (SceneManager.GetActiveScene().name == "Journeys Experience")
-        {
-            journeysUI.SetActive(true);
-        }
-        else
-        {
-            journeysUI.SetActive(false);
-        }
+
+    }
+
+    public void ShowGrabItem()
+    {
+        journeysUI.SetActive(true);
+    }
+    public void HideGrabItem()
+    {
+        journeysUI.SetActive(false);
     }
     public void OnTapMenuButton()
     {

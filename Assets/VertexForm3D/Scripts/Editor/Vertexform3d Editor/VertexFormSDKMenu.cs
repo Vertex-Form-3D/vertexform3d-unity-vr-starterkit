@@ -21,7 +21,7 @@ namespace VertexFormCore.Editor
         }
 
 
-        [MenuItem("VertexForm3D SDK/Main UI Database", false, 2)]
+        [MenuItem("VertexForm3D SDK/Main UI Database", false, 3)]
         public static void OpenMainMapUIDatabase()
         {
             string[] guids = AssetDatabase.FindAssets("t:UILayoutConfig");
@@ -40,7 +40,7 @@ namespace VertexFormCore.Editor
             EditorUtility.OpenPropertyEditor(configAsset);
             Debug.Log("Opened Main Map UI Database: " + assetPath);
         }
-        [MenuItem("VertexForm3D SDK/Platforms", false, 2)]
+        [MenuItem("VertexForm3D SDK/Platform Selection", false, 2)]
         public static void OpenPlatformAndSettings()
         {
             string[] guids = AssetDatabase.FindAssets("t:Platforms");
@@ -59,7 +59,7 @@ namespace VertexFormCore.Editor
             EditorUtility.OpenPropertyEditor(configAsset);
             Debug.Log("Opened Platform and Settings: " + assetPath);
         }
-        [MenuItem("VertexForm3D SDK/SettingsUI", false, 2)]
+        [MenuItem("VertexForm3D SDK/SettingsUI", false, 3)]
         public static void OpenSettingsUI()
         {
             string[] guids = AssetDatabase.FindAssets("t:SettingsUI");
@@ -123,14 +123,21 @@ namespace VertexFormCore.Editor
             window.SelectTab("PRESENTATION TOOLS");
         }
 
-        [MenuItem("VertexForm3D SDK/Creator Toolkit/Dev Tools", false, 10)]
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Avatars", false, 10)]
+        public static void OpenAvatarsTab()
+        {
+            VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
+            window.SelectTab("AVATARS");
+        }
+
+        [MenuItem("VertexForm3D SDK/Creator Toolkit/Dev Tools", false, 11)]
         public static void OpenDevToolsTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("DEV TOOLS");
         }
 
-        [MenuItem("VertexForm3D SDK/Build Addressables", false, 11)]
+        [MenuItem("VertexForm3D SDK/Build Addressables", false, 12)]
         public static void OpenBuildAddressablesWindow()
         {
             AddressablesBuildEditor window = EditorWindow.GetWindow<AddressablesBuildEditor>("Build Addressables");

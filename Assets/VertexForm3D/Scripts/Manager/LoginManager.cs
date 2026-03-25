@@ -23,7 +23,7 @@ namespace VertexFormCore
             {
                 versionText.text = $"Version: {Application.version}";
             }
-            // if (ProjectManager.instance.projectDataSO.mode == Mode.Spectator && ProjectManager.instance.projectDataSO.projectData.platform == platform.Desktop)
+            // if (ProjectManager.instance.projectDataSO.mode == Mode.Spectator && ProjectManager.instance.projectDataSO.projectData.platformSelection == platform.Desktop)
             // {
             //     Spectating();
             // }

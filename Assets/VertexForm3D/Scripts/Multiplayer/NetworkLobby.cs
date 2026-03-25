@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,13 +56,30 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
 
     }
 
-    private async void Start()
+    private void Start()
     {
+        StartCoroutine(StartLobbyWhenProjectSettingsReady());
+    }
+
+    private IEnumerator StartLobbyWhenProjectSettingsReady()
+    {
+        int waitedFrames = 0;
+        while (ProjectManager.instance == null && waitedFrames++ < 120)
+            yield return null;
+
+        if (!ProjectManager.UsesPhotonSessionLobbyRunner)
+        {
+            Debug.Log("[NetworkLobby] Session lobby runner disabled (Photon CCU: game sessions only).");
+            Destroy(this);
+            yield break;
+        }
+
         Debug.Log($"[NetworkLobby - Starting lobby...");
         _runner = gameObject.AddComponent<NetworkRunner>();
-
         _runner.AddCallbacks(this);
-        await JoinLobby(_runner);
+        Task joinTask = JoinLobby(_runner);
+        while (!joinTask.IsCompleted)
+            yield return null;
     }
 
     // Photon method that is called automatically, if you are in a lobby and the session list changes.

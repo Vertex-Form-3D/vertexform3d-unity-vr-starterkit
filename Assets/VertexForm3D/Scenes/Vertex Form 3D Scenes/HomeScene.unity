@@ -1647,6 +1647,18 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4859890796355454542, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+      propertyPath: LeftHandVisual
+      value: 
+      objectReference: {fileID: 2112122592}
+    - target: {fileID: 4859890796355454542, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+      propertyPath: RightHandVisual
+      value: 
+      objectReference: {fileID: 2112122591}
+    - target: {fileID: 4859890796355454542, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+      propertyPath: ShadowBodyTransform
+      value: 
+      objectReference: {fileID: 2112122593}
     - target: {fileID: 4905486304701291736, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1787,6 +1799,21 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+--- !u!137 &2112122591 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3195360515902354774, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+  m_PrefabInstance: {fileID: 2112122590}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &2112122592 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8583681981799026221, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+  m_PrefabInstance: {fileID: 2112122590}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2112122593 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1303765681985210739, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
+  m_PrefabInstance: {fileID: 2112122590}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

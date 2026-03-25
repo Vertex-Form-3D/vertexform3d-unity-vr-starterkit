@@ -18,6 +18,8 @@ MonoBehaviour:
     micType: 0
     grabMode: 0
     flyMode: 0
-    megaphone: 0
+    megaphone: 1
+  photonCcuAllocation: 0
   addressableCatalogFilePath: 
   addressableCatalogFileName: VertexForm3DAddressablesCatalog
+  onlyLocalBundles: 1

@@ -3,15 +3,25 @@ using UnityEngine;
 public class NotificationHandler : MonoBehaviour
 {
     public GameObject notificationPrefab;
-    public Transform notificationContainer;
+    public Transform notificationContainerDesktop;
+    public Transform notificationContainerVR;
+
     void Start()
     {
-        
+
     }
     public void ShowMessage(string message, string colorCode = "#FF0000")
     {
-        GameObject m = Instantiate(notificationPrefab, notificationContainer);
-        m.GetComponent<MessageScript>().ShowMessage(message, GetColorFromCode(colorCode));
+        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+        {
+            GameObject m = Instantiate(notificationPrefab, notificationContainerDesktop);
+            m.GetComponent<MessageScript>().ShowMessage(message, GetColorFromCode(colorCode));
+        }
+        else
+        {
+            GameObject m = Instantiate(notificationPrefab, notificationContainerVR);
+            m.GetComponent<MessageScript>().ShowMessage(message, GetColorFromCode(colorCode));
+        }
     }
     Color GetColorFromCode(string colorCode)
     {

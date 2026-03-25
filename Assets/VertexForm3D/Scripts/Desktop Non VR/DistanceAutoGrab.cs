@@ -28,6 +28,9 @@ public class DistanceAutoGrab : MonoBehaviour
     public bool inverted;
     public SphereCollider triggerCollider;
     public Vector2 mousePos;
+    [Header("Desktop UI")]
+    [SerializeField] private DesktopAddressableSceneUI desktopAddressableSceneUI;
+    private bool isJourneyUIVisible;
 
     [Header("Input Actions")]
     public InputAction grabKeyPressed;
@@ -70,6 +73,8 @@ public class DistanceAutoGrab : MonoBehaviour
 
         Invoke(nameof(GetInteractionManager), 1f);
         InitController();
+        ResolveDesktopUIReference();
+        UpdateGrabRangeUI();
     }
 
     public void InitController()
@@ -97,6 +102,40 @@ public class DistanceAutoGrab : MonoBehaviour
         axis.Disable();
         grabKeyPressed.performed -= OnGrabPerformed;
         triggerKeyPressed.performed -= OnTriggerPerformed;
+        SetJourneyUIVisible(false);
+    }
+
+    private void ResolveDesktopUIReference()
+    {
+        if (ProjectManager.instance.platforms.platformChoice != platform.Desktop)
+            return;
+
+        if (desktopAddressableSceneUI == null)
+            desktopAddressableSceneUI = FindAnyObjectByType<DesktopAddressableSceneUI>();
+    }
+
+    private void UpdateGrabRangeUI()
+    {
+        if (ProjectManager.instance.platforms.platformChoice != platform.Desktop)
+            return;
+
+        bool inRange = targetInteractable != null && !targetInteractable.isSelected;
+        SetJourneyUIVisible(inRange);
+    }
+
+    private void SetJourneyUIVisible(bool shouldShow)
+    {
+        if (desktopAddressableSceneUI == null)
+            return;
+
+        if (isJourneyUIVisible == shouldShow)
+            return;
+
+        isJourneyUIVisible = shouldShow;
+        if (shouldShow)
+            desktopAddressableSceneUI.ShowGrabItem();
+        else
+            desktopAddressableSceneUI.HideGrabItem();
     }
 
     private void GetInteractionManager()
@@ -200,6 +239,7 @@ public class DistanceAutoGrab : MonoBehaviour
             //Debug.Log("No valid target interactable to grab.");
             isGrabbing = false; // Reset state if no valid target
         }
+        UpdateGrabRangeUI();
     }
 
     public void UnGrab()
@@ -218,6 +258,7 @@ public class DistanceAutoGrab : MonoBehaviour
         isGrabbing = false;
         currentGrabbedInteractable = null;
         targetInteractable = null; // Clear so coroutine can set next target
+        UpdateGrabRangeUI();
         FindFarGrabTarget();
     }
 
@@ -254,6 +295,7 @@ public class DistanceAutoGrab : MonoBehaviour
                 }
 
                 targetInteractable = closestInteractable;
+                UpdateGrabRangeUI();
                 if (targetInteractable == null)
                 {
                     //Debug.Log("No valid grab target found.");
@@ -288,6 +330,7 @@ public class DistanceAutoGrab : MonoBehaviour
         targetInteractable = null;
         currentGrabbedInteractable = null;
         isGrabbing = false; // Reset grabbing state on mode switch
+        UpdateGrabRangeUI();
         FindFarGrabTarget();
         //Debug.Log($"Switched to {(farGrab ? "Far" : "Near")} grab mode");
     }
@@ -301,6 +344,7 @@ public class DistanceAutoGrab : MonoBehaviour
             isGrabbing = false;
             currentGrabbedInteractable = null;
             targetInteractable = null;
+            UpdateGrabRangeUI();
             FindFarGrabTarget();
         }
 

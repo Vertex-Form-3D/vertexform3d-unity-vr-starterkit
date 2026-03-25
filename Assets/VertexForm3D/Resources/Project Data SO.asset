@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Project Data SO
   m_EditorClassIdentifier: 
   projectData:
-    platform: 0
+    platformSelection: 0
     DebugEnabled: 1
     anonymousUserNamePrefix: Mystery Guest_
     onlyLocalBundles: 1
-    addressableCatalogFilePath: 
+    addressableCatalogFilePath: https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json
     catalogFileName: VertexForm3DAddressablesCatalog
     defaultSetting:
       standDefault: 0

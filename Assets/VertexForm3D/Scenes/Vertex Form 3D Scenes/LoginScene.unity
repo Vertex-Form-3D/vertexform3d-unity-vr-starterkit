@@ -471,6 +471,14 @@ PrefabInstance:
       value: LoginSceneComponent
       objectReference: {fileID: 0}
     - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: platforms
+      value: 
+      objectReference: {fileID: 11400000, guid: b405233d79e78784b9cb0ab4650581d6, type: 2}
+    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: settingsUI
+      value: 
+      objectReference: {fileID: 11400000, guid: b6b622b3d63bf1f418a3a55c62048567, type: 2}
+    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
       propertyPath: uiLayoutConfig
       value: 
       objectReference: {fileID: 11400000, guid: f8ca18bb76527834c8057a7c7eadeb8c, type: 2}
@@ -478,6 +486,10 @@ PrefabInstance:
       propertyPath: platformAndSettings
       value: 
       objectReference: {fileID: 11400000, guid: b405233d79e78784b9cb0ab4650581d6, type: 2}
+    - target: {fileID: 8421066175226093702, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: versionText
+      value: 
+      objectReference: {fileID: 753928277}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

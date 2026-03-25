@@ -46,6 +46,7 @@ namespace VertexFormCore
         [SerializeField] private GameObject addressableSceneVisuals;
         [SerializeField] private CanvasGroup fadeCanvasGroup;
         [SerializeField] private FusionVoiceClient fusionVoiceClient;
+        private bool _isReturningHomeFromDisconnect;
 
         GameObject connectVRObject;
         public Vector3 spawnPosition;
@@ -706,8 +707,15 @@ namespace VertexFormCore
         {
             if (localVRPlayer == null) return;
             var playerSetup = GetLocalPlayerSetup();
-            if (playerSetup == null || playerSetup.notificationParent == null) return;
-            playerJoinHolder = playerSetup.notificationParent;
+            if (playerSetup == null || (playerSetup.notificationParentDesktop == null && playerSetup.notificationParentVR == null)) return;
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            {
+                playerJoinHolder = playerSetup.notificationParentDesktop;
+            }
+            else
+            {
+                playerJoinHolder = playerSetup.notificationParentVR;
+            }
             GameObject obj = Instantiate(messageUI.gameObject, playerJoinHolder);
             if (isJoined)
                 obj.GetComponent<MessageScript>().ShowMessage(playerName + " Join the Place.", Color.green);
@@ -723,21 +731,57 @@ namespace VertexFormCore
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
         {
             Log($"Disconnected from server: {reason}");
+            HandleUnexpectedDisconnect($"Disconnected from server: {reason}");
         }
 
         public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
         {
             Debug.LogError($"[RoomManager] OnConnectFailed called - Connection failed: {reason}");
             Log($"Connection failed: {reason}");
+            HandleUnexpectedDisconnect($"Connection failed: {reason}");
         }
 
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
             Log($"Runner shutdown: {shutdownReason}");
+
+            // Avoid scene fallback on user-initiated / normal shutdown.
+            if (shutdownReason != ShutdownReason.Ok)
+            {
+                HandleUnexpectedDisconnect($"Runner shutdown: {shutdownReason}");
+            }
+
             if (_runner == runner)
             {
                 _runner = null;
             }
+        }
+
+        private void HandleUnexpectedDisconnect(string reason)
+        {
+            if (_isReturningHomeFromDisconnect)
+            {
+                return;
+            }
+
+            if (VirtualRoomManager.Instance == null)
+            {
+                Debug.LogWarning($"[RoomManager] Cannot return home after disconnect ({reason}) because VirtualRoomManager is missing.");
+                return;
+            }
+
+            _isReturningHomeFromDisconnect = true;
+            Debug.LogWarning($"[RoomManager] Unexpected network disconnect detected. Showing popup and returning to HomeScene. Reason: {reason}");
+
+            var loadingScreen = LoadingScreen.Instance != null ? LoadingScreen.Instance : FindFirstObjectByType<LoadingScreen>();
+            if (loadingScreen != null)
+            {
+                loadingScreen.ShowDisconnectPopupAndLoadHome(reason);
+                return;
+            }
+
+            Debug.LogWarning("[RoomManager] LoadingScreen not found, returning to HomeScene immediately.");
+            VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene();
         }
 
         // Required INetworkRunnerCallbacks methods (empty implementations)

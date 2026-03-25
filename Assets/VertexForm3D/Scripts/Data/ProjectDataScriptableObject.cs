@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "Project Data SO", menuName = "ScriptableObjects/Project Data System", order = 1)]
 public class ProjectDataScriptableObject : ScriptableObject
@@ -16,7 +17,8 @@ public enum platform
 [Serializable]
 public class ProjectData
 {
-    public platform platform;
+    [FormerlySerializedAs("platform")]
+    public platform platformSelection;
     public bool DebugEnabled;
     public string anonymousUserNamePrefix = "Mystery Guest_";
     public bool onlyLocalBundles = true;
@@ -76,7 +78,7 @@ public class SettingClass
     public micType micType = micType.mute;
     public grabMode grabMode;
     public toggle flyMode;
-    public toggle megaphone;
+    public toggle megaphone = toggle.off;
 
 }
 

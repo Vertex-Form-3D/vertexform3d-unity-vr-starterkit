@@ -4405,6 +4405,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4415550879658381054}
+  - component: {fileID: 6027871504510057981}
   m_Layer: 0
   m_Name: Mirror
   m_TagString: Untagged
@@ -4429,6 +4430,24 @@ Transform:
   - {fileID: 4589444103037059561}
   m_Father: {fileID: 7155967957302637762}
   m_LocalEulerAnglesHint: {x: 0, y: -53.86, z: 0}
+--- !u!114 &6027871504510057981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4528284302948393846}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cd88f716a964f26ab2a8171f386d38d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VertexForm3D.Utility.MirrorRenderTextureInstance
+  mirrorCamera: {fileID: 4843802161470162855}
+  mirrorSurfaceRenderer: {fileID: 4361484750463465483}
+  textureWidth: 1024
+  textureHeight: 1024
+  depthBuffer: 24
+  format: 0
 --- !u!1 &4801254472521600266
 GameObject:
   m_ObjectHideFlags: 0
