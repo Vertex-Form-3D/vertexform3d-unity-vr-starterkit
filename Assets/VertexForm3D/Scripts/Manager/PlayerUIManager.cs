@@ -138,6 +138,7 @@ namespace VertexFormCore
             else
             {
                 emojiPanel.GetComponentInChildren<Canvas>().renderMode = RenderMode.WorldSpace;
+                emojiPanel.transform.GetChild(0).localScale = Vector3.one * 0.5f;
                 if (!emojiPanel.activeInHierarchy)
                 {
                     HandleSettingUI();

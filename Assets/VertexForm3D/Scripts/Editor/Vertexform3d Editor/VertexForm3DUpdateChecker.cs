@@ -306,6 +306,7 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
     private string bodyText;
     private Vector2 scrollPosition;
     private bool doNotShowAgain;
+    private GUIStyle richTextWrappedLabel;
 
     public static void ShowPrompt(string body)
     {
@@ -318,8 +319,16 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
 
     private void OnGUI()
     {
+        if (richTextWrappedLabel == null)
+        {
+            richTextWrappedLabel = new GUIStyle(EditorStyles.wordWrappedLabel)
+            {
+                richText = true
+            };
+        }
+
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-        EditorGUILayout.LabelField(bodyText, EditorStyles.wordWrappedLabel);
+        EditorGUILayout.LabelField(bodyText, richTextWrappedLabel);
         EditorGUILayout.EndScrollView();
 
         EditorGUILayout.Space(6);

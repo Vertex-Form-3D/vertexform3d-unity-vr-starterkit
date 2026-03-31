@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using UnityEngine.Networking;
 using System.Collections;
@@ -337,6 +337,26 @@ public class PackageUpdaterWindow : EditorWindow
 
     private ListRequest listRequest;
 
+    private static GUIStyle releaseNotesRichTextStyle;
+
+    private static GUIStyle ReleaseNotesRichTextStyle
+    {
+        get
+        {
+            if (releaseNotesRichTextStyle == null)
+            {
+                releaseNotesRichTextStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
+                {
+                    richText = true,
+                    wordWrap = true,
+                    padding = new RectOffset(2, 2, 2, 4)
+                };
+            }
+
+            return releaseNotesRichTextStyle;
+        }
+    }
+
     [MenuItem("VertexForm3D SDK/Package Updater", false, 14)]
     public static PackageUpdaterWindow ShowWindow()
     {
@@ -391,10 +411,11 @@ public class PackageUpdaterWindow : EditorWindow
 
         GUILayout.Space(10);
 
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
+
         if (updateInfo != null)
         {
             GUILayout.Label("Update Information", EditorStyles.boldLabel);
-            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Height(100));
 
             // Show latest version info
             GUILayout.Label($"Latest Version: {updateInfo.version}");
@@ -411,9 +432,8 @@ public class PackageUpdaterWindow : EditorWindow
             }
 
             GUILayout.Space(5);
-            GUILayout.Label("Release Notes (Latest):");
-            GUILayout.TextArea(updateInfo.releaseNotes, EditorStyles.label, GUILayout.ExpandHeight(true));
-            EditorGUILayout.EndScrollView();
+            GUILayout.Label("Release Notes (Latest):", EditorStyles.boldLabel);
+            GUILayout.Label(updateInfo.releaseNotes ?? string.Empty, ReleaseNotesRichTextStyle);
         }
         else
         {
@@ -475,6 +495,8 @@ public class PackageUpdaterWindow : EditorWindow
             }
             EditorGUI.ProgressBar(EditorGUILayout.GetControlRect(), downloadProgress, progressText);
         }
+
+        EditorGUILayout.EndScrollView();
 
         GUILayout.Label("Status: " + statusMessage, EditorStyles.miniLabel);
     }
