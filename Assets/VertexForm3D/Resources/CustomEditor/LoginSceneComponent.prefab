@@ -1421,7 +1421,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f9628658c6c1f64bbd9afdd27d1f04d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectDataSO: {fileID: 11400000, guid: 4f1883a7bd33c4946bd908952018865a, type: 2}
+  uiLayoutConfig: {fileID: 11400000, guid: f8ca18bb76527834c8057a7c7eadeb8c, type: 2}
+  platforms: {fileID: 11400000, guid: b405233d79e78784b9cb0ab4650581d6, type: 2}
+  settingsUI: {fileID: 11400000, guid: b6b622b3d63bf1f418a3a55c62048567, type: 2}
 --- !u!1 &7606124175855420667
 GameObject:
   m_ObjectHideFlags: 0
@@ -1638,6 +1640,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerName_InputName: {fileID: 3712070178951723831}
+  versionText: {fileID: 0}
 --- !u!1 &7980443940196243884
 GameObject:
   m_ObjectHideFlags: 0
@@ -2565,6 +2568,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1698974698686989815}
     m_Modifications:
+    - target: {fileID: 366349417295850675, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1351904833967977961, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
       propertyPath: m_Name
       value: Complete XR Origin Set Up VariantMain

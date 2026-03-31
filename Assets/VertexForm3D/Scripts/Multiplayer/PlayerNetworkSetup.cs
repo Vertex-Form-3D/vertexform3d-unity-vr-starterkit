@@ -46,7 +46,6 @@ namespace VertexFormCore
         public RectTransform notificationParentVR;
 
 
-        public Canvas notificationCanvas;
         // Individual voice components - better approach
         [Header("Voice Components")]
         [SerializeField] private VoiceNetworkObject voiceNetworkObject;
@@ -190,10 +189,6 @@ namespace VertexFormCore
                 {
 
                     Platform = ProjectManager.instance.platforms.platformChoice;
-                    if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
-                    {
-                        notificationCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                    }
                 }
 
             }

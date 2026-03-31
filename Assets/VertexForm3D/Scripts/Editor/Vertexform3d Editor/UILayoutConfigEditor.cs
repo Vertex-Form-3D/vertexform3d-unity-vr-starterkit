@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.UI;
 
 
 [CustomEditor(typeof(UILayoutConfig))]
@@ -58,7 +60,7 @@ public class UILayoutConfigEditor : Editor
         while (_mainSectionPanels.arraySize < 3)
             _mainSectionPanels.arraySize++;
 
-        DrawHighlightPrefabButton(MainMapPrefabFileName);
+        DrawHighlightPrefabButtons();
         DrawSectionFoldout("Left Section", ref _foldLeft, DrawLeftSection, useLargeSectionTitle: true);
         DrawSectionFoldout("Main Section", ref _foldMain, DrawMainSection, useLargeSectionTitle: true);
         GUILayout.Space(4);
@@ -74,7 +76,7 @@ public class UILayoutConfigEditor : Editor
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("Apply to prefabs", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("Saves pending edits to this asset, assigns it on MainMap.prefab, then bakes text/images/section visibility into that prefab (same idea as Apply Project Data).", MessageType.None);
+        EditorGUILayout.HelpBox("Saves pending edits to this asset, assigns it on MainMap.prefab/MainMap Desktop.prefab, then bakes text/images/section visibility into those prefabs (same idea as Apply Project Data).", MessageType.None);
         if (GUILayout.Button("Apply to Prefabs", GUILayout.Height(28)))
             ApplyConfigToPrefabs();
         EditorGUILayout.EndVertical();
@@ -82,15 +84,18 @@ public class UILayoutConfigEditor : Editor
     }
 
     private const string MainMapPrefabFileName = "MainMap.prefab";
+    private const string MainMapDesktopPrefabFileName = "MainMap Desktop.prefab";
 
-    /// <summary>All prefab assets named MainMap.prefab (avoids LoadPrefabContents on unrelated/broken prefabs).</summary>
+    /// <summary>All prefab assets named MainMap.prefab or MainMap Desktop.prefab (avoids LoadPrefabContents on unrelated/broken prefabs).</summary>
     private static List<string> FindMainMapPrefabPaths()
     {
         var paths = new List<string>();
         foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
-            if (string.Equals(Path.GetFileName(path), MainMapPrefabFileName, System.StringComparison.OrdinalIgnoreCase))
+            string fileName = Path.GetFileName(path);
+            if (string.Equals(fileName, MainMapPrefabFileName, System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(fileName, MainMapDesktopPrefabFileName, System.StringComparison.OrdinalIgnoreCase))
                 paths.Add(path);
         }
         return paths;
@@ -108,24 +113,37 @@ public class UILayoutConfigEditor : Editor
         List<string> mainMapPaths = FindMainMapPrefabPaths();
         if (mainMapPaths.Count == 0)
         {
-            Debug.LogWarning($"UILayoutConfig: No '{MainMapPrefabFileName}' found. Rename your menu prefab to MainMap.prefab or assign uiLayoutConfig on it manually.");
+            Debug.LogWarning($"UILayoutConfig: No '{MainMapPrefabFileName}' or '{MainMapDesktopPrefabFileName}' found. Rename your menu prefab accordingly or assign uiLayoutConfig on it manually.");
             return;
         }
 
         int prefabsModified = 0;
         int refsUpdated = 0;
 
+        var currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+
         foreach (string path in mainMapPaths)
         {
             GameObject contents = null;
-            try
+            bool usingOpenPrefabStage = currentPrefabStage != null &&
+                                        string.Equals(currentPrefabStage.assetPath, path, System.StringComparison.OrdinalIgnoreCase);
+            bool isDesktopPrefab = string.Equals(Path.GetFileName(path), MainMapDesktopPrefabFileName, System.StringComparison.OrdinalIgnoreCase);
+
+            if (usingOpenPrefabStage)
             {
-                contents = PrefabUtility.LoadPrefabContents(path);
+                contents = currentPrefabStage.prefabContentsRoot;
             }
-            catch (System.Exception e)
+            else
             {
-                Debug.LogWarning($"UILayoutConfig: Could not open '{path}': {e.Message}");
-                continue;
+                try
+                {
+                    contents = PrefabUtility.LoadPrefabContents(path);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"UILayoutConfig: Could not open '{path}': {e.Message}");
+                    continue;
+                }
             }
 
             if (contents == null) continue;
@@ -133,7 +151,8 @@ public class UILayoutConfigEditor : Editor
             MainMap[] mainMaps = contents.GetComponentsInChildren<MainMap>(true);
             if (mainMaps.Length == 0)
             {
-                PrefabUtility.UnloadPrefabContents(contents);
+                if (!usingOpenPrefabStage)
+                    PrefabUtility.UnloadPrefabContents(contents);
                 Debug.LogWarning($"UILayoutConfig: '{path}' has no MainMap component.");
                 continue;
             }
@@ -155,26 +174,76 @@ public class UILayoutConfigEditor : Editor
                 }
 
                 Undo.RecordObject(mm, "Apply UILayoutConfig to MainMap");
-                mm.ApplyLayoutFromConfig();
+                if (isDesktopPrefab)
+                    ApplyDesktopMainPanelImagesOnly(mm, config);
+                else
+                    mm.ApplyLayoutFromConfig();
                 EditorUtility.SetDirty(mm);
             }
 
-            PrefabUtility.SaveAsPrefabAsset(contents, path);
-            prefabsModified++;
-            PrefabUtility.UnloadPrefabContents(contents);
+            if (usingOpenPrefabStage)
+            {
+                // Save via prefab stage so Unity doesn't prompt about disk changes.
+                PrefabUtility.SaveAsPrefabAsset(contents, path);
+                prefabsModified++;
+            }
+            else
+            {
+                PrefabUtility.SaveAsPrefabAsset(contents, path);
+                prefabsModified++;
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
         }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"UILayoutConfig: Baked config into {prefabsModified} MainMap.prefab (asset). Reference updates: {refsUpdated}. Ensure ProjectManager in your bootstrap scene uses this same config for Places/avatars.");
+        Debug.Log($"UILayoutConfig: Baked config into {prefabsModified} MainMap prefab asset(s) (MainMap/MainMap Desktop). Reference updates: {refsUpdated}. Ensure ProjectManager in your bootstrap scene uses this same config for Places/avatars.");
     }
 
-    private static void DrawHighlightPrefabButton(string prefabFileName)
+    private static void ApplyDesktopMainPanelImagesOnly(MainMap mm, UILayoutConfig config)
+    {
+        if (mm == null || config == null) return;
+        if (config.mainSectionPanels == null || config.mainSectionPanels.Count == 0) return;
+
+        var mainPanel = config.mainSectionPanels[UILayoutConfig.MainPanelIndex];
+
+        var mmSO = new SerializedObject(mm);
+        var logoProp = mmSO.FindProperty("logoImage");
+        var bgProp = mmSO.FindProperty("backgroundImage");
+        mmSO.ApplyModifiedPropertiesWithoutUndo();
+
+        var logo = logoProp != null ? logoProp.objectReferenceValue as Image : null;
+        var bg = bgProp != null ? bgProp.objectReferenceValue as Image : null;
+
+        if (logo != null)
+        {
+            Undo.RecordObject(logo, "Apply Desktop MainMap Logo");
+            logo.sprite = mainPanel.logoImage;
+            EditorUtility.SetDirty(logo);
+        }
+
+        if (bg != null)
+        {
+            Undo.RecordObject(bg, "Apply Desktop MainMap Background");
+            bg.sprite = mainPanel.backgroundImage;
+            EditorUtility.SetDirty(bg);
+        }
+    }
+
+    private static void DrawHighlightPrefabButtons()
     {
         EditorGUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
-        if (GUILayout.Button("Highlight Prefab", EditorStyles.miniButton, GUILayout.Width(110)))
+        DrawHighlightPrefabButton(MainMapDesktopPrefabFileName, "Highlight Desktop Prefab");
+        GUILayout.Space(6);
+        DrawHighlightPrefabButton(MainMapPrefabFileName, "Highlight VR Prefab");
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private static void DrawHighlightPrefabButton(string prefabFileName, string buttonLabel)
+    {
+        if (GUILayout.Button(buttonLabel, EditorStyles.miniButton))
         {
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
             {
@@ -184,6 +253,7 @@ public class UILayoutConfigEditor : Editor
                     var obj = AssetDatabase.LoadAssetAtPath<Object>(path);
                     if (obj != null)
                     {
+                        PrefabStageUtility.OpenPrefab(path);
                         EditorGUIUtility.PingObject(obj);
                         Selection.activeObject = obj;
                     }
@@ -191,7 +261,6 @@ public class UILayoutConfigEditor : Editor
                 }
             }
         }
-        EditorGUILayout.EndHorizontal();
     }
 
     private static GUIStyle _largeSectionFoldoutStyle;

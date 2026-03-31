@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(SettingsUISO))]
 public class SettingsUIEditor : Editor
@@ -37,6 +38,7 @@ public class SettingsUIEditor : Editor
                     var obj = AssetDatabase.LoadAssetAtPath<Object>(path);
                     if (obj != null)
                     {
+                        PrefabStageUtility.OpenPrefab(path);
                         EditorGUIUtility.PingObject(obj);
                         Selection.activeObject = obj;
                     }

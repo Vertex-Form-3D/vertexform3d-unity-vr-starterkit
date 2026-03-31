@@ -1593,10 +1593,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -75
       objectReference: {fileID: 0}
-    - target: {fileID: 3731972624500871645, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-      propertyPath: uiLayoutConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: f8ca18bb76527834c8057a7c7eadeb8c, type: 2}
     - target: {fileID: 3753186030984897067, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -1617,20 +1613,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -75
       objectReference: {fileID: 0}
-    - target: {fileID: 4365469095816797822, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-      propertyPath: m_text
-      value: 'Vertex Form 3D is an open-source VR multiplayer framework for building
-        social applications in Unity. Designed with 3D artists in mind, this package
-        provides essential tools for creating scalable VR environments across Meta
-        Quest and other platforms.
-
-
-        info@vertexform3d.com
-
-        vertexform3d.com
-
-'
-      objectReference: {fileID: 0}
     - target: {fileID: 4776366718087187468, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1647,18 +1629,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4859890796355454542, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-      propertyPath: LeftHandVisual
-      value: 
-      objectReference: {fileID: 2112122592}
-    - target: {fileID: 4859890796355454542, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-      propertyPath: RightHandVisual
-      value: 
-      objectReference: {fileID: 2112122591}
-    - target: {fileID: 4859890796355454542, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-      propertyPath: ShadowBodyTransform
-      value: 
-      objectReference: {fileID: 2112122593}
     - target: {fileID: 4905486304701291736, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1799,21 +1769,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
---- !u!137 &2112122591 stripped
-SkinnedMeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 3195360515902354774, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-  m_PrefabInstance: {fileID: 2112122590}
-  m_PrefabAsset: {fileID: 0}
---- !u!137 &2112122592 stripped
-SkinnedMeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 8583681981799026221, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-  m_PrefabInstance: {fileID: 2112122590}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &2112122593 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1303765681985210739, guid: bb333cd8e9bf8f54791f6405e6499c96, type: 3}
-  m_PrefabInstance: {fileID: 2112122590}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

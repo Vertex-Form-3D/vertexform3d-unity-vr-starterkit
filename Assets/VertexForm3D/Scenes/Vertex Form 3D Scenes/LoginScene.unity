@@ -418,14 +418,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 136699148935582987, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: m_ClearFlags
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 136699148935582987, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1698974698686989815, guid: 17702390d522bd6429139623b344358f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -470,22 +462,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoginSceneComponent
       objectReference: {fileID: 0}
-    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: platforms
-      value: 
-      objectReference: {fileID: 11400000, guid: b405233d79e78784b9cb0ab4650581d6, type: 2}
-    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: settingsUI
-      value: 
-      objectReference: {fileID: 11400000, guid: b6b622b3d63bf1f418a3a55c62048567, type: 2}
-    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: uiLayoutConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: f8ca18bb76527834c8057a7c7eadeb8c, type: 2}
-    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: platformAndSettings
-      value: 
-      objectReference: {fileID: 11400000, guid: b405233d79e78784b9cb0ab4650581d6, type: 2}
     - target: {fileID: 8421066175226093702, guid: 17702390d522bd6429139623b344358f, type: 3}
       propertyPath: versionText
       value: 

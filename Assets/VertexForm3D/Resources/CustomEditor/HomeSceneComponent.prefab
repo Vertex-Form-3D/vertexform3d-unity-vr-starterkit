@@ -2330,6 +2330,18 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7174916736855400887, guid: 1f6b28f42ae68b341b2699fc7535996a, type: 3}
+      propertyPath: LeftHandVisual
+      value: 
+      objectReference: {fileID: 8583681981799026221}
+    - target: {fileID: 7174916736855400887, guid: 1f6b28f42ae68b341b2699fc7535996a, type: 3}
+      propertyPath: RightHandVisual
+      value: 
+      objectReference: {fileID: 3195360515902354774}
+    - target: {fileID: 7174916736855400887, guid: 1f6b28f42ae68b341b2699fc7535996a, type: 3}
+      propertyPath: ShadowBodyTransform
+      value: 
+      objectReference: {fileID: 1303765681985210739}
+    - target: {fileID: 7174916736855400887, guid: 1f6b28f42ae68b341b2699fc7535996a, type: 3}
       propertyPath: ShadowHeadTransform
       value: 
       objectReference: {fileID: 3048274653251393568}

@@ -10,16 +10,27 @@ public class EmojiManager : NetworkBehaviour
     public Transform spawnPoint; // Point where particles will be spawned
     public EmojiScriptable emojiSO;   // Array of emoji sprites to choose from
     public GameObject emojiPrefab;
-    public Transform emojiParent;
+    public Transform emojiParentVR;
+    public Transform emojiParentDesktop;
+    private Transform emojiParent;
     public Image emoji;
     private ParticleSystemRenderer particleRenderer; // Renderer for the ParticleSystem
     private Material particleMaterial;               // New material instance for the ParticleSystem
     public int emojiIndex; // Index of the current emoji sprite
 
+
     void Start()
     {
         if (Object.HasInputAuthority)
         {
+            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            {
+                emojiParent = emojiParentDesktop;
+            }
+            else
+            {
+                emojiParent = emojiParentVR;
+            }
             Init();
         }
     }

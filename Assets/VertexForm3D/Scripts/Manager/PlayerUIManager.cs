@@ -16,7 +16,8 @@ namespace VertexFormCore
         [SerializeField] GameObject desktopMenuUI;
         [SerializeField] GameObject settingUI;
 
-        [SerializeField] GameObject emojiPanel;
+        [SerializeField] GameObject emojiPanelDesktop;
+        [SerializeField] GameObject emojiPanelVR;
         [SerializeField] InputData _inputData;
         [SerializeField] PlayerNetworkSetup networkSetup;
         [SerializeField] NetworkRunner networkRunner;
@@ -130,20 +131,18 @@ namespace VertexFormCore
         {
             if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
-                emojiPanel.GetComponentInChildren<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-                emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
-                emojiPanel.transform.GetChild(0).localScale = Vector3.one * 0.5f;
+                emojiPanelDesktop.SetActive(!emojiPanelDesktop.activeInHierarchy);
+                emojiPanelDesktop.transform.GetChild(0).localScale = Vector3.one * 0.5f;
                 desktopMenuUI.SetActive(false);
             }
             else
             {
-                emojiPanel.GetComponentInChildren<Canvas>().renderMode = RenderMode.WorldSpace;
-                if (!emojiPanel.activeInHierarchy)
+                if (!emojiPanelVR.activeInHierarchy)
                 {
                     HandleSettingUI();
                 }
-                MoveCanvasToCamera(emojiPanel);
-                emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
+                MoveCanvasToCamera(emojiPanelVR);
+                emojiPanelVR.SetActive(!emojiPanelVR.activeInHierarchy);
             }
 
         }
