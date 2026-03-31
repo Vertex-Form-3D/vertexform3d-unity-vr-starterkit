@@ -3,18 +3,14 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class PlayerSpawnPointScript : MonoBehaviour
 {
-    private Renderer renderer;
-
-
+    private MeshRenderer renderer;
+    
     void OnEnable()
     {
-        if (Application.isPlaying)
+        renderer = GetComponentInChildren<MeshRenderer>();
+        if (renderer != null)
         {
-            renderer = GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.enabled = false; // Enable MeshRenderer when the scene starts
-            }
+            renderer.enabled = !Application.isPlaying;
         }
     }
 }
