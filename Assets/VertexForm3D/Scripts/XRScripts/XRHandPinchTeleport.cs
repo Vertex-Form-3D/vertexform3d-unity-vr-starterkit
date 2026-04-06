@@ -23,6 +23,10 @@ public class XRHandPinchTeleport : MonoBehaviour
 
     void Start()
     {
+#if UNITY_WEBGL
+        enabled = false;
+        return;
+#else
         if (networkObject!=null)
         {
             if (networkObject.HasInputAuthority)
@@ -38,6 +42,7 @@ public class XRHandPinchTeleport : MonoBehaviour
             handSubsystem = subsystems[0];
         teleportHandGesture.gesturePerformed.AddListener(OnTeleportGesturePerformed);
         teleportHandGesture.gestureEnded.AddListener(OnTeleportGestureEnded);
+#endif
     }
 
     private void OnTeleportGestureEnded()

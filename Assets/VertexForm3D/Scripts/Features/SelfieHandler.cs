@@ -1,11 +1,18 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using Fusion;
+#if !UNITY_WEBGL
 using UnityEngine.XR;
+#endif
 using UnityEngine.XR.Interaction.Toolkit;
+#if !UNITY_WEBGL
 using CesiumForUnity;
+#endif
+#if UNITY_WEBGL && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+#endif
 
 namespace VertexFormCore
 {
@@ -60,11 +67,13 @@ namespace VertexFormCore
         {
             OwnerPlayerId = playerId.PlayerId;
             CanTakeSelfie = true;
+#if !UNITY_WEBGL
             CesiumCameraManager cesiumCameraManager = FindAnyObjectByType<CesiumCameraManager>();
             if (cesiumCameraManager != null)
             {
                 cesiumCameraManager.additionalCameras.Add(selfieCam);
             }
+#endif
 
             if (Object.HasInputAuthority)
             {
@@ -163,6 +172,7 @@ namespace VertexFormCore
 
         private void ProcessInput()
         {
+#if !UNITY_WEBGL
             if (InputData.Instance?._leftController != null &&
                 InputData.Instance._leftController.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryBtn))
             {
@@ -177,8 +187,9 @@ namespace VertexFormCore
                     primaryButtonPressed = false;
                 }
             }
+#endif
 
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_WEBGL
             if (Input.GetKeyDown(KeyCode.S) && CanTakeSelfie)
             {
                 RPC_TakeSelfie();
@@ -242,7 +253,10 @@ namespace VertexFormCore
 
             string fileName = $"Selfie_{System.DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{width}x{height}.png";
 
-#if UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
+            WebGLFileSaver.Download(bytes, fileName);
+            Debug.Log($"Landscape selfie download triggered: {fileName} ({width}x{height})");
+#elif UNITY_EDITOR
             string folder = Path.Combine(Application.persistentDataPath, "Selfies");
             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
             string savePath = Path.Combine(folder, fileName);

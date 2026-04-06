@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
+#if !UNITY_WEBGL
 using CesiumForUnity;
+#endif
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.UIElements;
 using Photon.Realtime;
@@ -13,9 +15,9 @@ namespace VertexFormCore
 
         void Start()
         {
-            // Start the coroutine to keep monitoring PanelRaycasters
             StartCoroutine(ContinuouslyCheckAndDisableRaycasters());
 
+#if !UNITY_WEBGL
             int teleportLayer = InteractionLayerMask.GetMask(new string[] { "Teleport" });
             Cesium3DTileset tileset = GetComponent<Cesium3DTileset>();
             if (tileset != null)
@@ -25,6 +27,7 @@ namespace VertexFormCore
                     go.AddComponent<TeleportationAreaNetworked>();
                 };
             }
+#endif
         }
 
         IEnumerator ContinuouslyCheckAndDisableRaycasters()
@@ -39,7 +42,7 @@ namespace VertexFormCore
                         panelRaycaster.enabled = false;
                     }
                 }
-                yield return new WaitForSeconds(0.5f); // Check every half second
+                yield return new WaitForSeconds(0.5f);
             }
         }
 

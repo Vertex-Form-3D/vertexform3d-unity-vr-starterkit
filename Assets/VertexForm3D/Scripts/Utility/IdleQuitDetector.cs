@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using Fusion;
 
 public class IdleQuitDetector : MonoBehaviour
@@ -104,6 +105,8 @@ public class IdleQuitDetector : MonoBehaviour
                 Debug.Log($"User idle for {idleTimeout} seconds. Quitting application...");
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
+#elif UNITY_WEBGL
+                SceneManager.LoadScene(0);
 #else
                 Application.Quit();
 #endif

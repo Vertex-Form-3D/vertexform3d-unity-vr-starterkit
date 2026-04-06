@@ -1,19 +1,24 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+#if !UNITY_WEBGL
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.Management;
+#endif
 
 public class PassthroughController : MonoBehaviour
 {
     public static PassthroughController Instance;
-    public ARCameraManager arCameraManager; // Reference to the ARCameraManager
-    public ARCameraBackground cameraBackground; // Reference to the ARCameraBackground
+#if !UNITY_WEBGL
+    public ARCameraManager arCameraManager;
+    public ARCameraBackground cameraBackground;
     public ARSession ARsession;
-    public ARPlaneManager arPlaneManager; // Reference to the ARPlaneManager
+    public ARPlaneManager arPlaneManager;
+#endif
     UniversalAdditionalCameraData cameraData;
-    bool wasPostProcessingEnabled = false; // Flag to track if post-processing was enabled
+    bool wasPostProcessingEnabled = false;
     public static bool IsPassthroughOn { get; private set; }
+
     private void Awake()
     {
         if (Instance == null)
@@ -21,44 +26,55 @@ public class PassthroughController : MonoBehaviour
             Instance = this;
         }
     }
+
     private void Start()
     {
         cameraData = Camera.main.GetComponent<UniversalAdditionalCameraData>();
+#if !UNITY_WEBGL
         if (IsPassthroughOn)
         {
             EnablePassthrough();
         }
+#endif
     }
 
     public void EnablePassthrough()
     {
-        // Check if OpenXR is active
-        if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+#if !UNITY_WEBGL
+        if (XRGeneralSettings.Instance != null &&
+            XRGeneralSettings.Instance.Manager != null &&
+            XRGeneralSettings.Instance.Manager.activeLoader != null)
         {
-            // Set the camera clear flags to solid color with alpha 0 for passthrough visibility
             Camera.main.clearFlags = CameraClearFlags.SolidColor;
             Camera.main.backgroundColor = new Color(0, 0, 0, 0);
-            Camera.main.allowHDR = false; // Disable HDR to avoid issues with passthrough
-            arPlaneManager.enabled = true; // Enable ARPlaneManager
-            wasPostProcessingEnabled = cameraData.renderPostProcessing; // Store the current post-processing state
-            cameraData.renderPostProcessing = false; // Disable post-processing effects
+            Camera.main.allowHDR = false;
+            arPlaneManager.enabled = true;
+            wasPostProcessingEnabled = cameraData.renderPostProcessing;
+            cameraData.renderPostProcessing = false;
             IsPassthroughOn = true;
         }
         else
         {
             Debug.LogError("XR Loader not initialized. Passthrough cannot be enabled.");
         }
+#else
+        Debug.LogWarning("[PassthroughController] Passthrough is not supported on WebGL.");
+#endif
     }
 
     public void DisablePassthrough()
     {
-        if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+#if !UNITY_WEBGL
+        if (XRGeneralSettings.Instance != null &&
+            XRGeneralSettings.Instance.Manager != null &&
+            XRGeneralSettings.Instance.Manager.activeLoader != null)
         {
-            Camera.main.clearFlags = CameraClearFlags.Skybox; // Restore default rendering
-            arPlaneManager.enabled = false; // Disable ARPlaneManager
-            cameraData.renderPostProcessing = wasPostProcessingEnabled; // Restore post-processing state
+            Camera.main.clearFlags = CameraClearFlags.Skybox;
+            arPlaneManager.enabled = false;
+            cameraData.renderPostProcessing = wasPostProcessingEnabled;
             Camera.main.allowHDR = true;
             IsPassthroughOn = false;
         }
+#endif
     }
 }

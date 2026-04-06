@@ -294,11 +294,12 @@ namespace VertexFormCore
         private void CheckMicrophone()
         {
             Debug.Log("--- Checking Microphone ---");
-
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Debug.Log("[VoiceDebugger] Microphone device enumeration not available on WebGL. Browser manages mic access via getUserMedia.");
+#else
             string[] devices = Microphone.devices;
             Debug.Log($"[VoiceDebugger] Available Microphone Devices: {devices.Length}");
 
-            // Get the device being used by the recorder
             string usedDevice = null;
             int usedDeviceIndex = -1;
 
@@ -314,12 +315,12 @@ namespace VertexFormCore
             for (int i = 0; i < devices.Length; i++)
             {
                 bool isUsed = (usedDevice != null && devices[i] == usedDevice) || (usedDevice == null && i == 0);
-                string marker = isUsed ? " ← CURRENTLY USED" : "";
+                string marker = isUsed ? " <- CURRENTLY USED" : "";
 
                 if (isUsed)
                 {
                     usedDeviceIndex = i;
-                    Debug.Log($"[VoiceDebugger]   [{i}] 🎤 {devices[i]}{marker}");
+                    Debug.Log($"[VoiceDebugger]   [{i}] {devices[i]}{marker}");
                 }
                 else
                 {
@@ -329,7 +330,7 @@ namespace VertexFormCore
 
             if (devices.Length == 0)
             {
-                Debug.LogError("[VoiceDebugger] ❌ NO MICROPHONE DEVICES FOUND!");
+                Debug.LogError("[VoiceDebugger] NO MICROPHONE DEVICES FOUND!");
                 Debug.LogError("[VoiceDebugger] Please check microphone permissions and connections!");
             }
             else if (usedDevice == null)
@@ -341,12 +342,12 @@ namespace VertexFormCore
                 Debug.Log($"[VoiceDebugger] Recorder is using microphone: {usedDevice} (index: {usedDeviceIndex})");
             }
 
-            // Check if Unity has microphone permission
 #if UNITY_ANDROID || UNITY_IOS
             if (!Application.HasUserAuthorization(UserAuthorization.Microphone))
             {
-                Debug.LogError("[VoiceDebugger] ❌ MICROPHONE PERMISSION NOT GRANTED!");
+                Debug.LogError("[VoiceDebugger] MICROPHONE PERMISSION NOT GRANTED!");
             }
+#endif
 #endif
         }
 
@@ -417,6 +418,9 @@ namespace VertexFormCore
         /// </summary>
         public void SetMicrophoneDevice(int deviceIndex)
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Debug.Log("[VoiceDebugger] Microphone device selection not supported on WebGL.");
+#else
             string[] devices = Microphone.devices;
             if (deviceIndex < 0 || deviceIndex >= devices.Length)
             {
@@ -427,17 +431,14 @@ namespace VertexFormCore
             string deviceName = devices[deviceIndex];
             Debug.Log($"[VoiceDebugger] Switching to microphone device [{deviceIndex}]: {deviceName}");
 
-            // Create DeviceInfo for the selected device
             Photon.Voice.DeviceInfo deviceInfo = new Photon.Voice.DeviceInfo(deviceIndex, deviceName);
 
-            // Set device for primary recorder
             if (fusionVoiceClient != null && fusionVoiceClient.PrimaryRecorder != null)
             {
                 fusionVoiceClient.PrimaryRecorder.MicrophoneDevice = deviceInfo;
                 Debug.Log($"[VoiceDebugger] Primary Recorder microphone changed to: {deviceName}");
             }
 
-            // Set device for all player recorders
             var players = FindObjectsByType<PlayerNetworkSetup>(FindObjectsSortMode.None);
             foreach (var player in players)
             {
@@ -451,6 +452,7 @@ namespace VertexFormCore
                     }
                 }
             }
+#endif
         }
 
         /// <summary>
@@ -459,6 +461,9 @@ namespace VertexFormCore
         [ContextMenu("Switch to Oculus Microphone")]
         public void SwitchToOculusMicrophone()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Debug.Log("[VoiceDebugger] Oculus microphone not available on WebGL.");
+#else
             string[] devices = Microphone.devices;
             for (int i = 0; i < devices.Length; i++)
             {
@@ -470,6 +475,7 @@ namespace VertexFormCore
                 }
             }
             Debug.LogWarning("[VoiceDebugger] Oculus Virtual Audio Device not found!");
+#endif
         }
     }
 }

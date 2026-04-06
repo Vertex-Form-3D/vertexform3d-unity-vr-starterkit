@@ -24,4 +24,8 @@ public class SettingsUISO : ScriptableObject
     [HideInInspector]
     public string addressableCatalogFileName = "VertexForm3DAddressablesCatalog";
     public bool onlyLocalBundles = true;
+
+    [Header("WebGL Addressables")]
+    [Tooltip("Remote URL for WebGL Addressable bundles (e.g., https://your-cdn.com/webgl-bundles/). Leave empty to use the default catalog path.")]
+    public string webGLCatalogUrl = "";
 }

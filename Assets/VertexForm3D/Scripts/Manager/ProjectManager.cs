@@ -15,6 +15,9 @@ public class ProjectManager : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
+#if UNITY_WEBGL && !UNITY_EDITOR
+            platforms.platformChoice = platform.Desktop;
+#endif
         }
         else
         {

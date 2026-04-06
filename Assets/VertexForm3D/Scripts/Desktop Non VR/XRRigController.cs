@@ -2,7 +2,6 @@ using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems; // Required for UI detection
 using UnityEngine.InputSystem;
 using VertexFormCore;
 using UnityEngine.Events;
@@ -328,7 +327,7 @@ public class XRRigController : MonoBehaviour
         Debug.Log("[XRRigController] Input actions enabled successfully (move, sprint, jump, pressed, axis, scroll)");
         pressed.performed += _ =>
         {
-            if (!IsPointerOverUI())
+            if (!DesktopPointerUIHelper.IsPointerOverUIThisFrame())
             {
                 if (this.isActiveAndEnabled)
                 {
@@ -528,12 +527,6 @@ public class XRRigController : MonoBehaviour
         {
             cameraTransform.rotation = orbitCamera.transform.rotation;
         }
-    }
-
-    private bool IsPointerOverUI()
-    {
-        // Check if the pointer is over a UI element
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 
     private IEnumerator Rotate()

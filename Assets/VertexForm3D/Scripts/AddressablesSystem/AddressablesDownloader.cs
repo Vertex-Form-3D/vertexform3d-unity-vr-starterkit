@@ -38,7 +38,11 @@ public class AddressablesDownloader : MonoBehaviour
 
     private void Start()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Application.targetFrameRate = -1;
+#else
         Application.targetFrameRate = 75;
+#endif
 
         if (!ProjectManager.instance.settingsUI.onlyLocalBundles)
         {
@@ -64,6 +68,13 @@ public class AddressablesDownloader : MonoBehaviour
             catalogFilePath = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.profileSettings.GetValueByName(UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings.activeProfileId, "Remote.LoadPath");
             catalogFilePath = catalogFilePath.Replace("[BuildTarget]", UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString());
             catalogFilePath = catalogFilePath + "/" + ProjectManager.instance.settingsUI.addressableCatalogFileName + ".json";
+            AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
+            DownloadingCatalog.Completed += OnCatalogDownload;
+#elif UNITY_WEBGL
+            if (!string.IsNullOrEmpty(ProjectManager.instance.settingsUI.webGLCatalogUrl))
+                catalogFilePath = ProjectManager.instance.settingsUI.webGLCatalogUrl;
+            else
+                catalogFilePath = ProjectManager.instance.settingsUI.addressableCatalogFileName;
             AsyncOperationHandle DownloadingCatalog = Addressables.LoadContentCatalogAsync(catalogFilePath, true);
             DownloadingCatalog.Completed += OnCatalogDownload;
 #else
@@ -201,7 +212,9 @@ public class AddressablesDownloader : MonoBehaviour
                 {
                     if (catalogModifyTime != lastModifiedTime.ToString())
                     {
+#if !UNITY_WEBGL
                         Caching.ClearCache();
+#endif
                         Addressables.CleanBundleCache().Completed += handle => Debug.Log("Cache cleared.");
                         Resources.UnloadUnusedAssets();
                         catalogModifyTime = lastModifiedTime.ToString();

@@ -171,7 +171,12 @@ public class VoiceRecorderManager : MonoBehaviour
     /// </summary>
     public string[] GetMicrophoneDevices()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Debug.Log("[VoiceRecorderManager] Microphone device enumeration not available on WebGL. Browser manages mic access.");
+        return new string[] { "Default (Browser)" };
+#else
         return Microphone.devices;
+#endif
     }
 
     /// <summary>
@@ -179,6 +184,9 @@ public class VoiceRecorderManager : MonoBehaviour
     /// </summary>
     public int GetCurrentMicrophoneDeviceIndex()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        return 0;
+#else
         string[] devices = Microphone.devices;
         if (devices == null || devices.Length == 0) return 0;
         if (recorder == null) return 0;
@@ -186,6 +194,7 @@ public class VoiceRecorderManager : MonoBehaviour
         if (dev.IsDefault || dev.IDInt < 0) return 0;
         int index = Mathf.Clamp(dev.IDInt, 0, devices.Length - 1);
         return index;
+#endif
     }
 
     /// <summary>
@@ -194,6 +203,10 @@ public class VoiceRecorderManager : MonoBehaviour
     /// </summary>
     public void SetMicrophoneDevice(int deviceIndex)
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        Debug.Log("[VoiceRecorderManager] Microphone device selection not supported on WebGL.");
+        return;
+#else
         string[] devices = Microphone.devices;
         if (devices == null || devices.Length == 0)
         {
@@ -214,7 +227,6 @@ public class VoiceRecorderManager : MonoBehaviour
             Debug.Log($"[VoiceRecorderManager] Microphone set to: {deviceName}");
         }
 
-        // Also set on local player's recorder if it's a different instance
         PlayerNetworkSetup[] players = FindObjectsByType<PlayerNetworkSetup>(FindObjectsSortMode.None);
         foreach (PlayerNetworkSetup player in players)
         {
@@ -228,5 +240,6 @@ public class VoiceRecorderManager : MonoBehaviour
                 break;
             }
         }
+#endif
     }
 }

@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace VertexFormCore
 {
@@ -56,61 +52,55 @@ namespace VertexFormCore
 
         /// <summary>
         /// Override to provide custom addressable scene resolution.
-        /// This avoids the need to wait for Fusion to query the addressables catalog.
+        /// Merges the Fusion catalog (FusionScenes label) with <see cref="knownAddressableScenes"/>.
         /// </summary>
+        /// <remarks>
+        /// The base implementation completes its task in <see cref="GetAddressableScenesResult.BeforeWaitForCompletion"/>.
+        /// We must merge catalog paths with registered keys in that same callback — not in <c>ContinueWith</c> —
+        /// or WebGL can deadlock: the main thread blocks in <c>Task.Wait</c> while continuations never run.
+        /// </remarks>
         protected override GetAddressableScenesResult GetAddressableScenes()
         {
-            Debug.Log($"[CustomNetworkSceneManager] GetAddressableScenes called");
+            Debug.Log("[CustomNetworkSceneManager] GetAddressableScenes called");
 
-            // First try to get scenes with the FusionScenes label (default behavior)
             var defaultResult = base.GetAddressableScenes();
-
-            // Create a task that combines both the default result and our known scenes
             var tcs = new TaskCompletionSource<string[]>();
-
-            defaultResult.Task.ContinueWith(task =>
-            {
-                try
-                {
-                    if (task.IsCompletedSuccessfully && task.Result != null && task.Result.Length > 0)
-                    {
-                        // Use the scenes from the catalog
-                        var catalogScenes = task.Result.ToList();
-
-                        // Add any registered scenes that aren't already in the list
-                        foreach (var knownScene in knownAddressableScenes)
-                        {
-                            if (!catalogScenes.Contains(knownScene))
-                            {
-                                catalogScenes.Add(knownScene);
-                            }
-                        }
-
-                        Debug.Log($"[CustomNetworkSceneManager] Found {catalogScenes.Count} addressable scenes: {string.Join(", ", catalogScenes)}");
-                        tcs.SetResult(catalogScenes.ToArray());
-                    }
-                    else
-                    {
-                        // If catalog query failed or returned nothing, use only our known scenes
-                        Debug.LogWarning($"[CustomNetworkSceneManager] Catalog query failed or empty, using registered scenes only");
-                        tcs.SetResult(knownAddressableScenes.ToArray());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[CustomNetworkSceneManager] Error resolving addressable scenes: {ex.Message}");
-                    // Fallback to known scenes
-                    tcs.SetResult(knownAddressableScenes.ToArray());
-                }
-            });
 
             return new GetAddressableScenesResult
             {
                 Task = tcs.Task,
                 BeforeWaitForCompletion = () =>
                 {
-                    // Call the default before wait handler
                     defaultResult.BeforeWaitForCompletion?.Invoke();
+
+                    string[] catalogPaths = Array.Empty<string>();
+                    try
+                    {
+                        if (defaultResult.Task.Status == TaskStatus.RanToCompletion)
+                            catalogPaths = defaultResult.Task.Result ?? Array.Empty<string>();
+                        else if (defaultResult.Task.IsFaulted)
+                            Debug.LogWarning($"[CustomNetworkSceneManager] Default addressables query failed: {defaultResult.Task.Exception?.GetBaseException()?.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogWarning($"[CustomNetworkSceneManager] Reading catalog paths failed: {ex.Message}");
+                    }
+
+                    var merged = new List<string>(catalogPaths.Length + knownAddressableScenes.Count);
+                    foreach (var p in catalogPaths)
+                    {
+                        if (!string.IsNullOrEmpty(p) && !merged.Contains(p))
+                            merged.Add(p);
+                    }
+
+                    foreach (var known in knownAddressableScenes)
+                    {
+                        if (!string.IsNullOrEmpty(known) && !merged.Contains(known))
+                            merged.Add(known);
+                    }
+
+                    Debug.Log($"[CustomNetworkSceneManager] Merged {merged.Count} addressable scene path(s) for Fusion: {string.Join(", ", merged)}");
+                    tcs.TrySetResult(merged.ToArray());
                 }
             };
         }

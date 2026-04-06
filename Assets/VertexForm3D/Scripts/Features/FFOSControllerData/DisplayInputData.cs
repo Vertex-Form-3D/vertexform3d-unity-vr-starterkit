@@ -23,12 +23,9 @@ namespace VertexFormCore
         // Update is called once per frame
         void Update()
         {
-            /*if (_inputData._leftController.TryGetFeatureValue(CommonUsages.deviceVelocity, out Vector3 leftVelocity))
-            {
-                _leftMaxScore = Mathf.Max(leftVelocity.magnitude, _leftMaxScore);
-                leftScoreDisplay.text = _leftMaxScore.ToString("F2");
-            }*/
-
+#if UNITY_WEBGL
+            return;
+#else
             if (_inputData._leftController.TryGetFeatureValue(CommonUsages.grip, out float leftGrip))
             {
                 leftControllerDebug.gripText.text = "Grip: " + leftGrip.ToString();
@@ -176,6 +173,7 @@ namespace VertexFormCore
             {
                 rightControllerDebug.secondary2DAxisTouchText.text = "secondary2DAxisTouch: " + rightsecondary2DAxisTouch.ToString();
             }
+#endif
         }
     }
 

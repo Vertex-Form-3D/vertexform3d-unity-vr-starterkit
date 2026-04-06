@@ -46,8 +46,8 @@ PlayerSettings:
   m_HolographicTrackingLossScreen: {fileID: 0}
   defaultScreenWidth: 1920
   defaultScreenHeight: 1080
-  defaultScreenWidthWeb: 960
-  defaultScreenHeightWeb: 600
+  defaultScreenWidthWeb: 1920
+  defaultScreenHeightWeb: 1080
   m_StereoRenderingPath: 2
   m_ActiveColorSpace: 1
   unsupportedMSAAFallback: 0
@@ -148,9 +148,8 @@ PlayerSettings:
   tvOSBundleVersion: 1.0
   bundleVersion: 0.0.1
   preloadedAssets:
-  - {fileID: 475465402638252791, guid: fba6072275013e6448e381f83d131b7f, type: 2}
-  - {fileID: 7106294751780721711, guid: e60ad326389e9b14e9f7ae2c33703862, type: 2}
   - {fileID: 11400000, guid: 7d6158f0d138d1b4294823be665b00c5, type: 2}
+  - {fileID: -7720066590039800998, guid: e60ad326389e9b14e9f7ae2c33703862, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -594,6 +593,9 @@ PlayerSettings:
   - serializedVersion: 3
     m_BuildTarget: Android
     m_Formats: 01000000
+  - serializedVersion: 3
+    m_BuildTarget: WebGL
+    m_Formats: 05000000
   playModeTestRunnerEnabled: 0
   runPlayModeTestAsEditModeTest: 0
   actionOnDotNetUnhandledException: 1
@@ -842,7 +844,7 @@ PlayerSettings:
   splashScreenBackgroundSourcePortrait: {fileID: 0}
   blurSplashScreenBackground: 1
   spritePackerPolicy: 
-  webGLMemorySize: 16
+  webGLMemorySize: 512
   webGLExceptionSupport: 1
   webGLNameFilesAsHashes: 0
   webGLShowDiagnostics: 0
@@ -853,11 +855,11 @@ PlayerSettings:
   webGLTemplate: APPLICATION:Default
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
-  webGLCompressionFormat: 1
+  webGLCompressionFormat: 0
   webGLWasmArithmeticExceptions: 0
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
-  webGLDecompressionFallback: 0
+  webGLDecompressionFallback: 1
   webGLInitialMemorySize: 32
   webGLMaximumMemorySize: 2048
   webGLMemoryGrowthMode: 2
@@ -900,7 +902,7 @@ PlayerSettings:
     Stadia: PHOTON_UNITY_NETWORKING;PUN_2_0_OR_NEWER;PUN_2_OR_NEWER;PUN_2_19_OR_NEWER;UNITY_POST_PROCESSING_STACK_V2
     Standalone: ENABLE_JSON_CATALOG;CROSS_PLATFORM_INPUT;UNITY_POST_PROCESSING_STACK_V2;USE_INPUT_SYSTEM_POSE_CONTROL;FUSION_WEAVER;FUSION2;FUSION_2;FUSION_2_0;FUSION_2_0_9;FUSION_2_OR_NEWER;FUSION_2_0_OR_NEWER;FUSION_LOGLEVEL_INFO;USE_STICK_CONTROL_THUMBSTICKS
     VisionOS: UNITY_POST_PROCESSING_STACK_V2
-    WebGL: ENABLE_JSON_CATALOG;UNITY_POST_PROCESSING_STACK_V2
+    WebGL: ENABLE_JSON_CATALOG;UNITY_POST_PROCESSING_STACK_V2;USE_INPUT_SYSTEM_POSE_CONTROL;FUSION_WEAVER;FUSION2;FUSION_2;FUSION_2_0;FUSION_2_0_9;FUSION_2_OR_NEWER;FUSION_2_0_OR_NEWER;FUSION_LOGLEVEL_INFO
     Windows Store Apps: ENABLE_JSON_CATALOG;MOBILE_INPUT;USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
     XboxOne: ENABLE_JSON_CATALOG;UNITY_POST_PROCESSING_STACK_V2
     iPhone: ENABLE_JSON_CATALOG;CROSS_PLATFORM_INPUT;MOBILE_INPUT

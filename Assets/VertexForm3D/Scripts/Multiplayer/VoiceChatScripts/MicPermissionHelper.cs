@@ -13,6 +13,8 @@ namespace VertexFormCore
             {
                 Permission.RequestUserPermission(Permission.Microphone);
             }
+#elif UNITY_WEBGL && !UNITY_EDITOR
+            Debug.Log("[MicPermissionHelper] WebGL: browser will prompt for microphone access when Photon Voice starts recording.");
 #endif
         }
     }

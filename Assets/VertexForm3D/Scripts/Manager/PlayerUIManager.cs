@@ -59,35 +59,45 @@ namespace VertexFormCore
 
         void Start()
         {
-            // Assign button events programmatically
-            GoHome_Button_Desktop.GetComponent<Button>().onClick.AddListener(VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene);
-            GoHome_Button_VR.GetComponent<Button>().onClick.AddListener(VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene);
-            selfieButton.onClick.AddListener(OnTapSelfieStick);
+            // Go home: VirtualRoomManager may not exist in addressable / WebGL flows until a bootstrap scene loads it.
+            void LeaveHomeSafe()
+            {
+                if (VirtualRoomManager.Instance != null)
+                    VirtualRoomManager.Instance.LeaveRoomAndLoadHomeScene();
+            }
+            if (GoHome_Button_Desktop != null)
+            {
+                var b = GoHome_Button_Desktop.GetComponent<Button>();
+                if (b != null) b.onClick.AddListener(LeaveHomeSafe);
+            }
+            if (GoHome_Button_VR != null)
+            {
+                var b = GoHome_Button_VR.GetComponent<Button>();
+                if (b != null) b.onClick.AddListener(LeaveHomeSafe);
+            }
+            if (selfieButton != null)
+                selfieButton.onClick.AddListener(OnTapSelfieStick);
 
-            postureUISetting.button.onClick.RemoveAllListeners();
-            postureUISetting.button.onClick.AddListener(OnTapPostureToggle);
-
-            voiceUISetting.button.onClick.RemoveAllListeners();
-            voiceUISetting.button.onClick.AddListener(OnTapVoiceToggle);
-
-            grabUISetting.button.onClick.RemoveAllListeners();
-            grabUISetting.button.onClick.AddListener(OnTapGrabToggle);
-
-            flyUISetting.button.onClick.RemoveAllListeners();
-            flyUISetting.button.onClick.AddListener(OnTapFlyToggle);
-
-            audioUISetting.button.onClick.RemoveAllListeners();
-            audioUISetting.button.onClick.AddListener(OnTapMegaphoneToggle);
-
-            emojiUISetting.button.onClick.RemoveAllListeners();
-            emojiUISetting.button.onClick.AddListener(ManageEmojiPanel);
+            WireSettingButton(postureUISetting, OnTapPostureToggle);
+            WireSettingButton(voiceUISetting, OnTapVoiceToggle);
+            WireSettingButton(grabUISetting, OnTapGrabToggle);
+            WireSettingButton(flyUISetting, OnTapFlyToggle);
+            WireSettingButton(audioUISetting, OnTapMegaphoneToggle);
+            WireSettingButton(emojiUISetting, ManageEmojiPanel);
 
             SetupMicrophoneDropdown();
 
-            if (networkObject.HasInputAuthority)
+            if (networkObject != null && networkObject.HasInputAuthority)
             {
                 InitializeAllSettings();
             }
+        }
+
+        private static void WireSettingButton(SettingButton setting, UnityEngine.Events.UnityAction handler)
+        {
+            if (setting == null || setting.button == null || handler == null) return;
+            setting.button.onClick.RemoveAllListeners();
+            setting.button.onClick.AddListener(handler);
         }
 
         /// <summary>
@@ -131,9 +141,11 @@ namespace VertexFormCore
         {
             if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
+                if (emojiPanelDesktop == null) return;
                 emojiPanelDesktop.SetActive(!emojiPanelDesktop.activeInHierarchy);
-                emojiPanelDesktop.transform.GetChild(0).localScale = Vector3.one * 0.5f;
-                desktopMenuUI.SetActive(false);
+                if (emojiPanelDesktop.transform.childCount > 0)
+                    emojiPanelDesktop.transform.GetChild(0).localScale = Vector3.one * 0.5f;
+                if (desktopMenuUI != null) desktopMenuUI.SetActive(false);
             }
             else
             {
@@ -171,7 +183,7 @@ namespace VertexFormCore
             ApplyMegaphoneMode();
 
             // Fly Mode
-            canFlyGlobally = SceneLoader.Instance.isFlyModeEnabled;
+            canFlyGlobally = SceneLoader.Instance != null && SceneLoader.Instance.isFlyModeEnabled;
             bool defaultFlyOn = ProjectManager.instance.settingsUI.defaultSettings.flyMode == toggle.on;
             isFlying = canFlyGlobally && defaultFlyOn;
             ApplyFlyMode();
@@ -220,10 +232,12 @@ namespace VertexFormCore
 
         private void Update()
         {
-#if UNITY_EDITOR
+#if UNITY_EDITOR || UNITY_WEBGL
             if (Input.GetKeyDown(KeyCode.N)) HandleMenuUI();
             if (Input.GetKeyDown(KeyCode.M)) HandleSettingUI();
 #endif
+
+#if !UNITY_WEBGL
             if (_inputData._rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool rightBtn))
             {
                 if (rightBtn && !rightPrimaryButtonPressed)
@@ -243,6 +257,7 @@ namespace VertexFormCore
                 }
                 else if (!leftBtn) leftPrimaryButtonPressed = false;
             }
+#endif
         }
 
         // ==================== TOGGLE HANDLERS ====================
@@ -268,7 +283,7 @@ namespace VertexFormCore
         {
             if (!canFlyGlobally)
             {
-                notificationHandler.ShowMessage("Fly Mode is disabled in this World", "#FF0000");
+                notificationHandler?.ShowMessage("Fly Mode is disabled in this World", "#FF0000");
                 return;
             }
             isFlying = !isFlying;
@@ -284,88 +299,99 @@ namespace VertexFormCore
         // ==================== APPLY FUNCTIONS ====================
         private void Sit()
         {
+            if (networkSetup == null) return;
             if (networkSetup.IsSitting)
             {
                 return;
             }
             networkSetup.SetSittingHeight(false);
             isStanding = false;
-            postureUISetting.Disable(); // Sets disableSprite + disableText
+            postureUISetting?.Disable(); // Sets disableSprite + disableText
         }
 
         private void Stand()
         {
+            if (networkSetup == null) return;
             if (networkSetup.IsSitting)
             {
                 return;
             }
             networkSetup.SetStandingHeight(false);
             isStanding = true;
-            postureUISetting.Enable(); // Sets enableSprite + enableText
+            postureUISetting?.Enable(); // Sets enableSprite + enableText
         }
 
         private void MuteVoice()
         {
-            VoiceRecorderManager.Instance.DisableRecorder();
+            VoiceRecorderManager.Instance?.DisableRecorder();
             isVoiceEnabled = false;
-            voiceUISetting.Disable();
+            voiceUISetting?.Disable();
         }
 
         private void UnmuteVoice()
         {
-            VoiceRecorderManager.Instance.EnableRecorder();
+            VoiceRecorderManager.Instance?.EnableRecorder();
             isVoiceEnabled = true;
-            voiceUISetting.Enable();
+            voiceUISetting?.Enable();
         }
 
         private void ApplyGrabMode()
         {
+            if (nearFarInteractors == null) return;
             bool enableFar = !isNearGrab;
             foreach (var interactor in nearFarInteractors)
-                interactor.enableFarCasting = enableFar;
+            {
+                if (interactor != null) interactor.enableFarCasting = enableFar;
+            }
 
             if (isNearGrab)
             {
-                grabUISetting.Disable(); // Near Grab is active → show as "disabled" style (convention in your UI)
+                grabUISetting?.Disable(); // Near Grab is active → show as "disabled" style (convention in your UI)
                 HandleUIInteractor(true);
             }
             else
             {
-                grabUISetting.Enable(); // Distance Grab active
+                grabUISetting?.Enable(); // Distance Grab active
                 HandleUIInteractor(false);
             }
         }
 
         private void ApplyFlyMode()
         {
+            if (networkSetup == null) return;
+            var flying = networkSetup.GetComponent<FlyingModeScript>();
             if (isFlying)
             {
-                networkSetup.GetComponent<FlyingModeScript>().enabled = true;
-                networkSetup.gp.useGravity = false;
-                flyUISetting.Enable();
+                if (flying != null) flying.enabled = true;
+                if (networkSetup.gp != null) networkSetup.gp.useGravity = false;
+                flyUISetting?.Enable();
             }
             else
             {
-                networkSetup.GetComponent<FlyingModeScript>().enabled = false;
-                networkSetup.gp.useGravity = true;
-                flyUISetting.Disable();
+                if (flying != null) flying.enabled = false;
+                if (networkSetup.gp != null) networkSetup.gp.useGravity = true;
+                flyUISetting?.Disable();
             }
             onFlyModeChanged?.Invoke();
         }
 
         private void ApplyMegaphoneMode()
         {
+            if (networkSetup == null) return;
             networkSetup.MegaphoneHandler(isMegaphone);
             if (isMegaphone)
-                audioUISetting.Enable();
+                audioUISetting?.Enable();
             else
-                audioUISetting.Disable();
+                audioUISetting?.Disable();
         }
 
         void HandleUIInteractor(bool active)
         {
+            if (UIInteractors == null) return;
             foreach (var interactor in UIInteractors)
-                interactor.gameObject.SetActive(active);
+            {
+                if (interactor != null) interactor.gameObject.SetActive(active);
+            }
         }
 
         // ==================== UI Positioning ====================
@@ -373,9 +399,12 @@ namespace VertexFormCore
         {
             if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
-                desktopMenuUI.SetActive(!desktopMenuUI.activeInHierarchy);
-                menuUI.SetActive(false);
-                settingUI.SetActive(false);
+
+                Debug.Log("Menu Clicked");
+                if (desktopMenuUI != null)
+                    desktopMenuUI.SetActive(!desktopMenuUI.activeInHierarchy);
+                if (menuUI != null) menuUI.SetActive(false);
+                if (settingUI != null) settingUI.SetActive(false);
             }
             else
             {
@@ -393,7 +422,7 @@ namespace VertexFormCore
                 {
                     MoveCanvasToCamera(menuUI);
                     menuUI.SetActive(true);
-                    settingUI.SetActive(false);
+                    if (settingUI != null) settingUI.SetActive(false);
                 }
             }
 
@@ -403,15 +432,26 @@ namespace VertexFormCore
         {
             if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
             {
-                settingUI.GetComponentInChildren<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-                settingUI.SetActive(!settingUI.activeInHierarchy);
-                desktopMenuUI.SetActive(false);
-                if (settingUI.activeInHierarchy)
+                if (settingUI != null)
+                {
+                    Debug.Log("Setting UI Clicked");
+                    var settingsCanvas = settingUI.GetComponentInChildren<Canvas>();
+                    if (settingsCanvas != null)
+                        settingsCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                    settingUI.SetActive(!settingUI.activeInHierarchy);
+                }
+                if (desktopMenuUI != null) desktopMenuUI.SetActive(false);
+                if (settingUI != null && settingUI.activeInHierarchy)
                     SetupMicrophoneDropdown();
             }
             else
             {
-                settingUI.GetComponentInChildren<Canvas>().renderMode = RenderMode.WorldSpace;
+                if (settingUI != null)
+                {
+                    var settingsCanvas = settingUI.GetComponentInChildren<Canvas>();
+                    if (settingsCanvas != null)
+                        settingsCanvas.renderMode = RenderMode.WorldSpace;
+                }
                 distanceFromCamera = 2;
                 if (settingUI == null)
                 {
@@ -425,7 +465,7 @@ namespace VertexFormCore
                 {
                     MoveCanvasToCamera(settingUI);
                     settingUI.SetActive(true);
-                    menuUI.SetActive(false);
+                    if (menuUI != null) menuUI.SetActive(false);
                     SetupMicrophoneDropdown(); // Refresh device list when opening settings
                 }
             }

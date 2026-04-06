@@ -75,8 +75,10 @@ namespace VertexFormCore
             Debug.Log("[SceneLoader] Base scene loaded, waiting for scene to be ready...");
             yield return new WaitForSeconds(0.5f);
 
-            // Handle XR reinitialization
-            if (XRGeneralSettings.Instance.Manager.isInitializationComplete)
+#if !UNITY_WEBGL
+            if (XRGeneralSettings.Instance != null &&
+                XRGeneralSettings.Instance.Manager != null &&
+                XRGeneralSettings.Instance.Manager.isInitializationComplete)
             {
                 XRGeneralSettings.Instance.Manager.StopSubsystems();
                 XRGeneralSettings.Instance.Manager.DeinitializeLoader();
@@ -92,6 +94,7 @@ namespace VertexFormCore
                     Debug.LogError("Failed to reinitialize XR Loader.");
                 }
             }
+#endif
 
             // DON'T load the addressable scene here - let Fusion do it!
             // This ensures NetworkObjects in the addressable scene are properly networked
@@ -134,7 +137,9 @@ namespace VertexFormCore
             }
 
             Resources.UnloadUnusedAssets();
+#if !UNITY_WEBGL
             Caching.ClearCache();
+#endif
         }
         
         public void OnFusionSceneLoaded(string sceneName)

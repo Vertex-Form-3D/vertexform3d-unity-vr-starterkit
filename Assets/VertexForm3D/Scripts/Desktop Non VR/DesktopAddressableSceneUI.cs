@@ -22,15 +22,6 @@ public class DesktopAddressableSceneUI : MonoBehaviour
         if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
         {
             StartCoroutine(IEAssignModeEvent());
-            modeImage.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                var xrRig = RoomManager.Instance?.localVRPlayer?.GetComponent<XRRigController>();
-                if (xrRig == null) return;
-                if (xrRig.isThirdPerson)
-                    xrRig.SwitchToFirstPerson();
-                else
-                    xrRig.SwitchToThirdPerson();
-            });
         }
         else
         {
@@ -41,6 +32,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
 
     public void ManageFlyUI()
     {
+        if (flyButton == null) return;
         flyButton.interactable = true;
         var pns = RoomManager.Instance?.GetLocalPlayerSetup();
         if (pns != null && pns.playerUIManager.IsFlying())
@@ -67,7 +59,9 @@ public class DesktopAddressableSceneUI : MonoBehaviour
 
     IEnumerator IEAssignModeEvent()
     {
-        while (RoomManager.Instance == null || RoomManager.Instance.GetLocalPlayerSetup() == null)
+        while (RoomManager.Instance == null
+               || RoomManager.Instance.GetLocalPlayerSetup() == null
+               || RoomManager.Instance.localVRPlayer == null)
         {
             yield return null;
         }
@@ -76,6 +70,18 @@ public class DesktopAddressableSceneUI : MonoBehaviour
         var pns = RoomManager.Instance.GetLocalPlayerSetup();
         desktopCanvas.gameObject.SetActive(true);
         if (xrRig == null || pns == null) yield break;
+
+        var modeBtn = modeImage != null ? modeImage.GetComponent<Button>() : null;
+        if (modeBtn != null)
+        {
+            modeBtn.onClick.AddListener(() =>
+            {
+                if (xrRig.isThirdPerson)
+                    xrRig.SwitchToFirstPerson();
+                else
+                    xrRig.SwitchToThirdPerson();
+            });
+        }
         if (xrRig.isThirdPerson)
         {
             modeImage.sprite = thirdPersonSprite;
@@ -87,7 +93,8 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             modeText.text = "First Person mode";
         }
 
-        flyButton.onClick.AddListener(() => { pns.playerUIManager.OnTapFlyToggle(); Invoke(nameof(ManageFlyUI), .1f); });
+        if (flyButton != null)
+            flyButton.onClick.AddListener(() => { pns.playerUIManager.OnTapFlyToggle(); Invoke(nameof(ManageFlyUI), .1f); });
         pns.playerUIManager.onFlyModeChanged += ManageFlyUI;
         ManageFlyUI();
 
@@ -115,12 +122,14 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public void OnTapMenuButton()
     {
         var pns = RoomManager.Instance?.GetLocalPlayerSetup();
-        if (pns != null) pns.playerUIManager.HandleMenuUI();
+        if (pns?.playerUIManager != null)
+            pns.playerUIManager.HandleMenuUI();
     }
 
     public void OnTapSettingButton()
     {
         var pns = RoomManager.Instance?.GetLocalPlayerSetup();
-        if (pns != null) pns.playerUIManager.HandleSettingUI();
+        if (pns?.playerUIManager != null)
+            pns.playerUIManager.HandleSettingUI();
     }
 }

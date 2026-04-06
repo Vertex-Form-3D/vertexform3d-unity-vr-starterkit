@@ -255,6 +255,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadingText: {fileID: 4270348315520439177}
   fadeImage: {fileID: 8379621900628274948}
+  disconnectPopupRoot: {fileID: 0}
+  disconnectPopupDuration: 2
+  progressLerpSpeed: 35
 --- !u!114 &5081331104093223321
 MonoBehaviour:
   m_ObjectHideFlags: 0

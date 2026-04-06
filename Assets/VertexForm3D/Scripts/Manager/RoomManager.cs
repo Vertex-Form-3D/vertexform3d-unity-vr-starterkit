@@ -224,14 +224,17 @@ namespace VertexFormCore
             // Create scene info for both base scene and addressable scene
             var sceneInfo = new NetworkSceneInfo();
 
-            // Add ONLY the base "addressableScene" from build settings to Fusion's scene management
-            // Use FromPath instead of FromIndex for cross-platform compatibility
+            // Base "addressableScene" must be in Editor Build Settings. Use build index so Fusion loads it
+            // via SceneManager (not Addressables). FromPath would require that path in Fusion's addressable list.
             var baseScene = SceneManager.GetSceneByName("addressableScene");
             if (baseScene.IsValid())
             {
-                var baseSceneRef = SceneRef.FromPath(baseScene.path);
+                int baseBuildIndex = SceneUtility.GetBuildIndexByScenePath(baseScene.path);
+                SceneRef baseSceneRef = baseBuildIndex >= 0
+                    ? SceneRef.FromIndex(baseBuildIndex)
+                    : SceneRef.FromPath(baseScene.path);
                 sceneInfo.AddSceneRef(baseSceneRef, LoadSceneMode.Single);
-                Debug.Log($"Adding base scene to network: {baseScene.name} (path: {baseScene.path})");
+                Debug.Log($"Adding base scene to network: {baseScene.name} (path: {baseScene.path}, SceneRef: {(baseBuildIndex >= 0 ? $"index {baseBuildIndex}" : "path")})");
             }
 
             // Register and add the addressable scene for Fusion to load
@@ -537,6 +540,9 @@ namespace VertexFormCore
             var appSettings = PhotonAppSettings.Global.AppSettings.GetCopy();
             appSettings.UseNameServer = true;
             appSettings.FixedRegion = region.ToLower();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            appSettings.Protocol = ExitGames.Client.Photon.ConnectionProtocol.WebSocketSecure;
+#endif
             return appSettings;
         }
         public void LeaveRoom()

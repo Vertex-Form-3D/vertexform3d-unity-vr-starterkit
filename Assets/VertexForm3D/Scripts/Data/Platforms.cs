@@ -45,6 +45,18 @@ public class Platforms : ScriptableObject
                     "Enable <b>Initialize XR on Startup</b>"
                 },
                 note = "Why this matters: Enabling \u2018Initialize XR on Startup\u2019 ensures your VR experience launches correctly when running the project on desktop through Quest Link \u2014 without this, XR may not initialize at play time."
+            },
+            new PlatformSetupGuide
+            {
+                title = "WebGL",
+                subtitle = "Browser",
+                steps = new List<string>
+                {
+                    "Select <b>Desktop</b> from the <b>Platform</b> dropdown in Project Data.",
+                    "Go to <b>Edit \u2192 Build Profiles</b> and set <b>WebGL</b> as the active platform.",
+                    "Ensure Photon Fusion scripting defines are set for WebGL target."
+                },
+                note = "WebGL builds automatically force Desktop mode. XR features are disabled."
             }
         };
     }

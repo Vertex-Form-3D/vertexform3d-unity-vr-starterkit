@@ -135,6 +135,9 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
         var appSettings = PhotonAppSettings.Global.AppSettings.GetCopy();
         appSettings.UseNameServer = true;
         appSettings.FixedRegion = region.ToLower();
+#if UNITY_WEBGL && !UNITY_EDITOR
+        appSettings.Protocol = ExitGames.Client.Photon.ConnectionProtocol.WebSocketSecure;
+#endif
         return appSettings;
     }
 

@@ -2,7 +2,6 @@ using Photon.Voice;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class OrbitCamera : MonoBehaviour
@@ -80,20 +79,28 @@ public class OrbitCamera : MonoBehaviour
         pressed.Enable();
         Debug.Log("[OrbitCamera] Awake: input actions enabled (pressed, axis, scroll)");
 
-        pressed.performed += _ =>
-        {
-            if (!IsPointerOverUI())
-            {
-                if (this.isActiveAndEnabled)
-                {
-                    StartCoroutine(Rotate());
-                }
-            }
-        };
-        pressed.canceled += _ => { rotateAllowed = false; };
-        axis.performed += context => { rotationValue = context.ReadValue<Vector2>(); };
-        scroll.performed += context => { HandleZoom(context.ReadValue<float>()); };
+        pressed.performed += OnPressedPerformed;
+        pressed.canceled += OnPressedCanceled;
+        axis.performed += OnAxisPerformed;
+        scroll.performed += OnScrollPerformed;
     }
+
+    private void OnPressedPerformed(InputAction.CallbackContext _)
+    {
+        if (!DesktopPointerUIHelper.IsPointerOverUIThisFrame())
+        {
+            if (isActiveAndEnabled)
+                StartCoroutine(Rotate());
+        }
+    }
+
+    private void OnPressedCanceled(InputAction.CallbackContext _) => rotateAllowed = false;
+
+    private void OnAxisPerformed(InputAction.CallbackContext context) =>
+        rotationValue = context.ReadValue<Vector2>();
+
+    private void OnScrollPerformed(InputAction.CallbackContext context) =>
+        HandleZoom(context.ReadValue<float>());
     public void ResetTargetOffset()
     {
         targetOffset = defaultTargetOffset;
@@ -104,28 +111,22 @@ public class OrbitCamera : MonoBehaviour
     }
     private void OnDestroy()
     {
-        pressed.performed -= _ =>
+        if (pressed != null)
         {
-            if (!IsPointerOverUI())
-            {
-                if (this.isActiveAndEnabled)
-                {
-                    StartCoroutine(Rotate());
-                }
-            }
-        };
-        pressed.canceled -= _ => { rotateAllowed = false; };
-        axis.performed -= context => { rotationValue = context.ReadValue<Vector2>(); };
-        scroll.performed -= context => { HandleZoom(context.ReadValue<float>()); };
-        pressed.Disable();
-        axis.Disable();
-        scroll.Disable();
-    }
-
-    private bool IsPointerOverUI()
-    {
-        // Check if the pointer is over a UI element
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+            pressed.performed -= OnPressedPerformed;
+            pressed.canceled -= OnPressedCanceled;
+            pressed.Disable();
+        }
+        if (axis != null)
+        {
+            axis.performed -= OnAxisPerformed;
+            axis.Disable();
+        }
+        if (scroll != null)
+        {
+            scroll.performed -= OnScrollPerformed;
+            scroll.Disable();
+        }
     }
 
     private IEnumerator Rotate()

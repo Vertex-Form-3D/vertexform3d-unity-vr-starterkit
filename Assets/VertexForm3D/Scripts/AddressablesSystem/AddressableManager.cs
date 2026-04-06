@@ -124,11 +124,10 @@ public class AddressableManager : MonoBehaviour
 
     void CheckBundleCacheStatus(IResourceLocation location, string identifier)
     {
-        // Get the bundle's internal ID (URL) and hash
-        string bundleUrl = location.InternalId; // e.g., https://storage.googleapis.com/your-bucket-name/bundles/textures.bundle
+#if !UNITY_WEBGL
+        string bundleUrl = location.InternalId;
         string hash = location.Data != null ? (location.Data as ILocationSizeData)?.ComputeSize(location, null).ToString() : "";
 
-        // Check if the bundle is cached
         if (!string.IsNullOrEmpty(bundleUrl))
         {
             Cache cache = Caching.GetCacheByPath(Caching.currentCacheForWriting.path);
@@ -140,7 +139,6 @@ public class AddressableManager : MonoBehaviour
             Debug.LogWarning($"No valid bundle URL for {identifier}.");
         }
 
-        // Check dependencies (other bundles this asset depends on)
         if (location.Dependencies != null && location.Dependencies.Count > 0)
         {
             foreach (var dep in location.Dependencies)
@@ -154,6 +152,9 @@ public class AddressableManager : MonoBehaviour
                 }
             }
         }
+#else
+        Debug.Log($"[AddressableManager] Cache check skipped on WebGL for: {identifier}");
+#endif
     }
 
     #endregion
