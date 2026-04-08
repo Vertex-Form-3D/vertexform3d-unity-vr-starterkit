@@ -52,11 +52,11 @@ public class Platforms : ScriptableObject
                 subtitle = "Browser",
                 steps = new List<string>
                 {
-                    "Select <b>Desktop</b> from the <b>Platform</b> dropdown in Project Data.",
+                    "Choose <b>VR</b> or <b>Desktop</b> in Project Data depending on WebXR vs non-XR browser UX.",
                     "Go to <b>Edit \u2192 Build Profiles</b> and set <b>WebGL</b> as the active platform.",
                     "Ensure Photon Fusion scripting defines are set for WebGL target."
                 },
-                note = "WebGL builds automatically force Desktop mode. XR features are disabled."
+                note = "Runtime no longer overrides the Platform dropdown on WebGL; set it explicitly for WebXR vs flat browser."
             }
         };
     }

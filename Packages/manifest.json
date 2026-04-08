@@ -2,6 +2,8 @@
   "dependencies": {
     "com.boxqkrtm.ide.cursor": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
     "com.cesium.unity": "1.20.0",
+    "com.de-panther.webxr": "0.22.1",
+    "com.de-panther.webxr-interactions": "0.22.0",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.addressables": "2.9.1",
     "com.unity.addressables.android": "1.0.10",
@@ -65,6 +67,15 @@
       "url": "https://unity.pkg.cesium.com",
       "scopes": [
         "com.cesium.unity"
+      ]
+    },
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.de-panther",
+        "com.de-panther.webxr",
+        "com.de-panther.webxr-interactions"
       ]
     }
   ]
