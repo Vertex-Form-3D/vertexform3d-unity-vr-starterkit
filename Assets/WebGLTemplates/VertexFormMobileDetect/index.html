@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <!-- width=device-width + safe-area; rotating the device reflows the layout; Unity uses matchWebGLToCanvasSize to match canvas to this size -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <style>
+    * { box-sizing: border-box; }
+    html {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      background: #{{{ BACKGROUND_COLOR }}};
+      overflow: hidden;
+      /* iOS Safari dynamic toolbar */
+      height: -webkit-fill-available;
+    }
+    body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background: #{{{ BACKGROUND_COLOR }}};
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      height: -webkit-fill-available;
+    }
+    #unity-container {
+      position: absolute;
+      left: 0; top: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #unity-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #{{{ BACKGROUND_COLOR }}};
+      outline: none;
+      touch-action: none;
+    }
+    #unity-loading-bar {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 240px; text-align: center; font-family: system-ui, sans-serif; color: #bbb; font-size: 14px;
+      z-index: 2;
+    }
+    #unity-progress-bar-empty { width: 100%; height: 12px; margin-top: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+    #unity-progress-bar-full { width: 0%; height: 100%; background: #8bc; transition: width 0.1s; }
+    /* Fullscreen: must follow a user tap/click (browser policy). Uses Unity's SetFullscreen. */
+    #vertexform-fullscreen-btn {
+      display: none;
+      position: fixed;
+      right: max(12px, env(safe-area-inset-right));
+      bottom: max(12px, env(safe-area-inset-bottom));
+      z-index: 10000;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-family: system-ui, -apple-system, sans-serif;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.55);
+      color: #eee;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    #vertexform-fullscreen-btn:active { background: rgba(0,0,0,0.75); }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div>Loading {{{ PRODUCT_NAME }}}...</div>
+      <div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div>
+    </div>
+  </div>
+  <button id="vertexform-fullscreen-btn" type="button" aria-label="Toggle fullscreen">Fullscreen</button>
+  <script>
+    /* Mobile browsers use a smaller JS stack than desktop. Unity + matchWebGLToCanvasSize + rapid window
+       resizes (URL bar, rotation) can overflow the stack. This does NOT fix WASM — it only avoids alert() spam.
+       Prefer fixing root cause (template flags below). */
+    (function () {
+      var ua = navigator.userAgent || "";
+      if (!/android|iphone|ipad|ipod|webos/i.test(ua)) return;
+      var orig = window.alert;
+      window.alert = function (msg) {
+        var s = msg != null ? String(msg) : "";
+        if (s.indexOf("Maximum call stack") !== -1 || s.indexOf("RangeError") !== -1) {
+          console.error("[VertexFormMobileDetect] (suppressed alert on mobile)", s);
+          return;
+        }
+        orig.call(window, msg);
+      };
+    })();
+
+    function vertexFormIsMobileBrowser() {
+      var ua = navigator.userAgent || navigator.vendor || window.opera || "";
+      if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua))
+        return true;
+      if (typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches)
+        return true;
+      if (typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 2)
+        return true;
+      return false;
+    }
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+    var config = {
+      dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+      frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+      codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+#if MEMORY_FILENAME
+      memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+      symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+#endif
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "{{{ COMPANY_NAME }}}",
+      productName: "{{{ PRODUCT_NAME }}}",
+      productVersion: "{{{ PRODUCT_VERSION }}}",
+      /* Desktop: match canvas for sharp rendering. Mobile: false reduces resize↔internal-buffer churn that can
+         trigger RangeError (small stack on phones). Tradeoff: slightly softer upscaling on some devices. */
+      matchWebGLToCanvasSize: !vertexFormIsMobileBrowser(),
+      autoSyncPersistentDataPath: true,
+    };
+    if (vertexFormIsMobileBrowser()) {
+      config.devicePixelRatio = Math.min(typeof window.devicePixelRatio === "number" ? window.devicePixelRatio : 1, 2);
+    }
+
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var fsBtn = document.querySelector("#vertexform-fullscreen-btn");
+    var unityInstanceRef = null;
+
+    function vertexFormUpdateFullscreenButtonLabel() {
+      if (!fsBtn) return;
+      var el = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      fsBtn.textContent = el ? "Exit fullscreen" : "Fullscreen";
+    }
+
+    function vertexFormSetupFullscreenButton(unityInstance) {
+      unityInstanceRef = unityInstance;
+      if (!fsBtn) return;
+      fsBtn.style.display = "block";
+      vertexFormUpdateFullscreenButtonLabel();
+      fsBtn.onclick = function (ev) {
+        ev.preventDefault();
+        if (!unityInstanceRef || typeof unityInstanceRef.SetFullscreen !== "function") return;
+        var el = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+        try {
+          unityInstanceRef.SetFullscreen(el ? 0 : 1);
+        } catch (err) {
+          console.warn("[VertexFormMobileDetect] SetFullscreen failed (try user gesture / iOS limits):", err);
+        }
+        setTimeout(vertexFormUpdateFullscreenButtonLabel, 100);
+      };
+      document.addEventListener("fullscreenchange", vertexFormUpdateFullscreenButtonLabel);
+      document.addEventListener("webkitfullscreenchange", vertexFormUpdateFullscreenButtonLabel);
+    }
+
+    /* Unity WebGL listens to the real window "resize" event for matchWebGLToCanvasSize — do not dispatch synthetic resize from a resize handler (infinite recursion). */
+
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = function () {
+      createUnityInstance(canvas, config, function (progress) {
+        progressBarFull.style.width = (100 * progress) + "%";
+      }).then(function (unityInstance) {
+        loadingBar.style.display = "none";
+        vertexFormSetupFullscreenButton(unityInstance);
+
+        var mobileStr = vertexFormIsMobileBrowser() ? "true" : "false";
+        var ua = navigator.userAgent || "";
+        var hints = "pointerCoarse=" + (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) +
+          ",maxTouchPoints=" + (navigator.maxTouchPoints || 0);
+        console.log("[VertexFormMobileDetect] mobile=" + mobileStr + " | " + hints + " | " + ua);
+        function sendMobileToUnity() {
+          try {
+            unityInstance.SendMessage("WebGLInputBridge", "LogBrowserUserAgent", ua);
+            unityInstance.SendMessage("WebGLInputBridge", "LogBrowserHints", hints);
+            unityInstance.SendMessage("WebGLInputBridge", "SetMobileControlsFromJs", mobileStr);
+          } catch (e) {
+            console.warn("[VertexFormMobileDetect] SendMessage failed — WebGLInputBridge / WebGLMobileControlBridge:", e);
+          }
+        }
+        /* Single batch after load; duplicate delayed calls could fight Unity init on slow phones. */
+        sendMobileToUnity();
+      }).catch(function (message) {
+        console.error("[VertexFormMobileDetect] createUnityInstance failed:", message);
+        if (!vertexFormIsMobileBrowser()) alert(message);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>

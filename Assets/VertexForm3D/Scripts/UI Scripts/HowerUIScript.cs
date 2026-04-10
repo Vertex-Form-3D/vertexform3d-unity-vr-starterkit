@@ -5,27 +5,43 @@ public class HowerUIScript : MonoBehaviour
 {
     public GameObject[] howerUI;
     UIEffect effect;
+
     void Start()
     {
-        OnHowerExit();
         effect = GetComponent<UIEffect>();
         effect.onPointerEnterEvent.AddListener(OnHowerEnter);
         effect.onPointerExitEvent.AddListener(OnHowerExit);
+
+        if (DesktopMobileControlSettings.UseMobileMenuHoverUx)
+        {
+            OnHowerEnter();
+            return;
+        }
+
+        OnHowerExit();
     }
 
     void OnHowerEnter()
     {
+        if (howerUI == null)
+            return;
         foreach (GameObject item in howerUI)
         {
-            item.SetActive(true);
+            if (item != null)
+                item.SetActive(true);
         }
     }
 
     void OnHowerExit()
     {
+        if (DesktopMobileControlSettings.UseMobileMenuHoverUx)
+            return;
+        if (howerUI == null)
+            return;
         foreach (GameObject item in howerUI)
         {
-            item.SetActive(false);
+            if (item != null)
+                item.SetActive(false);
         }
     }
 }

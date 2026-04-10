@@ -215,6 +215,8 @@ namespace VertexFormCore
                 {
                     InitializeSelectedAvatarModel(avatarSelectionNumber);
                 }
+                DesktopAddressableSceneUI.Instance.SetupDesktopAddressableSceneUI(this);
+
 
                 Debug.Log("-->avatar initialized");
                 // foreach (GameObject head in AvatarHeadGameobjects)
@@ -262,7 +264,6 @@ namespace VertexFormCore
 
                 Debug.Log("-->remote player avatar initialized");
             }
-
             if (PlayerName_Text != null)
             {
                 Debug.Log("-->setting player name text");

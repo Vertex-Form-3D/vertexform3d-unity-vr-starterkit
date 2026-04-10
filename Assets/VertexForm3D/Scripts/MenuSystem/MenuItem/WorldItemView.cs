@@ -35,6 +35,18 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         {
             UpdateView(worlddata);
         }
+        EnsureHoverVisibleForTouch();
+    }
+
+    /// <summary>
+    /// <see cref="howerUI"/> wraps the row action buttons; if it stays off until hover, touch never activates it.
+    /// Uses <see cref="DesktopMobileControlSettings.UseMobileMenuHoverUx"/> (mobile, not VR).
+    /// </summary>
+    private void EnsureHoverVisibleForTouch()
+    {
+        if (!DesktopMobileControlSettings.UseMobileMenuHoverUx || howerUI == null)
+            return;
+        howerUI.SetActive(true);
     }
 
     public void SetWorldData(WorldData wd)
@@ -114,6 +126,8 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         {
             MenuManager.Instance.WorldIsStarredOrNot(worlddata.worldName, starBtn.GetComponent<Image>());
         }
+
+        EnsureHoverVisibleForTouch();
     }
 
     private void OnDownloadCliked()
@@ -156,6 +170,8 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (DesktopMobileControlSettings.UseMobileMenuHoverUx)
+            return;
         howerUI.SetActive(false);
     }
 

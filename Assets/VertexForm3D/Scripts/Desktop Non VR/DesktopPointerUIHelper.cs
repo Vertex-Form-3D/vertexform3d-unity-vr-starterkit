@@ -14,9 +14,13 @@ public static class DesktopPointerUIHelper
         if (EventSystem.current == null)
             return false;
 
-        Vector2 pos = Mouse.current != null
-            ? Mouse.current.position.ReadValue()
-            : (Vector2)Input.mousePosition;
+        Vector2 pos;
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
+            pos = Touchscreen.current.primaryTouch.position.ReadValue();
+        else if (Mouse.current != null)
+            pos = Mouse.current.position.ReadValue();
+        else
+            pos = (Vector2)Input.mousePosition;
 
         var data = new PointerEventData(EventSystem.current) { position = pos };
         var results = new List<RaycastResult>();

@@ -301,12 +301,72 @@ public class XRRigController : MonoBehaviour
     }
 
     /// <summary>True if this instance is the local player (has input authority).</summary>
-    private bool IsLocalPlayer()
+    public bool IsLocalPlayer()
     {
         return networkObject != null && networkObject.IsValid && networkObject.HasInputAuthority;
     }
 
     public bool inputassigned;
+
+    /// <summary>Pinch / mobile scroll: forwards to the same zoom logic as the mouse wheel.</summary>
+    public void ApplyMobileScrollZoom(float scrollDelta)
+    {
+        if (isMultiplayer && !IsLocalPlayer())
+            return;
+        HandleZoom(scrollDelta);
+    }
+
+    /// <summary>Sprint from Starter Assets-style UI (hold).</summary>
+    public void SetMobileSprintHeld(bool sprinting)
+    {
+        if (isMultiplayer && !IsLocalPlayer())
+            return;
+        isSprinting = sprinting;
+    }
+
+    /// <summary>Jump from UI: fire on pointer down (same as Input System jump.performed).</summary>
+    public void SetMobileJumpFromUi(bool pressed)
+    {
+        if (isMultiplayer && !IsLocalPlayer())
+            return;
+        if (pressed)
+            isJumping = true;
+    }
+
+    /// <summary>
+    /// Virtual look from Starter Assets UI (joystick touch zones). <paramref name="deltaPixels"/> should match mouse-pixel style deltas (scaled in <see cref="StarterAssets.UICanvasControllerInput"/>).
+    /// Third person: orbit camera; first person: rotates the rig camera without requiring mouse-look coroutine.
+    /// </summary>
+    public void ApplyVirtualUiLook(Vector2 deltaPixels)
+    {
+        if (isMultiplayer && !IsLocalPlayer())
+            return;
+        if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
+            return;
+        if (isThirdPerson && orbitCamera != null)
+        {
+            orbitCamera.ApplyTouchLookDelta(deltaPixels);
+            return;
+        }
+        ApplyFirstPersonVirtualLook(deltaPixels);
+    }
+
+    private void ApplyFirstPersonVirtualLook(Vector2 deltaPixels)
+    {
+        if (cameraTransform == null)
+            return;
+        Vector2 r = deltaPixels * thirdPersonRotationSpeed;
+        cameraTransform.Rotate(Vector3.up * (inverted ? 1f : -1f), r.x, Space.World);
+
+        float currentXRotation = cameraTransform.eulerAngles.x;
+        if (currentXRotation > 180f)
+            currentXRotation -= 360f;
+
+        float rotationAmount = r.y * (inverted ? -1f : 1f);
+        float newXRotation = Mathf.Clamp(currentXRotation + rotationAmount, -50f, 60f);
+        float deltaXRotation = newXRotation - currentXRotation;
+        cameraTransform.Rotate(cameraTransform.right, deltaXRotation, Space.World);
+    }
 
     public void AssignInputActions()
     {
@@ -349,10 +409,23 @@ public class XRRigController : MonoBehaviour
         jump.canceled += _ => { isJumping = false; };
         move.performed += context =>
         {
+            if (DesktopMobileControlSettings.UseMobileControls)
+                return;
             moveInput = context.ReadValue<Vector2>();
             if (!_loggedFirstInput) { Debug.Log("[XRRigController] First move input received - input callbacks are working."); _loggedFirstInput = true; }
         };
-        axis.performed += context => { rotation = context.ReadValue<Vector2>(); };
+        move.canceled += _ =>
+        {
+            if (DesktopMobileControlSettings.UseMobileControls)
+                return;
+            moveInput = Vector2.zero;
+        };
+        axis.performed += context =>
+        {
+            rotation = DesktopMobileControlSettings.SuppressLookWhileMultiTouch
+                ? Vector2.zero
+                : context.ReadValue<Vector2>();
+        };
         scroll.performed += context => { HandleZoom(context.ReadValue<float>()); };
 
         // Initialize zoom distance
@@ -372,10 +445,12 @@ public class XRRigController : MonoBehaviour
     }
     private void HandleMovement()
     {
+        Vector2 moveForFrame = moveInput;
+
         // While sitting, don't apply movement (position is fixed). Pressing move keys leaves the seat.
         if (playerNetworkSetup != null && playerNetworkSetup.IsSitting)
         {
-            if (moveInput.sqrMagnitude > 0.01f)
+            if (moveForFrame.sqrMagnitude > 0.01f)
                 playerNetworkSetup.LeaveCurrentSeatIfAny();
             return;
         }
@@ -400,7 +475,7 @@ public class XRRigController : MonoBehaviour
                 cameraForward = orbitCamera.transform.forward;
                 cameraRight = orbitCamera.transform.right;
 
-                if (moveInput != Vector2.zero)
+                if (moveForFrame != Vector2.zero)
                 {
                     cameraTransform.rotation = orbitCamera.transform.rotation;
 
@@ -408,7 +483,7 @@ public class XRRigController : MonoBehaviour
                     if (rotateCameraWithMovementInThirdPerson)
                     {
                         // Calculate the target direction based on movement input
-                        Vector3 targetDirection = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
+                        Vector3 targetDirection = (cameraForward * moveForFrame.y + cameraRight * moveForFrame.x).normalized;
                         if (targetDirection != Vector3.zero)
                         {
                             // Smoothly rotate the cameraTransform to face the movement direction
@@ -434,13 +509,13 @@ public class XRRigController : MonoBehaviour
             cameraRight = cameraRight.normalized;
 
             // Calculate movement direction based on input relative to camera
-            moveDirection = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
+            moveDirection = (cameraForward * moveForFrame.y + cameraRight * moveForFrame.x).normalized;
             moveDirection *= moveSpeed;
         }
         else
         {
             // Fallback to local transform if cameraTransform is missing
-            moveDirection = new Vector3(moveInput.x, 0f, moveInput.y);
+            moveDirection = new Vector3(moveForFrame.x, 0f, moveForFrame.y);
             moveDirection = transform.TransformDirection(moveDirection);
             moveDirection *= moveSpeed;
         }
@@ -537,6 +612,11 @@ public class XRRigController : MonoBehaviour
             // Only rotate if the pointer is not over a UI element
             if (!isThirdPerson)
             {
+                if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
+                {
+                    rotation = Vector2.zero;
+                    previousRotation = Vector2.zero;
+                }
                 if (previousRotation != rotation)
                 {
                     rotation *= thirdPersonRotationSpeed;

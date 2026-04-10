@@ -496,29 +496,29 @@ namespace VertexFormCore
         }
 
         /// <summary>
-        /// Enable the voice recorder to ensure voice transmission works
+        /// Wire Photon recorders after voice join: recording on, <see cref="Recorder.TransmitEnabled"/> follows
+        /// <see cref="SettingClass.micType"/> (same rule as <see cref="PlayerUIManager.InitializeAllSettings"/>).
         /// </summary>
         private void EnableVoiceRecorder()
         {
-            Debug.Log("[RoomManager] Enabling voice recorder...");
+            bool transmit = DefaultVoiceTransmitFromProjectSettings();
+            Debug.Log($"[RoomManager] Apply voice recorders after join — default transmit={(transmit ? "on" : "off (muted)")}");
 
-            // Enable primary recorder if it exists
-            if (fusionVoiceClient != null && fusionVoiceClient.PrimaryRecorder != null)
+            void Apply(Photon.Voice.Unity.Recorder recorder, string label)
             {
-                fusionVoiceClient.PrimaryRecorder.TransmitEnabled = true;
-                fusionVoiceClient.PrimaryRecorder.RecordingEnabled = true;
-                Debug.Log($"[RoomManager] Primary Recorder enabled - TransmitEnabled: {fusionVoiceClient.PrimaryRecorder.TransmitEnabled}, IsTransmitting: {fusionVoiceClient.PrimaryRecorder.IsCurrentlyTransmitting}");
+                if (recorder == null)
+                    return;
+                recorder.RecordingEnabled = true;
+                recorder.TransmitEnabled = transmit;
+                Debug.Log($"[RoomManager] {label} — RecordingEnabled={recorder.RecordingEnabled}, TransmitEnabled={recorder.TransmitEnabled}");
             }
 
-            // Also ensure VoiceRecorderManager's recorder is enabled
-            if (VoiceRecorderManager.Instance != null && VoiceRecorderManager.Instance.recorder != null)
-            {
-                VoiceRecorderManager.Instance.recorder.TransmitEnabled = true;
-                VoiceRecorderManager.Instance.recorder.RecordingEnabled = true;
-                Debug.Log($"[RoomManager] VoiceRecorderManager recorder enabled - TransmitEnabled: {VoiceRecorderManager.Instance.recorder.TransmitEnabled}");
-            }
+            if (fusionVoiceClient != null)
+                Apply(fusionVoiceClient.PrimaryRecorder, "Primary Recorder");
 
-            // Find and enable local player's recorder
+            if (VoiceRecorderManager.Instance != null)
+                Apply(VoiceRecorderManager.Instance.recorder, "VoiceRecorderManager recorder");
+
             var players = FindObjectsByType<PlayerNetworkSetup>(FindObjectsSortMode.None);
             foreach (var player in players)
             {
@@ -526,13 +526,19 @@ namespace VertexFormCore
                 {
                     var recorder = player.GetComponentInChildren<Photon.Voice.Unity.Recorder>();
                     if (recorder != null)
-                    {
-                        recorder.TransmitEnabled = true;
-                        recorder.RecordingEnabled = true;
-                        Debug.Log($"[RoomManager] Local player ({player.PlayerName}) recorder enabled - TransmitEnabled: {recorder.TransmitEnabled}");
-                    }
+                        Apply(recorder, $"Local player ({player.PlayerName})");
                 }
             }
+        }
+
+        /// <summary>Aligned with <see cref="PlayerUIManager.InitializeAllSettings"/> voice: unmute → transmit, mute → no transmit.</summary>
+        private static bool DefaultVoiceTransmitFromProjectSettings()
+        {
+            if (ProjectManager.instance == null || ProjectManager.instance.settingsUI == null ||
+                ProjectManager.instance.settingsUI.defaultSettings == null)
+                return false;
+
+            return ProjectManager.instance.settingsUI.defaultSettings.micType == micType.unmute;
         }
 
         private FusionAppSettings BuildCustomAppSetting(string region)

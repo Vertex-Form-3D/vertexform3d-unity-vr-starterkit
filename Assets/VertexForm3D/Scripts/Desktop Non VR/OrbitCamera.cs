@@ -96,8 +96,12 @@ public class OrbitCamera : MonoBehaviour
 
     private void OnPressedCanceled(InputAction.CallbackContext _) => rotateAllowed = false;
 
-    private void OnAxisPerformed(InputAction.CallbackContext context) =>
-        rotationValue = context.ReadValue<Vector2>();
+    private void OnAxisPerformed(InputAction.CallbackContext context)
+    {
+        rotationValue = DesktopMobileControlSettings.SuppressLookWhileMultiTouch
+            ? Vector2.zero
+            : context.ReadValue<Vector2>();
+    }
 
     private void OnScrollPerformed(InputAction.CallbackContext context) =>
         HandleZoom(context.ReadValue<float>());
@@ -134,6 +138,11 @@ public class OrbitCamera : MonoBehaviour
         rotateAllowed = true;
         while (rotateAllowed)
         {
+            if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
+            {
+                rotationValue = Vector2.zero;
+                previousValue = Vector2.zero;
+            }
             if (previousValue != rotationValue)
             {
                 float mouseX = rotationValue.x * rotationSpeed * Time.deltaTime;
@@ -147,6 +156,19 @@ public class OrbitCamera : MonoBehaviour
             }
             yield return null;
         }
+    }
+
+    /// <summary>Third-person mobile: apply pointer delta in the same units as the Look action (pixels per frame).</summary>
+    public void ApplyTouchLookDelta(Vector2 deltaPixels)
+    {
+        if (!isActiveAndEnabled || target == null)
+            return;
+        if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
+            return;
+        float mouseX = deltaPixels.x * rotationSpeed * Time.deltaTime;
+        float mouseY = deltaPixels.y * rotationSpeed * Time.deltaTime * (invertY ? -1 : 1);
+        currentYaw += mouseX;
+        currentPitch = Mathf.Clamp(currentPitch + mouseY, minVerticalAngle, maxVerticalAngle);
     }
 
     private static bool _loggedNullTarget;
@@ -190,6 +212,11 @@ public class OrbitCamera : MonoBehaviour
         targetDistance -= scrollInput * zoomSpeed;
         targetDistance = Mathf.Clamp(targetDistance, minZoomDistance, maxZoomDistance);
     }
+
+    /// <summary>
+    /// Scroll-equivalent zoom from touch pinch (or other code paths). Mouse wheel uses the Input System <see cref="scroll"/> action in <see cref="Awake"/>.
+    /// </summary>
+    public void ApplyExternalScroll(float scrollInput) => HandleZoom(scrollInput);
 
     /// <summary>
     /// Finds the closest blocking hit along the ray. Ignored colliders are skipped so a farther

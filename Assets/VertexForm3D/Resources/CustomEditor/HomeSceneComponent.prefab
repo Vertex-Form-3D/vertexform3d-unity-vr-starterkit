@@ -2758,6 +2758,14 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Pressed
       m_Flags: 0
+    - m_Name: TouchLook
+      m_Id: f1e2d3c4-b5a6-4789-a012-3456789abcde
+      m_Path: <Touchscreen>/primaryTouch/press
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Pressed
+      m_Flags: 0
     m_Flags: 0
   axis:
     m_Name: Axis
@@ -2770,6 +2778,14 @@ MonoBehaviour:
     - m_Name: 
       m_Id: 0e8f610c-46ae-4334-98c9-d7648d8397ba
       m_Path: <Mouse>/delta
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Axis
+      m_Flags: 0
+    - m_Name: TouchLookDelta
+      m_Id: a0b1c2d3-e4f5-6789-abcd-ef0123456789
+      m_Path: <Touchscreen>/primaryTouch/delta
       m_Interactions: 
       m_Processors: 
       m_Groups: 

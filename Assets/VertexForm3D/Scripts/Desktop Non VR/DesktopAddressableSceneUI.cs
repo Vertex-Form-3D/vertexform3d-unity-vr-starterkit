@@ -8,6 +8,7 @@ using System;
 
 public class DesktopAddressableSceneUI : MonoBehaviour
 {
+    public static DesktopAddressableSceneUI Instance;
     public Canvas desktopCanvas;
     public GameObject journeysUI;
     public Image modeImage;
@@ -17,11 +18,26 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public TMP_Text[] flyText;
     public Button flyButton;
 
+    private PlayerNetworkSetup pns;
+
     void Start()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    public void SetupDesktopAddressableSceneUI(PlayerNetworkSetup pns)
     {
         if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
         {
-            StartCoroutine(IEAssignModeEvent());
+            this.pns = pns;
+            AssignModeEvent(pns);
         }
         else
         {
@@ -29,12 +45,10 @@ public class DesktopAddressableSceneUI : MonoBehaviour
         }
     }
 
-
     public void ManageFlyUI()
     {
         if (flyButton == null) return;
         flyButton.interactable = true;
-        var pns = RoomManager.Instance?.GetLocalPlayerSetup();
         if (pns != null && pns.playerUIManager.IsFlying())
         {
             Debug.Log("Fly Mode is enabled");
@@ -57,20 +71,11 @@ public class DesktopAddressableSceneUI : MonoBehaviour
         }
     }
 
-    IEnumerator IEAssignModeEvent()
+    void AssignModeEvent(PlayerNetworkSetup pns)
     {
-        while (RoomManager.Instance == null
-               || RoomManager.Instance.GetLocalPlayerSetup() == null
-               || RoomManager.Instance.localVRPlayer == null)
-        {
-            yield return null;
-        }
-        yield return new WaitForSeconds(.5f);
-        var xrRig = RoomManager.Instance.localVRPlayer.GetComponent<XRRigController>();
-        var pns = RoomManager.Instance.GetLocalPlayerSetup();
-        desktopCanvas.gameObject.SetActive(true);
-        if (xrRig == null || pns == null) yield break;
 
+        var xrRig = pns.GetComponent<XRRigController>();
+        desktopCanvas.gameObject.SetActive(true);
         var modeBtn = modeImage != null ? modeImage.GetComponent<Button>() : null;
         if (modeBtn != null)
         {
@@ -121,14 +126,12 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     }
     public void OnTapMenuButton()
     {
-        var pns = RoomManager.Instance?.GetLocalPlayerSetup();
         if (pns?.playerUIManager != null)
             pns.playerUIManager.HandleMenuUI();
     }
 
     public void OnTapSettingButton()
     {
-        var pns = RoomManager.Instance?.GetLocalPlayerSetup();
         if (pns?.playerUIManager != null)
             pns.playerUIManager.HandleSettingUI();
     }
