@@ -134,13 +134,16 @@
       companyName: "{{{ COMPANY_NAME }}}",
       productName: "{{{ PRODUCT_NAME }}}",
       productVersion: "{{{ PRODUCT_VERSION }}}",
-      /* Desktop: match canvas for sharp rendering. Mobile: false reduces resize↔internal-buffer churn that can
-         trigger RangeError (small stack on phones). Tradeoff: slightly softer upscaling on some devices. */
-      matchWebGLToCanvasSize: !vertexFormIsMobileBrowser(),
+      /* matchWebGLToCanvasSize true fixes blocky upscaling. It can contribute to resize-related JS/WASM stack overflow
+         on some mobile browsers (dynamic URL bar, rotation) — the old "false on mobile" avoided that at the cost of
+         awful visuals. Mitigations: cap devicePixelRatio below, Unity updates, and avoid extra resize listeners. */
+      matchWebGLToCanvasSize: true,
       autoSyncPersistentDataPath: true,
     };
+    /* Cap DPR on mobile: less GPU memory and fewer extreme buffer sizes; may reduce RangeError risk vs uncapped 3×. */
     if (vertexFormIsMobileBrowser()) {
-      config.devicePixelRatio = Math.min(typeof window.devicePixelRatio === "number" ? window.devicePixelRatio : 1, 2);
+      var dpr = typeof window.devicePixelRatio === "number" && window.devicePixelRatio > 0 ? window.devicePixelRatio : 1;
+      config.devicePixelRatio = Math.min(dpr, 2);
     }
 
     var canvas = document.querySelector("#unity-canvas");

@@ -11,7 +11,7 @@
     <type fullname="VertexFormCore.XRISceneSetup" preserve="all" />
     <type fullname="XRNetworkSyncEvent" preserve="all" />
   </assembly>
-  <assembly fullname="CesiumForUnity, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+  <assembly fullname="CesiumRuntime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
     <type fullname="CesiumForUnity.Cesium3DTileset" preserve="all" />
     <type fullname="CesiumForUnity.CesiumCameraManager" preserve="all" />
     <type fullname="CesiumForUnity.CesiumEllipsoid" preserve="all" />
@@ -33,10 +33,6 @@
   </assembly>
   <assembly fullname="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" preserve="all">
     <type fullname="UnityEngine.AddressableAssets.Addressables" preserve="all" />
-  </assembly>
-  <assembly fullname="Unity.Addressables.Android, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-    <type fullname="UnityEngine.AddressableAssets.Android.PlayAssetDeliveryInitialization" preserve="all" />
-    <type fullname="UnityEngine.AddressableAssets.Android.PlayAssetDeliveryInitializationData" preserve="all" />
   </assembly>
   <assembly fullname="Unity.InputSystem, Version=1.19.0.0, Culture=neutral, PublicKeyToken=null">
     <type fullname="UnityEngine.InputSystem.InputActionAsset" preserve="all" />
