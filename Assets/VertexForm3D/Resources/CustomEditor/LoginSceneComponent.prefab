@@ -2317,6 +2317,7 @@ GameObject:
   - component: {fileID: 7444694547917668}
   - component: {fileID: 3712070178951723831}
   - component: {fileID: 6801083409116081072}
+  - component: {fileID: 601879133472729460}
   m_Layer: 5
   m_Name: InputField_Playername
   m_TagString: Untagged
@@ -2516,6 +2517,18 @@ MonoBehaviour:
   m_OnKeyboardFocusChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &601879133472729460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8993976127899432216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 130fdeacbbffe6648b39870225840b91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VertexFormTMPInputKeyboardPolicy
 --- !u!1 &9200665794376070465
 GameObject:
   m_ObjectHideFlags: 0

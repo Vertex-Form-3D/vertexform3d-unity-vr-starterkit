@@ -12,7 +12,7 @@ public class NotificationHandler : MonoBehaviour
     }
     public void ShowMessage(string message, string colorCode = "#FF0000")
     {
-        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+        if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
         {
             GameObject m = Instantiate(notificationPrefab, notificationContainerDesktop);
             m.GetComponent<MessageScript>().ShowMessage(message, GetColorFromCode(colorCode));

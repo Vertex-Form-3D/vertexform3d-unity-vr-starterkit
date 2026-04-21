@@ -8,8 +8,8 @@ namespace StarterAssets
     /// Wire the virtual controls' UnityEvents to these methods in the Inspector.
     /// </summary>
     /// <remarks>
-    /// Move and look are only driven by this canvas when <see cref="DesktopMobileControlSettings.UseMobileControls"/> is true
-    /// and the Vertex Form platform for this rig is not <see cref="platform.VR"/>.
+    /// Move and look are only driven by this canvas when <see cref="DesktopMobileControlSettings.UseFlatMobileControls"/> is true
+    /// and the Vertex Form platform for this rig is not VR-style (flat browser / flat mobile, not immersive XR).
     /// Optional <see cref="ThirdPersonMobileControls"/> on the rig adds two-finger pinch zoom (first- and third-person; third-person also updates orbit distance).
     /// </remarks>
     public class UICanvasControllerInput : MonoBehaviour
@@ -52,6 +52,15 @@ namespace StarterAssets
             ApplyCanvasVisibility();
         }
 
+        private void LateUpdate()
+        {
+            if (!driveCanvasEnabledFromSettings || _canvas == null)
+                return;
+            bool wantEnabled = DesktopMobileControlSettings.UseFlatMobileControls && !IsVrPlatformForThisRig();
+            if (_canvas.enabled != wantEnabled)
+                ApplyCanvasVisibility();
+        }
+
         private void OnEnable()
         {
             DesktopMobileControlSettings.Changed += OnMobileSettingsChanged;
@@ -78,7 +87,7 @@ namespace StarterAssets
         {
             if (!driveCanvasEnabledFromSettings || _canvas == null)
                 return;
-            _canvas.enabled = DesktopMobileControlSettings.UseMobileControls && !IsVrPlatformForThisRig();
+            _canvas.enabled = DesktopMobileControlSettings.UseFlatMobileControls && !IsVrPlatformForThisRig();
         }
 
         /// <summary>Uses <see cref="XRRigController.GetPlatformProperty"/> when a rig is assigned; otherwise <see cref="ProjectManager"/>.</summary>
@@ -86,11 +95,13 @@ namespace StarterAssets
         {
             if (xrRigController != null)
                 return xrRigController.GetPlatformProperty();
-            return ProjectManager.instance != null && ProjectManager.instance.platforms.platformChoice == platform.VR;
+            return ProjectManager.instance != null &&
+                   ProjectManager.instance.platforms != null &&
+                   ProjectManager.instance.platforms.IsVrStylePlatform();
         }
 
         private bool AllowVirtualInput =>
-            DesktopMobileControlSettings.UseMobileControls && !IsVrPlatformForThisRig();
+            DesktopMobileControlSettings.UseFlatMobileControls && !IsVrPlatformForThisRig();
 
         /// <summary>From UIVirtualJoystick → joystickOutputEvent</summary>
         public void VirtualMoveInput(Vector2 virtualMoveDirection)

@@ -40,7 +40,7 @@ public class DistanceAutoGrab : MonoBehaviour
 
     private void Awake()
     {
-        if (ProjectManager.instance.platforms.platformChoice == platform.VR)
+        if (ProjectManager.instance.platforms.IsVrStylePlatform())
         {
             Destroy(this);
         }
@@ -107,7 +107,7 @@ public class DistanceAutoGrab : MonoBehaviour
 
     private void ResolveDesktopUIReference()
     {
-        if (ProjectManager.instance.platforms.platformChoice != platform.Desktop)
+        if (!ProjectManager.instance.platforms.IsDesktopStylePlatform())
             return;
 
         if (desktopAddressableSceneUI == null)
@@ -116,7 +116,7 @@ public class DistanceAutoGrab : MonoBehaviour
 
     private void UpdateGrabRangeUI()
     {
-        if (ProjectManager.instance.platforms.platformChoice != platform.Desktop)
+        if (!ProjectManager.instance.platforms.IsDesktopStylePlatform())
             return;
 
         bool inRange = targetInteractable != null && !targetInteractable.isSelected;

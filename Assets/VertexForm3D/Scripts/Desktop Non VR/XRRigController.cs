@@ -81,10 +81,11 @@ public class XRRigController : MonoBehaviour
         }
         else
         {
-            Debug.Log("Single-player path: " + ProjectManager.instance.platforms.platformChoice + " " + platform.VR);
-            SetPlatformProperty(ProjectManager.instance.platforms.platformChoice == platform.VR);
-            bool isVR = ProjectManager.instance.platforms.platformChoice == platform.VR;
-            Debug.Log($"[XRRigController] Single-player path - isVR={isVR}, platform={ProjectManager.instance.platforms.platformChoice}");
+            Platforms pl = ProjectManager.instance.platforms;
+            Debug.Log("Single-player path: " + pl.platformChoice + " webKind=" + pl.webGpuBrowserKind);
+            bool isVR = pl.IsVrStylePlatform();
+            SetPlatformProperty(isVR);
+            Debug.Log($"[XRRigController] Single-player path - isVR={isVR}, platform={pl.platformChoice}");
 
             foreach (GameObject go in VRObjects)
             {
@@ -99,7 +100,7 @@ public class XRRigController : MonoBehaviour
                 tpd.enabled = isVR;
             }
             IAM.enabled = XRIMM.enabled = isVR;
-            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
             {
                 Debug.Log("[XRRigController] Single-player Desktop: calling AssignInputActions");
                 AssignInputActions();
@@ -265,17 +266,6 @@ public class XRRigController : MonoBehaviour
 
         HandleMovement();
         _loggedWrongMode = false;
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (isMultiplayer)
-            {
-                RoomManager.Instance.LeaveRoomAndLoadOnBoardingScene();
-            }
-            else
-            {
-                SceneManager.LoadScene(0);
-            }
-        }
     }
 
 
@@ -290,13 +280,14 @@ public class XRRigController : MonoBehaviour
     {
         if (isMultiplayer && networkObject != null && networkObject.IsValid && playerNetworkSetup != null)
         {
-            bool isVR = playerNetworkSetup.Platform == platform.VR;
-            Debug.Log("GetPlatformProperty (multiplayer): " + (networkObject.HasInputAuthority ? "local" : "remote") + " -> " + playerNetworkSetup.Platform + " isVR=" + isVR);
+            bool isVR = playerNetworkSetup.NetworkedIsVrStyle();
+            Debug.Log("GetPlatformProperty (multiplayer): " + (networkObject.HasInputAuthority ? "local" : "remote") + " -> " + playerNetworkSetup.Platform + " webKind=" + playerNetworkSetup.WebGpuBrowserKind + " isVR=" + isVR);
             return isVR;
         }
         // Single-player or missing refs: use local ProjectManager
-        bool singlePlayerVR = ProjectManager.instance != null && ProjectManager.instance.platforms.platformChoice == platform.VR;
-        Debug.Log("GetPlatformProperty (single): " + singlePlayerVR);
+        bool singlePlayerVR = ProjectManager.instance != null &&
+                              ProjectManager.instance.platforms != null &&
+                              ProjectManager.instance.platforms.IsVrStylePlatform();
         return singlePlayerVR;
     }
 
@@ -409,14 +400,14 @@ public class XRRigController : MonoBehaviour
         jump.canceled += _ => { isJumping = false; };
         move.performed += context =>
         {
-            if (DesktopMobileControlSettings.UseMobileControls)
+            if (DesktopMobileControlSettings.UseFlatMobileControls)
                 return;
             moveInput = context.ReadValue<Vector2>();
             if (!_loggedFirstInput) { Debug.Log("[XRRigController] First move input received - input callbacks are working."); _loggedFirstInput = true; }
         };
         move.canceled += _ =>
         {
-            if (DesktopMobileControlSettings.UseMobileControls)
+            if (DesktopMobileControlSettings.UseFlatMobileControls)
                 return;
             moveInput = Vector2.zero;
         };
@@ -728,7 +719,17 @@ public class XRRigController : MonoBehaviour
             onThirdPersonModeStartEvent.Invoke();
         }
     }
-
+    public void TogglePersonMode()
+    {
+        if (isThirdPerson)
+        {
+            SwitchToFirstPerson();
+        }
+        else
+        {
+            SwitchToThirdPerson();
+        }
+    }
     // New function to switch to first-person mode
     [ContextMenu("SwitchToFirstPerson")]
     public void SwitchToFirstPerson()

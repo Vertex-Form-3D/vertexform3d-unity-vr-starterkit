@@ -140,7 +140,7 @@ public class MenuManager : MonoBehaviour
         {
             if (filterPlacesNav && !cat.showInPlacesNav) continue;
             GameObject catObj = Instantiate(categoryPrefab, categoryParent);
-            catObj.GetComponent<CategoryItemView>().SetCategory(cat);
+            catObj.GetComponent<CategoryItemView>().SetCategory(cat, this);
         }
     }
 
@@ -161,7 +161,7 @@ public class MenuManager : MonoBehaviour
         Category allCat = new Category();
         allCat.categoryName = "All Places";
         allCat.environments = allWorlds;
-        catObj.GetComponent<CategoryItemView>().SetCategory(allCat);
+        catObj.GetComponent<CategoryItemView>().SetCategory(allCat, this);
 
         foreach (var world in allWorlds)
         {
@@ -181,7 +181,7 @@ public class MenuManager : MonoBehaviour
         starCategoryItemView.category = new Category();
         starCategoryItemView.category.categoryName = "Favorites";
         starCategoryItemView.category.environments = favourites;
-        favcat.GetComponent<CategoryItemView>().SetCategory(starCategoryItemView.category);
+        favcat.GetComponent<CategoryItemView>().SetCategory(starCategoryItemView.category, this);
     }
     public void OnTapCategory(Category cat)
     {
@@ -202,7 +202,7 @@ public class MenuManager : MonoBehaviour
         {
             GameObject worldObj = Instantiate(worldPrefab, worldParent);
             gridScrollViewPager.AddItem(worldObj);
-            worldObj.GetComponent<WorldItemView>().SetWorldData(world);
+            worldObj.GetComponent<WorldItemView>().SetWorldData(world, this);
         }
     }
 

@@ -34,7 +34,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     }
     public void SetupDesktopAddressableSceneUI(PlayerNetworkSetup pns)
     {
-        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+        if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
         {
             this.pns = pns;
             AssignModeEvent(pns);

@@ -23,7 +23,7 @@ public class EmojiManager : NetworkBehaviour
     {
         if (Object.HasInputAuthority)
         {
-            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
             {
                 emojiParent = emojiParentDesktop;
             }
@@ -49,7 +49,7 @@ public class EmojiManager : NetworkBehaviour
 
     void Update()
     {
-        if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+        if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
         {
             return;
         }

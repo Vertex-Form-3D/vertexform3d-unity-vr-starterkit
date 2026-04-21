@@ -466,6 +466,10 @@ PrefabInstance:
       propertyPath: versionText
       value: 
       objectReference: {fileID: 753928277}
+    - target: {fileID: 8538396163098032277, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: idleTimeout
+      value: 10
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -516,6 +520,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebGLMobileControlBridge
   startWithMobileControls: 0
+  applyWebGlPlatformHintFromPage: 1
 --- !u!4 &601219312697770024
 Transform:
   m_ObjectHideFlags: 0
@@ -563,7 +568,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3845066483474366430, guid: ec3219196007b5a42aa25d5003165a08, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.11
+      value: 2.54
       objectReference: {fileID: 0}
     - target: {fileID: 3845066483474366430, guid: ec3219196007b5a42aa25d5003165a08, type: 3}
       propertyPath: m_LocalPosition.y

@@ -31,10 +31,6 @@ namespace VertexFormCore
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                SceneManager.LoadScene(0);
-            }
         }
         public void Spectating()
         {

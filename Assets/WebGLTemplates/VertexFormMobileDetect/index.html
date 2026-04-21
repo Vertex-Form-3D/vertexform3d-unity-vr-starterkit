@@ -6,6 +6,7 @@
   <!-- width=device-width + safe-area; rotating the device reflows the layout; Unity uses matchWebGLToCanvasSize to match canvas to this size -->
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <title>{{{ PRODUCT_NAME }}}</title>
   <style>
@@ -78,9 +79,105 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     }
     #vertexform-fullscreen-btn:active { background: rgba(0,0,0,0.75); }
+    #vertexform-ios-fullscreen-hint {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: max(72px, calc(env(safe-area-inset-bottom) + 56px));
+      transform: translateX(-50%);
+      max-width: min(340px, calc(100vw - 24px));
+      z-index: 10002;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(20, 20, 24, 0.95);
+      color: #eee;
+      font-size: 14px;
+      line-height: 1.4;
+      font-family: system-ui, -apple-system, sans-serif;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Optional WebXR entry: shown on Quest / Wolvic-style browsers after Unity loads (user gesture for toggleVR). */
+    #vertexform-vr-entry-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      background: rgba(0, 0, 0, 0.72);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #vertexform-vr-entry-overlay[aria-hidden="false"] { display: flex; }
+    #vertexform-vr-entry-card {
+      max-width: 400px;
+      width: 100%;
+      padding: 24px 22px;
+      border-radius: 16px;
+      background: #1a1a1f;
+      color: #eee;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    #vertexform-vr-entry-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+    #vertexform-vr-entry-sub {
+      margin: 0 0 22px 0;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: #aaa;
+    }
+    .vertexform-vr-entry-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #vertexform-vr-enter-btn {
+      padding: 14px 18px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(160deg, #2b7fff, #1560d4);
+      color: #fff;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #vertexform-vr-enter-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    #vertexform-vr-enter-btn:not(:disabled):active { filter: brightness(0.92); }
+    #vertexform-vr-continue-btn {
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: #ccc;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #vertexform-vr-continue-btn:active { background: rgba(255,255,255,0.06); }
   </style>
 </head>
 <body>
+  <div id="vertexform-vr-entry-overlay" role="dialog" aria-modal="true" aria-labelledby="vertexform-vr-entry-title" aria-hidden="true">
+    <div id="vertexform-vr-entry-card">
+      <h2 id="vertexform-vr-entry-title">Enter VR</h2>
+      <p id="vertexform-vr-entry-sub">Use your headset for immersive WebXR. Choose Enter VR when you are ready, or continue using the site in the browser window.</p>
+      <div class="vertexform-vr-entry-actions">
+        <button type="button" id="vertexform-vr-enter-btn">Enter VR</button>
+        <button type="button" id="vertexform-vr-continue-btn">Continue without VR</button>
+      </div>
+    </div>
+  </div>
   <div id="unity-container">
     <canvas id="unity-canvas" tabindex="-1"></canvas>
     <div id="unity-loading-bar">
@@ -89,6 +186,7 @@
     </div>
   </div>
   <button id="vertexform-fullscreen-btn" type="button" aria-label="Toggle fullscreen">Fullscreen</button>
+  <div id="vertexform-ios-fullscreen-hint" role="status" aria-live="polite"></div>
   <script>
     /* Mobile browsers use a smaller JS stack than desktop. Unity + matchWebGLToCanvasSize + rapid window
        resizes (URL bar, rotation) can overflow the stack. This does NOT fix WASM — it only avoids alert() spam.
@@ -116,6 +214,25 @@
       if (typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 2)
         return true;
       return false;
+    }
+
+    /* Quest / Wolvic / Pico shell browsers: set Unity Project Data platform to VR so Fusion & UI match WebXR shells.
+       Not the same as “mobile touch” (PC Chrome can be mobile=false but still support WebXR). */
+    function vertexFormLikelyVrShellBrowser() {
+      var ua = (navigator.userAgent || "").toLowerCase();
+      if (/oculusbrowser|oculus|quest\/|meta quest|metabrowser|pico|wolvic|svrbrowser|openxr-mobile|htc|vive/i.test(ua))
+        return true;
+      return false;
+    }
+
+    /* WebGPU platform: one of VrBrowser | DesktopBrowser | AndroidBrowser — sent to Unity via SetWebGpuRuntimeFromJs. */
+    function vertexFormResolveWebGpuBrowserKind() {
+      if (vertexFormLikelyVrShellBrowser())
+        return "VrBrowser";
+      var ua = (navigator.userAgent || "").toLowerCase();
+      if (/android/.test(ua))
+        return "AndroidBrowser";
+      return "DesktopBrowser";
     }
 
     var buildUrl = "Build";
@@ -147,35 +264,179 @@
     }
 
     var canvas = document.querySelector("#unity-canvas");
+    var unityContainer = document.querySelector("#unity-container");
     var loadingBar = document.querySelector("#unity-loading-bar");
     var progressBarFull = document.querySelector("#unity-progress-bar-full");
     var fsBtn = document.querySelector("#vertexform-fullscreen-btn");
+    var iosFsHint = document.querySelector("#vertexform-ios-fullscreen-hint");
     var unityInstanceRef = null;
+
+    /* iPhone / iPad Safari: Unity SetFullscreen often no-ops; use Fullscreen API on #unity-container + webkit prefixes. */
+    function vertexFormIsIosLike() {
+      var ua = navigator.userAgent || "";
+      if (/iP(hone|ad|od)/i.test(ua)) return true;
+      if (navigator.platform === "MacIntel" && typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 1)
+        return true;
+      return false;
+    }
+
+    function vertexFormFullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    }
+
+    function vertexFormRequestFullscreenOnElement(el) {
+      if (!el) return Promise.reject(new Error("no element"));
+      var fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (!fn) return Promise.reject(new Error("no requestFullscreen"));
+      var ret = fn.call(el);
+      return (ret && typeof ret.then === "function") ? ret : Promise.resolve();
+    }
+
+    function vertexFormExitFullscreenDocument() {
+      var d = document;
+      if (d.exitFullscreen) return d.exitFullscreen();
+      if (d.webkitExitFullscreen) return d.webkitExitFullscreen();
+      if (d.mozCancelFullScreen) return d.mozCancelFullScreen();
+      if (d.msExitFullscreen) return d.msExitFullscreen();
+    }
+
+    function vertexFormShowIosFullscreenHintToast() {
+      if (!iosFsHint) return;
+      iosFsHint.textContent = "Tip: In Safari, tap Share → Add to Home Screen, then open this app from your home screen for the most fullscreen layout (iOS limits in-tab fullscreen).";
+      iosFsHint.style.display = "block";
+      clearTimeout(vertexFormShowIosFullscreenHintToast._t);
+      vertexFormShowIosFullscreenHintToast._t = setTimeout(function () {
+        iosFsHint.style.display = "none";
+      }, 8000);
+    }
 
     function vertexFormUpdateFullscreenButtonLabel() {
       if (!fsBtn) return;
-      var el = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+      var el = vertexFormFullscreenElement();
       fsBtn.textContent = el ? "Exit fullscreen" : "Fullscreen";
+    }
+
+    function vertexFormSetupVrEntryOverlay(unityInstance) {
+      if (!vertexFormLikelyVrShellBrowser()) return;
+      var overlay = document.getElementById("vertexform-vr-entry-overlay");
+      var btnVr = document.getElementById("vertexform-vr-enter-btn");
+      var btnContinue = document.getElementById("vertexform-vr-continue-btn");
+      var sub = document.getElementById("vertexform-vr-entry-sub");
+      if (!overlay || !btnVr || !btnContinue) return;
+
+      function dismiss() {
+        overlay.style.display = "none";
+        overlay.setAttribute("aria-hidden", "true");
+      }
+
+      function hasUnityWebXrToggle() {
+        return !!(unityInstance && unityInstance.Module && unityInstance.Module.WebXR &&
+          typeof unityInstance.Module.WebXR.toggleVR === "function");
+      }
+
+      function tryEnterVr() {
+        if (hasUnityWebXrToggle()) {
+          try {
+            unityInstance.Module.WebXR.toggleVR();
+            dismiss();
+            return;
+          } catch (err) {
+            console.warn("[VertexFormMobileDetect] WebXR.toggleVR failed:", err);
+          }
+        }
+        console.warn("[VertexFormMobileDetect] Enter VR unavailable: build needs De-Panther WebXR Export (Module.WebXR.toggleVR).");
+      }
+
+      overlay.style.display = "flex";
+      overlay.setAttribute("aria-hidden", "false");
+
+      btnVr.disabled = !hasUnityWebXrToggle();
+      if (!hasUnityWebXrToggle() && sub) {
+        sub.textContent = "This WebGL build does not expose the Unity WebXR bridge. Use Continue without VR, or use a WebXR-enabled player build (e.g. WebXR Export).";
+      }
+
+      if (navigator.xr && typeof navigator.xr.isSessionSupported === "function") {
+        navigator.xr.isSessionSupported("immersive-vr").then(function (ok) {
+          if (!hasUnityWebXrToggle()) return;
+          btnVr.disabled = !ok;
+          if (!ok && sub) {
+            sub.textContent = "Immersive VR is not available in this tab (HTTPS required, or browser blocked WebXR). You can still continue in the browser.";
+          }
+        }).catch(function () {});
+      }
+
+      btnVr.onclick = function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (btnVr.disabled) return;
+        tryEnterVr();
+      };
+      btnContinue.onclick = function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        dismiss();
+      };
     }
 
     function vertexFormSetupFullscreenButton(unityInstance) {
       unityInstanceRef = unityInstance;
       if (!fsBtn) return;
+      /* PWA from home screen is already chromeless — hide control. */
+      if (window.navigator.standalone === true) {
+        fsBtn.style.display = "none";
+        return;
+      }
+      /* Flat mobile browsers: true document fullscreen + Unity WebGL canvas often blocks TMP soft keyboard (Unity issue tracker). Layout is already edge-to-edge — skip the fullscreen control. */
+      if (vertexFormIsMobileBrowser() && !vertexFormLikelyVrShellBrowser()) {
+        fsBtn.style.display = "none";
+        return;
+      }
       fsBtn.style.display = "block";
       vertexFormUpdateFullscreenButtonLabel();
       fsBtn.onclick = function (ev) {
         ev.preventDefault();
         if (!unityInstanceRef || typeof unityInstanceRef.SetFullscreen !== "function") return;
-        var el = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
-        try {
-          unityInstanceRef.SetFullscreen(el ? 0 : 1);
-        } catch (err) {
-          console.warn("[VertexFormMobileDetect] SetFullscreen failed (try user gesture / iOS limits):", err);
+        var fsEl = vertexFormFullscreenElement();
+        var entering = !fsEl;
+        if (entering) {
+          if (vertexFormIsIosLike()) {
+            var target = unityContainer || canvas;
+            vertexFormRequestFullscreenOnElement(target).then(function () {
+              try { unityInstanceRef.SetFullscreen(1); } catch (e) { /* Unity may still sync canvas */ }
+            }).catch(function () {
+              try {
+                unityInstanceRef.SetFullscreen(1);
+              } catch (err) {
+                console.warn("[VertexFormMobileDetect] Fullscreen failed on iOS:", err);
+              }
+              setTimeout(function () {
+                if (!vertexFormFullscreenElement())
+                  vertexFormShowIosFullscreenHintToast();
+              }, 350);
+            });
+          } else {
+            try {
+              unityInstanceRef.SetFullscreen(1);
+            } catch (err) {
+              console.warn("[VertexFormMobileDetect] SetFullscreen failed:", err);
+            }
+          }
+        } else {
+          try {
+            vertexFormExitFullscreenDocument();
+          } catch (e1) { /* ignore */ }
+          try {
+            unityInstanceRef.SetFullscreen(0);
+          } catch (err) {
+            console.warn("[VertexFormMobileDetect] SetFullscreen(0) failed:", err);
+          }
         }
         setTimeout(vertexFormUpdateFullscreenButtonLabel, 100);
       };
       document.addEventListener("fullscreenchange", vertexFormUpdateFullscreenButtonLabel);
       document.addEventListener("webkitfullscreenchange", vertexFormUpdateFullscreenButtonLabel);
+      document.addEventListener("mozfullscreenchange", vertexFormUpdateFullscreenButtonLabel);
+      document.addEventListener("MSFullscreenChange", vertexFormUpdateFullscreenButtonLabel);
     }
 
     /* Unity WebGL listens to the real window "resize" event for matchWebGLToCanvasSize — do not dispatch synthetic resize from a resize handler (infinite recursion). */
@@ -188,17 +449,21 @@
       }).then(function (unityInstance) {
         loadingBar.style.display = "none";
         vertexFormSetupFullscreenButton(unityInstance);
+        vertexFormSetupVrEntryOverlay(unityInstance);
 
         var mobileStr = vertexFormIsMobileBrowser() ? "true" : "false";
+        var webGpuKindStr = vertexFormResolveWebGpuBrowserKind();
         var ua = navigator.userAgent || "";
         var hints = "pointerCoarse=" + (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) +
           ",maxTouchPoints=" + (navigator.maxTouchPoints || 0);
-        console.log("[VertexFormMobileDetect] mobile=" + mobileStr + " | " + hints + " | " + ua);
+        console.log("[VertexFormMobileDetect] WebGPU browser kind=" + webGpuKindStr + " mobile=" + mobileStr + " | " + hints + " | " + ua);
         function sendMobileToUnity() {
           try {
+            /* Mobile hint first so C# can combine WebGPU + UseMobileControls before browser kind is None. */
+            unityInstance.SendMessage("WebGLInputBridge", "SetMobileControlsFromJs", mobileStr);
+            unityInstance.SendMessage("WebGLInputBridge", "SetWebGpuRuntimeFromJs", webGpuKindStr);
             unityInstance.SendMessage("WebGLInputBridge", "LogBrowserUserAgent", ua);
             unityInstance.SendMessage("WebGLInputBridge", "LogBrowserHints", hints);
-            unityInstance.SendMessage("WebGLInputBridge", "SetMobileControlsFromJs", mobileStr);
           } catch (e) {
             console.warn("[VertexFormMobileDetect] SendMessage failed — WebGLInputBridge / WebGLMobileControlBridge:", e);
           }

@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using Fusion;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
+#endif
 
 namespace VertexFormCore
 {
@@ -48,6 +54,10 @@ namespace VertexFormCore
 
         private NetworkObject spawnedSelfieStick;
 
+        [Header("WebGL WebXR (browser)")]
+        [Tooltip("WebGL WebXR player only. If B/Y map to the wrong controller, toggle to swap left/right fallback order.")]
+        [SerializeField] private bool webXrSwapMenuSettingsControllerOrder;
+
         // State tracking booleans
         private bool isStanding = true; // true = Standing, false = Sitting
         private bool isVoiceEnabled = true; // true = Unmuted, false = Muted
@@ -56,6 +66,9 @@ namespace VertexFormCore
         private bool isMegaphone = false; // true = Megaphone On, false = Off
         public bool canFlyGlobally = false; // Set by scene/project
         public bool IsFlying() { return isFlying; } // Set by scene/project
+
+        /// <summary>Runtime mic toggle (settings UI). True = unmuted / should transmit when voice is wired.</summary>
+        public bool IsLocalVoiceUnmuted => isVoiceEnabled;
 
         void Start()
         {
@@ -137,9 +150,393 @@ namespace VertexFormCore
             VoiceRecorderManager.Instance.SetMicrophoneDevice(index);
         }
 
+        /// <summary>
+        /// World-space VR menu/settings/emoji path when the asset is VR <b>or</b> immersive XR is running
+        /// (WebGL WebXR may use <see cref="platform.WebGPU"/> with a flat browser kind until a session starts).
+        /// </summary>
+        private bool UseHeadMountedMenuPath()
+        {
+            if (DesktopMobileControlSettings.IsImmersiveXrOrHeadMountedPresentationActive)
+                return true;
+            return ProjectManager.instance != null &&
+                   ProjectManager.instance.platforms != null &&
+                   ProjectManager.instance.platforms.IsVrStylePlatform();
+        }
+
+        /// <summary>Prefer <see cref="InputDevices.GetDeviceAtXRNode"/> (fresh each frame); fall back to inspector / <see cref="InputData.Instance"/>.</summary>
+        private UnityEngine.XR.InputDevice ResolveHandController(bool rightHand)
+        {
+            var node = rightHand ? XRNode.RightHand : XRNode.LeftHand;
+            var fromNode = InputDevices.GetDeviceAtXRNode(node);
+            if (fromNode.isValid)
+                return fromNode;
+
+            var data = _inputData != null ? _inputData : InputData.Instance;
+            if (data == null)
+                return default(UnityEngine.XR.InputDevice);
+            return rightHand ? data._rightController : data._leftController;
+        }
+
+        /// <summary>
+        /// Opens menu/settings from controller: Quest-style <b>B</b> (right) / <b>Y</b> (left) map to <see cref="UnityEngine.XR.CommonUsages.secondaryButton"/>;
+        /// some WebXR runtimes only expose <see cref="UnityEngine.XR.CommonUsages.menuButton"/> or Input System names like <c>buttonEast</c>.
+        /// </summary>
+        private bool ReadSecondaryButtonHeld(bool rightHand)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // de-panther WebXR: A/B/X/Y come through WebXRManager.OnControllerUpdate as buttonA/buttonB (see WebXRControllerData).
+            if (TryReadDePantherWebXrFaceButtonBHeld(rightHand))
+                return true;
+#endif
+            UnityEngine.XR.InputDevice dev = ResolveHandController(rightHand);
+            if (dev.isValid)
+            {
+                if (dev.TryGetFeatureValue(UnityEngine.XR.CommonUsages.secondaryButton, out bool secondary) && secondary)
+                    return true;
+                if (dev.TryGetFeatureValue(UnityEngine.XR.CommonUsages.menuButton, out bool menu) && menu)
+                    return true;
+            }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (TryWebGlControllerMenuButtonsInputSystem(rightHand, webXrSwapMenuSettingsControllerOrder, out bool fromIS) && fromIS)
+                return true;
+#endif
+            return false;
+        }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        private static Type _dePantherWebXrFaceType;
+        private static MethodInfo _dePantherRightB;
+        private static MethodInfo _dePantherLeftB;
+        private static bool _dePantherWebXrFaceProbeFailed;
+
+        /// <summary>
+        /// Calls <c>VertexForm.WebXRBridge.WebXRFaceButtonInput</c> via reflection so <see cref="PlayerUIManager"/> can stay in the default assembly
+        /// while the bridge references the non-auto-referenced <c>WebXR</c> package assembly.
+        /// </summary>
+        private static bool TryReadDePantherWebXrFaceButtonBHeld(bool rightHand)
+        {
+            if (_dePantherWebXrFaceProbeFailed)
+                return false;
+
+            try
+            {
+                if (_dePantherWebXrFaceType == null)
+                {
+                    _dePantherWebXrFaceType = Type.GetType("VertexForm.WebXRBridge.WebXRFaceButtonInput, VertexForm.WebXRBridge");
+                    if (_dePantherWebXrFaceType == null)
+                    {
+                        _dePantherWebXrFaceProbeFailed = true;
+                        return false;
+                    }
+
+                    _dePantherRightB = _dePantherWebXrFaceType.GetMethod("IsRightButtonBHeld", BindingFlags.Public | BindingFlags.Static);
+                    _dePantherLeftB = _dePantherWebXrFaceType.GetMethod("IsLeftButtonBHeld", BindingFlags.Public | BindingFlags.Static);
+                    if (_dePantherRightB == null || _dePantherLeftB == null)
+                    {
+                        _dePantherWebXrFaceProbeFailed = true;
+                        return false;
+                    }
+                }
+
+                var m = rightHand ? _dePantherRightB : _dePantherLeftB;
+                return m.Invoke(null, null) is bool pressed && pressed;
+            }
+            catch
+            {
+                _dePantherWebXrFaceProbeFailed = true;
+                return false;
+            }
+        }
+#endif
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        /// <summary>WebXR device layouts differ; try several <see cref="ButtonControl"/> names on matched hand devices.</summary>
+        private static readonly string[] WebGlInputSystemMenuButtonCandidates =
+        {
+            "secondaryButton",
+            "menuButton",
+            "buttonEast",
+            "buttonWest",
+            "buttonNorth",
+            "buttonSouth",
+        };
+
+        private static readonly List<UnityEngine.InputSystem.InputDevice> WebGlXrControllerScratch = new List<UnityEngine.InputSystem.InputDevice>(8);
+
+        private static bool TryWebGlControllerMenuButtonsInputSystem(bool rightHand, bool swapMenuSettingsControllerOrder, out bool pressed)
+        {
+            pressed = false;
+            foreach (var dev in InputSystem.devices)
+            {
+                if (dev == null || !dev.added || !dev.enabled)
+                    continue;
+                if (WebGlInputDeviceExcludedFromHandControllerMenuRouting(dev))
+                    continue;
+                if (!WebGlInputDeviceMatchesControllerHand(dev, rightHand))
+                    continue;
+                if (TryWebGlMenuButtonsOnInputSystemDevice(dev, out pressed))
+                    return true;
+            }
+
+            // WebXR often reports invalid legacy XR <c>UnityEngine.XR.InputDevice</c> at XR nodes while Input System has
+            // controllers without LeftHand/RightHand usages or "left"/"right" in the device name.
+            // Fall back: pick among XR-like devices ordered by deviceId (commonly left then right).
+            BuildWebGlSortedXrControllerScratchList();
+            if (WebGlXrControllerScratch.Count == 0)
+                return false;
+
+            UnityEngine.InputSystem.InputDevice fallback = null;
+            if (WebGlXrControllerScratch.Count >= 2)
+            {
+                int idxLeft = swapMenuSettingsControllerOrder ? 1 : 0;
+                int idxRight = swapMenuSettingsControllerOrder ? 0 : 1;
+                fallback = rightHand ? WebGlXrControllerScratch[idxRight] : WebGlXrControllerScratch[idxLeft];
+            }
+            else if (WebGlXrControllerScratch.Count == 1 && rightHand)
+                fallback = WebGlXrControllerScratch[0];
+
+            if (fallback == null)
+                return false;
+
+            return TryWebGlMenuButtonsOnInputSystemDevice(fallback, out pressed);
+        }
+
+        /// <summary>XR-like controllers for WebGL fallback; sorted by <c>deviceId</c>.</summary>
+        private static void BuildWebGlSortedXrControllerScratchList()
+        {
+            WebGlXrControllerScratch.Clear();
+            foreach (var dev in InputSystem.devices)
+            {
+                if (dev == null || !dev.added || !dev.enabled)
+                    continue;
+                if (WebGlInputDeviceExcludedFromHandControllerMenuRouting(dev))
+                    continue;
+                if (!WebGlInputDeviceLooksLikeXrController(dev))
+                    continue;
+                WebGlXrControllerScratch.Add(dev);
+            }
+
+            if (WebGlXrControllerScratch.Count == 0)
+            {
+                foreach (var dev in InputSystem.devices)
+                {
+                    if (dev == null || !dev.added || !dev.enabled)
+                        continue;
+                    if (WebGlInputDeviceExcludedFromHandControllerMenuRouting(dev))
+                        continue;
+                    if (dev.TryGetChildControl<ButtonControl>("secondaryButton") == null)
+                        continue;
+                    WebGlXrControllerScratch.Add(dev);
+                }
+            }
+
+            WebGlXrControllerScratch.Sort(static (a, b) => a.deviceId.CompareTo(b.deviceId));
+        }
+
+        private static bool WebGlButtonIsActive(ButtonControl btn)
+        {
+            return btn != null && (btn.isPressed || btn.wasPressedThisFrame);
+        }
+
+        private static bool WebGlAxisPressedLikeButton(AxisControl axis, float threshold = 0.65f)
+        {
+            return axis != null && axis.ReadValue() >= threshold;
+        }
+
+        /// <summary>Some WebXR layouts nest controls; some expose face buttons only as axes or one-frame presses.</summary>
+        private static bool TryWebGlMenuButtonsOnInputSystemDevice(UnityEngine.InputSystem.InputDevice dev, out bool pressed)
+        {
+            pressed = false;
+            foreach (var controlName in WebGlInputSystemMenuButtonCandidates)
+            {
+                var btn = dev.TryGetChildControl<ButtonControl>(controlName);
+                if (WebGlButtonIsActive(btn))
+                {
+                    pressed = true;
+                    return true;
+                }
+
+                var axisAsBtn = dev.TryGetChildControl<AxisControl>(controlName);
+                if (WebGlAxisPressedLikeButton(axisAsBtn))
+                {
+                    pressed = true;
+                    return true;
+                }
+            }
+
+            foreach (var prefix in WebGlInputSystemMenuButtonPathPrefixes)
+            {
+                foreach (var controlName in WebGlInputSystemMenuButtonCandidates)
+                {
+                    string combined = prefix + "/" + controlName;
+                    var btn = dev.TryGetChildControl<ButtonControl>(combined);
+                    if (WebGlButtonIsActive(btn))
+                    {
+                        pressed = true;
+                        return true;
+                    }
+
+                    var axisAsBtn = dev.TryGetChildControl<AxisControl>(combined);
+                    if (WebGlAxisPressedLikeButton(axisAsBtn))
+                    {
+                        pressed = true;
+                        return true;
+                    }
+                }
+            }
+
+            foreach (var c in dev.allControls)
+            {
+                if (c is not ButtonControl bt || !WebGlButtonIsActive(bt))
+                    continue;
+                if (!WebGlInputControlLooksLikeMenuFaceButton(c))
+                    continue;
+                pressed = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>Extra path segments before <c>secondaryButton</c> etc. (nested layouts).</summary>
+        private static readonly string[] WebGlInputSystemMenuButtonPathPrefixes =
+        {
+            "xrController",
+            "XRController",
+            "leftHand",
+            "rightHand",
+            "LeftHand",
+            "RightHand",
+        };
+
+        private static bool WebGlInputControlLooksLikeMenuFaceButton(UnityEngine.InputSystem.InputControl c)
+        {
+            string path = (c.path ?? string.Empty).ToLowerInvariant();
+            if (path.Contains("thumbstick") || path.Contains("joystick") || path.Contains("stick"))
+                return false;
+            if (path.Contains("trigger") && !path.Contains("secondary"))
+                return false;
+
+            string name = (c.name ?? string.Empty).ToLowerInvariant();
+            if (name.Contains("touch") && name.IndexOf("secondary", StringComparison.OrdinalIgnoreCase) < 0)
+                return false;
+
+            switch (name)
+            {
+                case "secondarybutton":
+                case "secondary":
+                case "menubutton":
+                case "menu":
+                case "buttoneast":
+                case "buttonwest":
+                case "buttonnorth":
+                case "buttonsouth":
+                case "start":
+                case "select":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// WebXR registers a <b>tracked display</b> (HMD) as an Input System device; it matched our old
+        /// "layout contains WebXR" rule and broke left/right ordering. Exclude HMD/display/non-hand XR here.
+        /// </summary>
+        private static bool WebGlInputDeviceExcludedFromHandControllerMenuRouting(UnityEngine.InputSystem.InputDevice dev)
+        {
+            string layout = (dev.layout ?? string.Empty).ToLowerInvariant();
+            string path = (dev.path ?? string.Empty).ToLowerInvariant();
+
+            if (layout.Contains("keyboard") || layout.Contains("mouse") || layout.Contains("pen"))
+                return true;
+
+            if (path.Contains("{head}") || path.Contains("centereye") || path.Contains("/hmd") ||
+                path.Contains("headmounted"))
+                return true;
+
+            bool mentionsController = layout.Contains("controller");
+
+            if (layout.Contains("trackeddisplay") ||
+                (layout.Contains("tracked") && layout.Contains("display") && !mentionsController))
+                return true;
+
+            if ((layout.Contains("webxr") || layout.Contains("openxr")) &&
+                layout.Contains("display") &&
+                !mentionsController)
+                return true;
+
+            if ((layout.Contains("hmd") || layout.Contains("headset")) && !mentionsController)
+                return true;
+
+            return false;
+        }
+
+        private static bool WebGlInputDeviceLooksLikeXrController(UnityEngine.InputSystem.InputDevice dev)
+        {
+            string layout = dev.layout ?? string.Empty;
+            if (layout.IndexOf("XR", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                layout.IndexOf("Controller", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (layout.IndexOf("WebXR", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                layout.IndexOf("Controller", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (layout.IndexOf("OpenXR", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                layout.IndexOf("Controller", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            return dev.TryGetChildControl<AxisControl>("trigger") != null &&
+                   dev.TryGetChildControl<ButtonControl>("secondaryButton") != null;
+        }
+
+        private static bool WebGlInputDeviceMatchesControllerHand(UnityEngine.InputSystem.InputDevice dev, bool rightHand)
+        {
+            foreach (var u in dev.usages)
+            {
+                if (rightHand && u == UnityEngine.InputSystem.CommonUsages.RightHand)
+                    return true;
+                if (!rightHand && u == UnityEngine.InputSystem.CommonUsages.LeftHand)
+                    return true;
+            }
+
+            string path = dev.path ?? string.Empty;
+            if (path.IndexOf("{RightHand}", StringComparison.OrdinalIgnoreCase) >= 0)
+                return rightHand;
+            if (path.IndexOf("{LeftHand}", StringComparison.OrdinalIgnoreCase) >= 0)
+                return !rightHand;
+
+            string n = dev.name ?? string.Empty;
+            if (rightHand)
+                return n.IndexOf("right", StringComparison.OrdinalIgnoreCase) >= 0;
+            return n.IndexOf("left", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+#endif
+
+        private void PollXrMenuAndSettingsButtons()
+        {
+            bool rightHeld = ReadSecondaryButtonHeld(true);
+            if (rightHeld && !rightPrimaryButtonPressed)
+            {
+                rightPrimaryButtonPressed = true;
+                HandleMenuUI();
+            }
+            else if (!rightHeld)
+                rightPrimaryButtonPressed = false;
+
+            bool leftHeld = ReadSecondaryButtonHeld(false);
+            if (leftHeld && !leftPrimaryButtonPressed)
+            {
+                leftPrimaryButtonPressed = true;
+                HandleSettingUI();
+            }
+            else if (!leftHeld)
+                leftPrimaryButtonPressed = false;
+        }
+
         public void ManageEmojiPanel()
         {
-            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            if (!UseHeadMountedMenuPath())
             {
                 if (emojiPanelDesktop == null) return;
                 emojiPanelDesktop.SetActive(!emojiPanelDesktop.activeInHierarchy);
@@ -232,32 +629,12 @@ namespace VertexFormCore
 
         private void Update()
         {
-#if UNITY_EDITOR || UNITY_WEBGL
+#if UNITY_EDITOR
             if (Input.GetKeyDown(KeyCode.N)) HandleMenuUI();
             if (Input.GetKeyDown(KeyCode.M)) HandleSettingUI();
 #endif
 
-#if !UNITY_WEBGL
-            if (_inputData._rightController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool rightBtn))
-            {
-                if (rightBtn && !rightPrimaryButtonPressed)
-                {
-                    rightPrimaryButtonPressed = true;
-                    HandleMenuUI();
-                }
-                else if (!rightBtn) rightPrimaryButtonPressed = false;
-            }
-
-            if (_inputData._leftController.TryGetFeatureValue(CommonUsages.secondaryButton, out bool leftBtn))
-            {
-                if (leftBtn && !leftPrimaryButtonPressed)
-                {
-                    leftPrimaryButtonPressed = true;
-                    HandleSettingUI();
-                }
-                else if (!leftBtn) leftPrimaryButtonPressed = false;
-            }
-#endif
+            PollXrMenuAndSettingsButtons();
         }
 
         // ==================== TOGGLE HANDLERS ====================
@@ -397,7 +774,7 @@ namespace VertexFormCore
         // ==================== UI Positioning ====================
         public void HandleMenuUI()
         {
-            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            if (!UseHeadMountedMenuPath())
             {
 
                 Debug.Log("Menu Clicked");
@@ -430,7 +807,7 @@ namespace VertexFormCore
 
         public void HandleSettingUI()
         {
-            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            if (!UseHeadMountedMenuPath())
             {
                 if (settingUI != null)
                 {
@@ -446,6 +823,7 @@ namespace VertexFormCore
             }
             else
             {
+
                 if (settingUI != null)
                 {
                     var settingsCanvas = settingUI.GetComponentInChildren<Canvas>();
@@ -474,7 +852,9 @@ namespace VertexFormCore
 
         void MoveCanvasToCamera(GameObject UIObject)
         {
-            if (ProjectManager.instance.platforms.platformChoice == platform.VR)
+            if (xrCameraTransform == null || UIObject == null)
+                return;
+            if (UseHeadMountedMenuPath())
             {
                 UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
                 Vector3 flatForward = xrCameraTransform.forward;

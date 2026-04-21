@@ -7,7 +7,7 @@ public class CrossPlatformEvent : MonoBehaviour
     public UnityEvent onDesktopEvent;
     void Awake()
     {
-        if (ProjectManager.instance.platforms.platformChoice == platform.VR)
+        if (ProjectManager.instance.platforms.IsVrStylePlatform())
         {
             if (onVREvent != null)
             {

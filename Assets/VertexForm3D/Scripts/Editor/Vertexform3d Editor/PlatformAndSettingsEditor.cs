@@ -27,7 +27,13 @@ public class PlatformAndSettingsEditor : Editor
         using (new EditorGUI.DisabledScope(true))
             EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Script"));
 
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("platformChoice"));
+        SerializedProperty platformChoiceProp = serializedObject.FindProperty("platformChoice");
+        EditorGUILayout.PropertyField(platformChoiceProp);
+        if (platformChoiceProp.enumValueIndex == (int)platform.WebGPU)
+        {
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("webGpuBrowserKind"));
+            EditorGUILayout.HelpBox("WebGPU browser kind is normally set at runtime from WebGL index.html (SendMessage). Use the field above to test a kind in the Editor.", MessageType.None);
+        }
 
         EditorGUILayout.Space(8);
 

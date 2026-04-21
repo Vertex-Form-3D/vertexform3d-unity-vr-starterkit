@@ -43,7 +43,7 @@ public class ThirdPersonMobileControls : MonoBehaviour
 
     private void Update()
     {
-        if (rig == null || !DesktopMobileControlSettings.UseMobileControls)
+        if (rig == null || !DesktopMobileControlSettings.UseFlatMobileControls)
             return;
 
         if (rig.GetPlatformProperty())

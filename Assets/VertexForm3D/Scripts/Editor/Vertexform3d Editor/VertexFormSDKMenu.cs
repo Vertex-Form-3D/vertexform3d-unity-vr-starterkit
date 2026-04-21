@@ -196,6 +196,8 @@ public class SceneSavingEditor
                 inputfield.gameObject.AddComponent<XRKeyboardDisplay>();
             }
             inputfield.GetComponent<XRKeyboardDisplay>().inputField = inputfield;
+            if (inputfield.GetComponent<VertexFormTMPInputKeyboardPolicy>() == null)
+                inputfield.gameObject.AddComponent<VertexFormTMPInputKeyboardPolicy>();
         }
     }
 }

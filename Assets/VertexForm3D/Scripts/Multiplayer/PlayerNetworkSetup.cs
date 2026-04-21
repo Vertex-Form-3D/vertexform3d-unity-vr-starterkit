@@ -68,7 +68,11 @@ namespace VertexFormCore
         [Networked] public int AvatarSelectionNumber { get; set; }
         [Networked] public NetworkString<_16> PlayerName { get; set; }
         [Networked] public platform Platform { get; set; }
+        [Networked] public WebGpuBrowserKind WebGpuBrowserKind { get; set; }
 
+        public bool NetworkedIsVrStyle() => PlatformPresentation.IsVrStyle(Platform, WebGpuBrowserKind);
+
+        public bool NetworkedIsDesktopStyle() => PlatformPresentation.IsDesktopStyle(Platform, WebGpuBrowserKind);
 
         // Track if avatar has been initialized for remote players
         private bool avatarInitialized = false;
@@ -147,9 +151,17 @@ namespace VertexFormCore
             if (Object.HasInputAuthority)
             {
                 PlayerName = ProjectManager.UserName;
-                Platform = ProjectManager.instance != null && ProjectManager.instance.platforms != null
-                    ? ProjectManager.instance.platforms.platformChoice
-                    : platform.Desktop;
+                if (ProjectManager.instance != null && ProjectManager.instance.platforms != null)
+                {
+                    Platforms pl = ProjectManager.instance.platforms;
+                    Platform = pl.platformChoice;
+                    WebGpuBrowserKind = pl.webGpuBrowserKind;
+                }
+                else
+                {
+                    Platform = platform.Desktop;
+                    WebGpuBrowserKind = WebGpuBrowserKind.None;
+                }
             }
             Debug.Log("-->spawning player");
             StartCoroutine(InitializePlayer());
@@ -187,8 +199,9 @@ namespace VertexFormCore
                 // PlayerName and Platform already set in Spawned() for immediate sync; ensure consistency here
                 if (ProjectManager.instance != null && ProjectManager.instance.platforms != null)
                 {
-
-                    Platform = ProjectManager.instance.platforms.platformChoice;
+                    Platforms pl = ProjectManager.instance.platforms;
+                    Platform = pl.platformChoice;
+                    WebGpuBrowserKind = pl.webGpuBrowserKind;
                 }
 
             }

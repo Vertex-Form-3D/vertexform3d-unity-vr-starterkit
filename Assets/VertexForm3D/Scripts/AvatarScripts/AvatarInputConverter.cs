@@ -61,7 +61,7 @@ namespace VertexFormCore
             }
             _wasSitting = isSitting;
 
-            if (ProjectManager.instance.platforms.platformChoice == platform.VR)
+            if (ProjectManager.instance.platforms.IsVrStylePlatform())
             {
                 Vector3 horizontalOffset = XRHead.TransformDirection(new Vector3(headPositionOffsetVR.x, 0, headPositionOffsetVR.z));
                 Vector3 targetBodyPosition = new Vector3(XRHead.position.x + horizontalOffset.x, XRHead.position.y + headPositionOffsetVR.y, XRHead.position.z + horizontalOffset.z);
@@ -99,7 +99,7 @@ namespace VertexFormCore
                     AvatarHand_Left.rotation = Quaternion.Lerp(AvatarHand_Left.rotation, XRHandController_Left.rotation, 0.5f) * Quaternion.Euler(leftHandRotationOffset);
                 }
             }
-            else if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            else if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
             {
                 if (playerNetworkSetup != null)
                 {

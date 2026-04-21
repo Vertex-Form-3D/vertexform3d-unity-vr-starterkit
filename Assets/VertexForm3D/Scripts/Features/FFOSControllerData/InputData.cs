@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
@@ -24,13 +23,25 @@ namespace VertexFormCore
 
         private void Start()
         {
-#if !UNITY_WEBGL
             if (!_rightController.isValid || !_leftController.isValid || !_HMD.isValid)
                 InitializeInputDevices();
-#endif
         }
 
-#if !UNITY_WEBGL
+        private void OnEnable()
+        {
+            InputDevices.deviceConnected += OnInputDevicesChanged;
+            InputDevices.deviceDisconnected += OnInputDevicesChanged;
+        }
+
+        private void OnDisable()
+        {
+            InputDevices.deviceConnected -= OnInputDevicesChanged;
+            InputDevices.deviceDisconnected -= OnInputDevicesChanged;
+        }
+
+        private void OnInputDevicesChanged(InputDevice device) =>
+            InitializeInputDevices();
+
         private void InitializeInputDevices()
         {
             if (!_rightController.isValid)
@@ -41,16 +52,13 @@ namespace VertexFormCore
                 InitializeInputDevice(InputDeviceCharacteristics.HeadMounted, ref _HMD);
         }
 
-        private void InitializeInputDevice(InputDeviceCharacteristics inputCharacteristics, ref InputDevice inputDevice)
+        private static void InitializeInputDevice(InputDeviceCharacteristics inputCharacteristics, ref InputDevice inputDevice)
         {
-            List<InputDevice> devices = new List<InputDevice>();
+            var devices = new List<InputDevice>();
             InputDevices.GetDevicesWithCharacteristics(inputCharacteristics, devices);
 
             if (devices.Count > 0)
-            {
                 inputDevice = devices[0];
-            }
         }
-#endif
     }
 }

@@ -20,6 +20,9 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     public GameObject howerUI;
     public WorldData worlddata = new WorldData();
     public bool InitalizeInStart;
+    MenuManager _menuManager;
+
+    MenuManager BoundMenuManager => _menuManager != null ? _menuManager : MenuManager.Instance;
 
     private void Start()
     {
@@ -49,20 +52,21 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         howerUI.SetActive(true);
     }
 
-    public void SetWorldData(WorldData wd)
+    public void SetWorldData(WorldData wd, MenuManager menuManager)
     {
+        _menuManager = menuManager;
         worlddata = wd.Clone();
         UpdateView(worlddata);
     }
 
     public void ShowInfo()
     {
-        MenuManager.Instance.ShowWorldDetails(worlddata);
+        BoundMenuManager?.ShowWorldDetails(worlddata);
     }
 
     public void OnTapStar()
     {
-        MenuManager.Instance.OnTapStar(worlddata.worldName, starBtn.GetComponent<Image>());
+        BoundMenuManager?.OnTapStar(worlddata.worldName, starBtn.GetComponent<Image>());
     }
     void LoadWorld()
     {
@@ -122,10 +126,8 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
             });
         }
 
-        if (MenuManager.Instance != null)
-        {
-            MenuManager.Instance.WorldIsStarredOrNot(worlddata.worldName, starBtn.GetComponent<Image>());
-        }
+        if (BoundMenuManager != null)
+            BoundMenuManager.WorldIsStarredOrNot(worlddata.worldName, starBtn.GetComponent<Image>());
 
         EnsureHoverVisibleForTouch();
     }

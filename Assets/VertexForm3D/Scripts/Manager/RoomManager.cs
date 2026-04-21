@@ -497,12 +497,13 @@ namespace VertexFormCore
 
         /// <summary>
         /// Wire Photon recorders after voice join: recording on, <see cref="Recorder.TransmitEnabled"/> follows
-        /// <see cref="SettingClass.micType"/> (same rule as <see cref="PlayerUIManager.InitializeAllSettings"/>).
+        /// the local player's runtime mute toggle when available (same as <see cref="PlayerUIManager"/> / in-session UI),
+        /// otherwise <see cref="SettingClass.micType"/> defaults.
         /// </summary>
         private void EnableVoiceRecorder()
         {
-            bool transmit = DefaultVoiceTransmitFromProjectSettings();
-            Debug.Log($"[RoomManager] Apply voice recorders after join — default transmit={(transmit ? "on" : "off (muted)")}");
+            bool transmit = VoiceTransmitDesiredForLocalPlayer();
+            Debug.Log($"[RoomManager] Apply voice recorders after join — transmit={(transmit ? "on" : "off (muted)")}");
 
             void Apply(Photon.Voice.Unity.Recorder recorder, string label)
             {
@@ -531,7 +532,7 @@ namespace VertexFormCore
             }
         }
 
-        /// <summary>Aligned with <see cref="PlayerUIManager.InitializeAllSettings"/> voice: unmute → transmit, mute → no transmit.</summary>
+        /// <summary>Fallback when local <see cref="PlayerUIManager"/> is not available yet (e.g. spectator).</summary>
         private static bool DefaultVoiceTransmitFromProjectSettings()
         {
             if (ProjectManager.instance == null || ProjectManager.instance.settingsUI == null ||
@@ -539,6 +540,19 @@ namespace VertexFormCore
                 return false;
 
             return ProjectManager.instance.settingsUI.defaultSettings.micType == micType.unmute;
+        }
+
+        /// <summary>
+        /// Must match in-session mute UI: toggling unmute does not write <see cref="SettingClass.micType"/>, so delayed
+        /// <see cref="EnableVoiceRecorder"/> must not overwrite <see cref="Recorder.TransmitEnabled"/> from defaults alone.
+        /// </summary>
+        private bool VoiceTransmitDesiredForLocalPlayer()
+        {
+            var local = GetLocalPlayerSetup();
+            if (local != null && local.playerUIManager != null)
+                return local.playerUIManager.IsLocalVoiceUnmuted;
+
+            return DefaultVoiceTransmitFromProjectSettings();
         }
 
         private FusionAppSettings BuildCustomAppSetting(string region)
@@ -720,7 +734,7 @@ namespace VertexFormCore
             if (localVRPlayer == null) return;
             var playerSetup = GetLocalPlayerSetup();
             if (playerSetup == null || (playerSetup.notificationParentDesktop == null && playerSetup.notificationParentVR == null)) return;
-            if (ProjectManager.instance.platforms.platformChoice == platform.Desktop)
+            if (ProjectManager.instance.platforms.IsDesktopStylePlatform())
             {
                 playerJoinHolder = playerSetup.notificationParentDesktop;
             }

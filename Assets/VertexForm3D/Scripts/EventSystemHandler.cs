@@ -13,7 +13,7 @@ public class EventSystemHandler : MonoBehaviour
         DesktopEventSystem.gameObject.SetActive(false);
         VREventSystem.gameObject.SetActive(false);
 
-        if (ProjectManager.instance.platforms.platformChoice == platform.VR)
+        if (ProjectManager.instance.platforms.IsVrStylePlatform())
         {
             VREventSystem.gameObject.SetActive(true);
             EventSystem.current = VREventSystem;

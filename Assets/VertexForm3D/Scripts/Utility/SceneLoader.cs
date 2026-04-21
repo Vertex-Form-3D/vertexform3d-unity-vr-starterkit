@@ -1,5 +1,7 @@
 using Fusion;
+using System;
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -109,16 +111,6 @@ namespace VertexFormCore
 
         string currentScene;
         
-        [ContextMenu("ActivateScene")]
-        public void ActivateScene()
-        {
-            Scene sc = SceneManager.GetSceneByName(currentScene);
-            if (sc.IsValid())
-            {
-                SceneManager.SetActiveScene(sc);
-            }
-        }
-        
         public void OnSceneLoaded(string sceneName)
         {
             currentScene = sceneName;
@@ -136,7 +128,6 @@ namespace VertexFormCore
                 Debug.LogError("[SceneLoader] RoomManager.Instance is null! Cannot connect to room.");
             }
 
-            Resources.UnloadUnusedAssets();
 #if !UNITY_WEBGL
             Caching.ClearCache();
 #endif
@@ -149,6 +140,107 @@ namespace VertexFormCore
             completePerchantage = 100f;
             currentScene = sceneName;
             Debug.Log($"[SceneLoader] Fusion addressable scene fully loaded: {sceneName}");
+
+            // Apply world lighting/skybox before unloading: RenderSettings follow the active scene.
+            ActivateScene();
+
+            // Defer cleanup until the additive scene is present; early UnloadUnusedAssets during
+            // async load has caused missing skybox/textures on first WebGL visit.
+            Resources.UnloadUnusedAssets();
+        }
+
+        /// <summary>
+        /// Sets the active scene to the loaded addressable world so global RenderSettings
+        /// (skybox, ambient, fog) match that scene. Fusion loads the world additively while
+        /// the base scene may stay active otherwise.
+        /// </summary>
+        [ContextMenu("ActivateScene")]
+        public void ActivateScene()
+        {
+            if (!TryResolveWorldScene(out var worldScene))
+            {
+                Debug.LogWarning($"[SceneLoader] ActivateScene: could not resolve loaded scene for key \"{currentScene}\".");
+                return;
+            }
+
+            if (!worldScene.isLoaded)
+            {
+                Debug.LogWarning($"[SceneLoader] ActivateScene: scene \"{worldScene.name}\" is not loaded yet.");
+                return;
+            }
+
+            if (SceneManager.GetActiveScene() == worldScene)
+                return;
+
+            SceneManager.SetActiveScene(worldScene);
+            DynamicGI.UpdateEnvironment();
+            Debug.Log($"[SceneLoader] Active scene set to \"{worldScene.name}\" (path: {worldScene.path}).");
+        }
+
+        bool TryResolveWorldScene(out Scene scene)
+        {
+            scene = default;
+            if (string.IsNullOrEmpty(currentScene))
+                return false;
+
+            string key = currentScene.Replace('\\', '/');
+
+            scene = SceneManager.GetSceneByName(currentScene);
+            if (scene.IsValid() && scene.isLoaded)
+                return true;
+
+            string shortName = Path.GetFileNameWithoutExtension(key);
+            if (!string.IsNullOrEmpty(shortName) && shortName != currentScene)
+            {
+                scene = SceneManager.GetSceneByName(shortName);
+                if (scene.IsValid() && scene.isLoaded)
+                    return true;
+            }
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (!s.IsValid() || !s.isLoaded)
+                    continue;
+                if (s.name == "addressableScene" || s.name == "DontDestroyOnLoad")
+                    continue;
+                if (!string.IsNullOrEmpty(s.path))
+                {
+                    string sp = s.path.Replace('\\', '/');
+                    if (sp == key || sp.EndsWith(key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        scene = s;
+                        return true;
+                    }
+                }
+            }
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (!s.IsValid() || !s.isLoaded)
+                    continue;
+                if (s.name == "addressableScene" || s.name == "DontDestroyOnLoad")
+                    continue;
+                if (!string.IsNullOrEmpty(shortName) && s.name == shortName)
+                {
+                    scene = s;
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (!s.IsValid() || !s.isLoaded)
+                    continue;
+                if (s.name == "addressableScene" || s.name == "DontDestroyOnLoad")
+                    continue;
+                scene = s;
+                return true;
+            }
+
+            return false;
         }
     }
 }
