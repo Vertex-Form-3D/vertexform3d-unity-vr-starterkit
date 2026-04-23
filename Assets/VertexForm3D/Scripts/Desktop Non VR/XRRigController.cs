@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement; // For List in raycasting
 
 public class XRRigController : MonoBehaviour
 {
+    private const string PersonModePrefsKey = "VertexForm3D_PersonMode";
     public bool isMultiplayer;
     public PlayerNetworkSetup playerNetworkSetup;
     [SerializeField] private NetworkObject networkObject;
@@ -57,6 +58,8 @@ public class XRRigController : MonoBehaviour
     public Vector2 previousRotation;
     private bool rotateAllowed;
     public bool isHoweringUI;
+    private bool isUiInputLocked;
+    public bool IsUiInputLocked => isUiInputLocked;
     private static bool _loggedFirstInput;
     private bool _loggedWrongMode;
     private void Awake()
@@ -281,7 +284,6 @@ public class XRRigController : MonoBehaviour
         if (isMultiplayer && networkObject != null && networkObject.IsValid && playerNetworkSetup != null)
         {
             bool isVR = playerNetworkSetup.NetworkedIsVrStyle();
-            Debug.Log("GetPlatformProperty (multiplayer): " + (networkObject.HasInputAuthority ? "local" : "remote") + " -> " + playerNetworkSetup.Platform + " webKind=" + playerNetworkSetup.WebGpuBrowserKind + " isVR=" + isVR);
             return isVR;
         }
         // Single-player or missing refs: use local ProjectManager
@@ -299,10 +301,30 @@ public class XRRigController : MonoBehaviour
 
     public bool inputassigned;
 
+    private static void SavePersonModePreference(bool thirdPerson)
+    {
+        PlayerPrefs.SetInt(PersonModePrefsKey, thirdPerson ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    private bool TryGetSavedPersonMode(out bool savedThirdPerson)
+    {
+        if (PlayerPrefs.HasKey(PersonModePrefsKey))
+        {
+            savedThirdPerson = PlayerPrefs.GetInt(PersonModePrefsKey, 0) == 1;
+            return true;
+        }
+
+        savedThirdPerson = false;
+        return false;
+    }
+
     /// <summary>Pinch / mobile scroll: forwards to the same zoom logic as the mouse wheel.</summary>
     public void ApplyMobileScrollZoom(float scrollDelta)
     {
         if (isMultiplayer && !IsLocalPlayer())
+            return;
+        if (isUiInputLocked)
             return;
         HandleZoom(scrollDelta);
     }
@@ -312,6 +334,11 @@ public class XRRigController : MonoBehaviour
     {
         if (isMultiplayer && !IsLocalPlayer())
             return;
+        if (isUiInputLocked)
+        {
+            isSprinting = false;
+            return;
+        }
         isSprinting = sprinting;
     }
 
@@ -319,6 +346,8 @@ public class XRRigController : MonoBehaviour
     public void SetMobileJumpFromUi(bool pressed)
     {
         if (isMultiplayer && !IsLocalPlayer())
+            return;
+        if (isUiInputLocked)
             return;
         if (pressed)
             isJumping = true;
@@ -331,6 +360,8 @@ public class XRRigController : MonoBehaviour
     public void ApplyVirtualUiLook(Vector2 deltaPixels)
     {
         if (isMultiplayer && !IsLocalPlayer())
+            return;
+        if (isUiInputLocked)
             return;
         if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
             return;
@@ -422,7 +453,13 @@ public class XRRigController : MonoBehaviour
         // Initialize zoom distance
         currentZoomDistance = isThirdPerson ? maxZoomDistance : minZoomDistance;
         Debug.Log($"[XRRigController] AssignInputActions: startMode={startMode}, currentZoomDistance={currentZoomDistance}, thirdPersonThreshold={thirdPersonThreshold}");
-        if (startMode == PersonMode.Third)
+        bool shouldStartThirdPerson = startMode == PersonMode.Third;
+        if (TryGetSavedPersonMode(out bool savedThirdPerson))
+        {
+            shouldStartThirdPerson = savedThirdPerson;
+        }
+
+        if (shouldStartThirdPerson)
         {
             Debug.Log("[XRRigController] AssignInputActions: calling SwitchToThirdPerson (startMode=Third)");
             SwitchToThirdPerson();
@@ -436,6 +473,14 @@ public class XRRigController : MonoBehaviour
     }
     private void HandleMovement()
     {
+        if (isUiInputLocked)
+        {
+            moveInput = Vector2.zero;
+            isSprinting = false;
+            isJumping = false;
+            return;
+        }
+
         Vector2 moveForFrame = moveInput;
 
         // While sitting, don't apply movement (position is fixed). Pressing move keys leaves the seat.
@@ -553,6 +598,10 @@ public class XRRigController : MonoBehaviour
 
     private void HandleZoom(float scrollInput)
     {
+        if (isUiInputLocked)
+        {
+            return;
+        }
         if (isMultiplayer)
         {
             if (!IsLocalPlayer())
@@ -580,6 +629,7 @@ public class XRRigController : MonoBehaviour
         if (wasThirdPerson != isThirdPerson)
         {
             Debug.Log($"[XRRigController] HandleZoom: MODE SWITCH {wasThirdPerson} -> {isThirdPerson} (zoom {prevZoom:F2} -> {currentZoomDistance:F2}, threshold={thirdPersonThreshold}), calling {(isThirdPerson ? "onThirdPersonModeStart" : "onFPSModeStart")}");
+            SavePersonModePreference(isThirdPerson);
             if (isThirdPerson)
             {
                 onThirdPersonModeStart();
@@ -600,6 +650,13 @@ public class XRRigController : MonoBehaviour
         rotateAllowed = true;
         while (rotateAllowed)
         {
+            if (isUiInputLocked)
+            {
+                rotation = Vector2.zero;
+                previousRotation = Vector2.zero;
+                yield return null;
+                continue;
+            }
             // Only rotate if the pointer is not over a UI element
             if (!isThirdPerson)
             {
@@ -752,6 +809,7 @@ public class XRRigController : MonoBehaviour
 
         isThirdPerson = false;
         currentZoomDistance = minZoomDistance;
+        SavePersonModePreference(false);
         Debug.Log("[XRRigController] SwitchToFirstPerson: calling onFPSModeStart");
         onFPSModeStart();
     }
@@ -791,8 +849,24 @@ public class XRRigController : MonoBehaviour
 
         isThirdPerson = true;
         currentZoomDistance = maxZoomDistance;
+        SavePersonModePreference(true);
         Debug.Log("[XRRigController] SwitchToThirdPerson: calling onThirdPersonModeStart");
         onThirdPersonModeStart();
+    }
+
+    /// <summary>Blocks movement and camera look while gameplay UI overlays are open.</summary>
+    public void SetUiInputLocked(bool locked)
+    {
+        isUiInputLocked = locked;
+        if (locked)
+        {
+            moveInput = Vector2.zero;
+            rotation = Vector2.zero;
+            previousRotation = Vector2.zero;
+            isSprinting = false;
+            isJumping = false;
+            rotateAllowed = false;
+        }
     }
 }
 

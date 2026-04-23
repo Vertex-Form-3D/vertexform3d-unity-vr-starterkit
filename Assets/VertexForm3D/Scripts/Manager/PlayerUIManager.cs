@@ -29,6 +29,7 @@ namespace VertexFormCore
         [SerializeField] NetworkRunner networkRunner;
         [SerializeField] GameObject selfieStickPrefab;
         [SerializeField] Button selfieButton;
+        [SerializeField] XRRigController xrRigController;
         [SerializeField] private TextMeshProUGUI timeText;
         [SerializeField] private TextMeshProUGUI dateText;
 
@@ -72,6 +73,9 @@ namespace VertexFormCore
 
         void Start()
         {
+            if (xrRigController == null)
+                xrRigController = GetComponentInParent<XRRigController>();
+
             // Go home: VirtualRoomManager may not exist in addressable / WebGL flows until a bootstrap scene loads it.
             void LeaveHomeSafe()
             {
@@ -104,6 +108,8 @@ namespace VertexFormCore
             {
                 InitializeAllSettings();
             }
+
+            UpdateInputLockFromOpenPanels();
         }
 
         private static void WireSettingButton(SettingButton setting, UnityEngine.Events.UnityAction handler)
@@ -554,6 +560,7 @@ namespace VertexFormCore
                 emojiPanelVR.SetActive(!emojiPanelVR.activeInHierarchy);
             }
 
+            UpdateInputLockFromOpenPanels();
         }
         public void InitializeAllSettings()
         {
@@ -803,6 +810,7 @@ namespace VertexFormCore
                 }
             }
 
+            UpdateInputLockFromOpenPanels();
         }
 
         public void HandleSettingUI()
@@ -848,6 +856,24 @@ namespace VertexFormCore
                 }
             }
 
+            UpdateInputLockFromOpenPanels();
+        }
+
+        private bool IsAnyBlockingPanelOpen()
+        {
+            return (desktopMenuUI != null && desktopMenuUI.activeInHierarchy) ||
+                   (menuUI != null && menuUI.activeInHierarchy) ||
+                   (settingUI != null && settingUI.activeInHierarchy) ||
+                   (emojiPanelDesktop != null && emojiPanelDesktop.activeInHierarchy) ||
+                   (emojiPanelVR != null && emojiPanelVR.activeInHierarchy);
+        }
+
+        private void UpdateInputLockFromOpenPanels()
+        {
+            if (xrRigController == null)
+                return;
+
+            xrRigController.SetUiInputLocked(IsAnyBlockingPanelOpen());
         }
 
         void MoveCanvasToCamera(GameObject UIObject)

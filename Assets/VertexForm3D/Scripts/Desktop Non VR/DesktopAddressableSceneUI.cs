@@ -22,6 +22,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
 
     void Start()
     {
+        desktopCanvas.gameObject.SetActive(false);
         if (Instance == null)
         {
             Instance = this;
@@ -75,7 +76,15 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     {
 
         var xrRig = pns.GetComponent<XRRigController>();
-        desktopCanvas.gameObject.SetActive(true);
+        PersonMode mode = (PersonMode)PlayerPrefs.GetInt("VertexForm3D_PersonMode", 0);
+        if (mode == PersonMode.Third)
+        {
+            xrRig.SwitchToThirdPerson();
+        }
+        else
+        {
+            xrRig.SwitchToFirstPerson();
+        }
         var modeBtn = modeImage != null ? modeImage.GetComponent<Button>() : null;
         if (modeBtn != null)
         {
@@ -113,6 +122,8 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             modeImage.sprite = thirdPersonSprite;
             modeText.text = "Third Person mode";
         });
+
+        desktopCanvas.gameObject.SetActive(true);
 
     }
 

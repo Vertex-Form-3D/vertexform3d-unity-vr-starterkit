@@ -37,6 +37,7 @@ namespace StarterAssets
 
         private Vector2 _lastLookSample;
         private Canvas _canvas;
+        private bool _startupPlatformSyncAttempted;
 
         private void Awake()
         {
@@ -49,6 +50,7 @@ namespace StarterAssets
 
         private void Start()
         {
+            TrySyncMobileModeFromPlatformAsset();
             ApplyCanvasVisibility();
         }
 
@@ -56,6 +58,7 @@ namespace StarterAssets
         {
             if (!driveCanvasEnabledFromSettings || _canvas == null)
                 return;
+            TrySyncMobileModeFromPlatformAsset();
             bool wantEnabled = DesktopMobileControlSettings.UseFlatMobileControls && !IsVrPlatformForThisRig();
             if (_canvas.enabled != wantEnabled)
                 ApplyCanvasVisibility();
@@ -88,6 +91,27 @@ namespace StarterAssets
             if (!driveCanvasEnabledFromSettings || _canvas == null)
                 return;
             _canvas.enabled = DesktopMobileControlSettings.UseFlatMobileControls && !IsVrPlatformForThisRig();
+        }
+
+        /// <summary>
+        /// Scene/domain reload can reset DesktopMobileControlSettings before WebGL JS sends runtime hints.
+        /// Keep editor/runtime testing deterministic by syncing once from the Platforms asset when available.
+        /// </summary>
+        private void TrySyncMobileModeFromPlatformAsset()
+        {
+            if (_startupPlatformSyncAttempted)
+                return;
+
+            if (ProjectManager.instance == null || ProjectManager.instance.platforms == null)
+                return;
+
+            Platforms pl = ProjectManager.instance.platforms;
+            bool shouldUseMobileControls =
+                pl.platformChoice == platform.WebGPU &&
+                pl.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser;
+
+            DesktopMobileControlSettings.SetUseMobileControls(shouldUseMobileControls);
+            _startupPlatformSyncAttempted = true;
         }
 
         /// <summary>Uses <see cref="XRRigController.GetPlatformProperty"/> when a rig is assigned; otherwise <see cref="ProjectManager"/>.</summary>

@@ -6,8 +6,10 @@ using Unity.EditorCoroutines.Editor;
 using System.IO;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using Newtonsoft.Json.Linq;
 
 [System.Serializable]
 public class PackageUpdateInfo
@@ -314,6 +316,10 @@ public class PackageUpdaterWindow : EditorWindow
     private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/version.json";
     private const string tempFileName = "downloaded_package.unitypackage";
     private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/version.json";
+    private const string openUpmRegistryName = "OpenUPM";
+    private const string openUpmRegistryUrl = "https://package.openupm.com";
+    private const string webxrPackageId = "com.de-panther.webxr";
+    private const string webxrScopePrefix = "com.de-panther";
 
     // EditorPrefs keys for resuming after domain reload
     private const string PrefKey_HasPackagesToImport = "VertexForm3D_HasPackagesToImport";
@@ -334,6 +340,8 @@ public class PackageUpdaterWindow : EditorWindow
     private int currentUpdateIndex = 0; // Current version being downloaded
     private bool isFetchingUpdateInfo = false; // Track if we're currently fetching update info
     private bool autoStartDownload = false; // Flag to auto-start download after fetch completes
+    private bool isInstallingWebXR = false;
+    private bool isWebXRInstalled = false;
 
     private ListRequest listRequest;
 
@@ -390,6 +398,7 @@ public class PackageUpdaterWindow : EditorWindow
     private void OnEnable()
     {
         Debug.Log($"[PackageUpdater] OnEnable called. HasPackagesToImport: {EditorPrefs.GetBool(PrefKey_HasPackagesToImport, false)}");
+        RefreshWebXRInstalledState();
         EditorCoroutineUtility.StartCoroutineOwnerless(FetchUpdateInfo());
     }
 
@@ -459,6 +468,19 @@ public class PackageUpdaterWindow : EditorWindow
         GUI.enabled = true;
 
         GUILayout.Space(20);
+
+        bool canInstallWebXR = !isDownloading && !isImporting && !isUpdatingPackages && !isInstallingWebXR && !isWebXRInstalled;
+        GUI.enabled = canInstallWebXR;
+        string webxrButtonLabel = isWebXRInstalled
+            ? "WebXR Package Already Installed"
+            : "Install WebXR Package (Scoped Registry)";
+        if (GUILayout.Button(webxrButtonLabel, GUILayout.Height(30)))
+        {
+            EditorCoroutineUtility.StartCoroutineOwnerless(InstallWebXRPackage());
+        }
+        GUI.enabled = true;
+
+        GUILayout.Space(10);
 
         if (isDownloading || isImporting)
         {
@@ -1151,5 +1173,145 @@ public class PackageUpdaterWindow : EditorWindow
 
         isUpdatingPackages = false;
         Repaint();
+    }
+
+    private IEnumerator InstallWebXRPackage()
+    {
+        isInstallingWebXR = true;
+        statusMessage = "Checking scoped registry for WebXR...";
+        Repaint();
+
+        if (!EnsureWebXRScopedRegistry())
+        {
+            statusMessage = "Failed to configure OpenUPM scoped registry.";
+            isInstallingWebXR = false;
+            Repaint();
+            yield break;
+        }
+
+        statusMessage = $"Installing {webxrPackageId}...";
+        Repaint();
+
+        var addRequest = Client.Add(webxrPackageId);
+        while (!addRequest.IsCompleted)
+        {
+            yield return null;
+        }
+
+        if (addRequest.Status == StatusCode.Success)
+        {
+            statusMessage = "WebXR package installed successfully.";
+            isWebXRInstalled = true;
+            Debug.Log($"[PackageUpdater] Installed {webxrPackageId} successfully.");
+        }
+        else
+        {
+            string errorMessage = addRequest.Error != null ? addRequest.Error.message : "Unknown error";
+            statusMessage = $"Failed to install {webxrPackageId}.";
+            Debug.LogError($"[PackageUpdater] Failed to install {webxrPackageId}: {errorMessage}");
+        }
+
+        isInstallingWebXR = false;
+        Repaint();
+    }
+
+    private bool EnsureWebXRScopedRegistry()
+    {
+        try
+        {
+            string manifestPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Packages", "manifest.json");
+            if (!File.Exists(manifestPath))
+            {
+                Debug.LogError($"[PackageUpdater] manifest.json not found at: {manifestPath}");
+                return false;
+            }
+
+            string manifestText = File.ReadAllText(manifestPath);
+            JObject manifestJson = JObject.Parse(manifestText);
+
+            JArray scopedRegistries = manifestJson["scopedRegistries"] as JArray;
+            if (scopedRegistries == null)
+            {
+                scopedRegistries = new JArray();
+                manifestJson["scopedRegistries"] = scopedRegistries;
+            }
+
+            JObject openUpmRegistry = null;
+            foreach (JToken registryToken in scopedRegistries)
+            {
+                if (!(registryToken is JObject registryObject))
+                    continue;
+
+                string url = registryObject.Value<string>("url");
+                string name = registryObject.Value<string>("name");
+                if (string.Equals(url, openUpmRegistryUrl, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(name, openUpmRegistryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    openUpmRegistry = registryObject;
+                    break;
+                }
+            }
+
+            bool manifestChanged = false;
+
+            if (openUpmRegistry == null)
+            {
+                openUpmRegistry = new JObject
+                {
+                    ["name"] = openUpmRegistryName,
+                    ["url"] = openUpmRegistryUrl,
+                    ["scopes"] = new JArray(webxrScopePrefix)
+                };
+                scopedRegistries.Add(openUpmRegistry);
+                manifestChanged = true;
+            }
+            else
+            {
+                JArray scopes = openUpmRegistry["scopes"] as JArray;
+                if (scopes == null)
+                {
+                    scopes = new JArray();
+                    openUpmRegistry["scopes"] = scopes;
+                    manifestChanged = true;
+                }
+
+                bool hasScope = false;
+                foreach (JToken scopeToken in scopes)
+                {
+                    string scopeValue = scopeToken.ToString();
+                    if (string.Equals(scopeValue, webxrScopePrefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        hasScope = true;
+                        break;
+                    }
+                }
+
+                if (!hasScope)
+                {
+                    scopes.Add(webxrScopePrefix);
+                    manifestChanged = true;
+                }
+            }
+
+            if (manifestChanged)
+            {
+                File.WriteAllText(manifestPath, manifestJson.ToString());
+                Debug.Log("[PackageUpdater] Updated manifest.json with OpenUPM scoped registry for WebXR.");
+                AssetDatabase.Refresh();
+            }
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[PackageUpdater] Failed to update scoped registry: {e.Message}");
+            return false;
+        }
+    }
+
+    private void RefreshWebXRInstalledState()
+    {
+        UnityEditor.PackageManager.PackageInfo[] packages = UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages();
+        isWebXRInstalled = packages != null && packages.Any(pkg => pkg.name == webxrPackageId);
     }
 }

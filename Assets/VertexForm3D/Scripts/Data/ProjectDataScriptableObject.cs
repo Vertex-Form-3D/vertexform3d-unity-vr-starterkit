@@ -23,9 +23,9 @@ public enum platform
 public enum WebGpuBrowserKind
 {
     None = 0,
-    AndroidBrowser = 1,
+    MobileBrowser = 1,
     DesktopBrowser = 2,
-    VrBrowser = 3
+    WebXRBrowser = 3
 }
 [Serializable]
 public class ProjectData

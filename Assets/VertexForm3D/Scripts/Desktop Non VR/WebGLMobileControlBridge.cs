@@ -18,9 +18,6 @@ using UnityEngine;
 /// </summary>
 public class WebGLMobileControlBridge : MonoBehaviour
 {
-    [Tooltip("If true, mobile controls are used as soon as this loads (before JS). Usually leave false and set from the page.")]
-    [SerializeField]
-    private bool startWithMobileControls;
 
     [Tooltip("If false, ignores SetWebGpuRuntimeFromJs / SetWebGlPlatformChoiceFromJs from the page (keeps Platforms asset choice).")]
     [SerializeField]
@@ -31,12 +28,6 @@ public class WebGLMobileControlBridge : MonoBehaviour
 
     /// <summary>Fired when <see cref="Platforms.platformChoice"/> is set from the host page (after <see cref="ProjectManager"/> exists).</summary>
     public static event Action<platform> WebGlRuntimePlatformChoiceApplied;
-
-    private void Awake()
-    {
-        if (startWithMobileControls)
-            DesktopMobileControlSettings.SetUseMobileControls(true);
-    }
 
     private void Update()
     {
@@ -156,7 +147,7 @@ public class WebGLMobileControlBridge : MonoBehaviour
         if (string.Equals(v, "AndroidBrowser", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(v, "Android", StringComparison.OrdinalIgnoreCase))
         {
-            kind = WebGpuBrowserKind.AndroidBrowser;
+            kind = WebGpuBrowserKind.MobileBrowser;
             return true;
         }
 
@@ -167,10 +158,10 @@ public class WebGLMobileControlBridge : MonoBehaviour
             return true;
         }
 
-        if (string.Equals(v, "VrBrowser", StringComparison.OrdinalIgnoreCase) ||
+        if (string.Equals(v, "WebXRBrowser", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(v, "VR", StringComparison.OrdinalIgnoreCase))
         {
-            kind = WebGpuBrowserKind.VrBrowser;
+            kind = WebGpuBrowserKind.WebXRBrowser;
             return true;
         }
 
@@ -193,6 +184,8 @@ public class WebGLMobileControlBridge : MonoBehaviour
             Debug.Log($"[WebGLMobileControlBridge] WebGL runtime platform choice → {choice}");
             WebGlRuntimePlatformChoiceApplied?.Invoke(choice);
         }
+        if (choice != platform.WebGPU)
+            DesktopMobileControlSettings.SetUseMobileControls(false);
 
         return true;
     }
@@ -210,6 +203,7 @@ public class WebGLMobileControlBridge : MonoBehaviour
             Debug.Log($"[WebGLMobileControlBridge] WebGPU runtime → {kind}");
             WebGlRuntimePlatformChoiceApplied?.Invoke(platform.WebGPU);
         }
+        DesktopMobileControlSettings.SetUseMobileControls(kind == WebGpuBrowserKind.MobileBrowser);
 
         return true;
     }

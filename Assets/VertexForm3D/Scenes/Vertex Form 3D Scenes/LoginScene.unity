@@ -466,61 +466,11 @@ PrefabInstance:
       propertyPath: versionText
       value: 
       objectReference: {fileID: 753928277}
-    - target: {fileID: 8538396163098032277, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: idleTimeout
-      value: 10
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 17702390d522bd6429139623b344358f, type: 3}
---- !u!1 &1741989105
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1741989106}
-  - component: {fileID: 1741989107}
-  m_Layer: 0
-  m_Name: WebGLInputBridge
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1741989106
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1741989105}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 810, y: 405, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1741989107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1741989105}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a695b0d80e7dbc40b14928ee29b72b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WebGLMobileControlBridge
-  startWithMobileControls: 0
-  applyWebGlPlatformHintFromPage: 1
 --- !u!4 &601219312697770024
 Transform:
   m_ObjectHideFlags: 0
@@ -1051,4 +1001,3 @@ SceneRoots:
   - {fileID: 7348440370281554380}
   - {fileID: 8552176270540349680}
   - {fileID: 1285793042}
-  - {fileID: 1741989106}

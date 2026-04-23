@@ -7,7 +7,7 @@ public static class PlatformPresentation
 {
     public static bool IsVrStyle(platform platformChoice, WebGpuBrowserKind webGpuBrowserKind) =>
         platformChoice == platform.VR ||
-        (platformChoice == platform.WebGPU && webGpuBrowserKind == WebGpuBrowserKind.VrBrowser);
+        (platformChoice == platform.WebGPU && webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser);
 
     /// <summary>Flat screen / M&amp;K or touch UI path (includes WebGPU Android and desktop browsers, and WebGPU before JS sets a kind).</summary>
     public static bool IsDesktopStyle(platform platformChoice, WebGpuBrowserKind webGpuBrowserKind)
@@ -15,7 +15,7 @@ public static class PlatformPresentation
         if (platformChoice == platform.Desktop)
             return true;
         if (platformChoice == platform.WebGPU)
-            return webGpuBrowserKind != WebGpuBrowserKind.VrBrowser;
+            return webGpuBrowserKind != WebGpuBrowserKind.WebXRBrowser;
         return false;
     }
 }
@@ -25,7 +25,7 @@ public class Platforms : ScriptableObject
 {
     public platform platformChoice = platform.VR;
 
-    [Tooltip("When platform is WebGPU, set from WebGL index.html (SendMessage). Ignored for VR/Desktop native targets.")]
+    [Tooltip("When platform is WebGPU, set from WebGL index.html (SendMessage). In Editor, use this for testing. Ignored for VR/Desktop native targets.")]
     public WebGpuBrowserKind webGpuBrowserKind = WebGpuBrowserKind.None;
 
     [HideInInspector]
@@ -46,7 +46,7 @@ public class Platforms : ScriptableObject
     public bool KeyboardUsesMobileSoftKeyboard() =>
         platformChoice == platform.WebGPU &&
         !PlatformPresentation.IsVrStyle(platformChoice, webGpuBrowserKind) &&
-        (webGpuBrowserKind == WebGpuBrowserKind.AndroidBrowser || DesktopMobileControlSettings.UseMobileControls);
+        (webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser || DesktopMobileControlSettings.UseMobileControls);
 
     private void Reset()
     {
@@ -79,8 +79,8 @@ public class Platforms : ScriptableObject
                 steps = new List<string>
                 {
                     "Select <b>WebGPU</b> from the <b>Platform</b> dropdown for WebGL / WebGPU builds.",
-                    "Go to <b>Edit \u2192 Build Profiles</b> and set <b>WebGL</b> as the active platform.",
-                    "The VertexFormMobileDetect template calls Unity with <b>VrBrowser</b>, <b>DesktopBrowser</b>, or <b>AndroidBrowser</b> so runtime matches Quest shell vs PC vs Android Chrome."
+                    "Go to <b>Edit \u2192 Build Profiles</b> and set <b>WebGL/WebGPU</b> as the active platform.",
+                    "The VertexForm template calls Unity with <b>WebXRBrowser</b>, <b>DesktopBrowser</b>, or <b>MobileBrowser</b> so runtime matches Quest shell vs PC vs Android Chrome."
                 },
                 note = "Native targets keep VR or Desktop or WebGPU "
             },

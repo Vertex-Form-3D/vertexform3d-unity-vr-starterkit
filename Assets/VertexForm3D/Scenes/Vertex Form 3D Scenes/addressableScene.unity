@@ -300,6 +300,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   recorder: {fileID: 0}
   fusionVoiceClient: {fileID: 1594126812}
+  reconnectCooldownSeconds: 4
 --- !u!4 &299850796
 Transform:
   m_ObjectHideFlags: 0

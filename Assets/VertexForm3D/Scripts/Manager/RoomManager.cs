@@ -47,6 +47,7 @@ namespace VertexFormCore
         [SerializeField] private CanvasGroup fadeCanvasGroup;
         [SerializeField] private FusionVoiceClient fusionVoiceClient;
         private bool _isReturningHomeFromDisconnect;
+        private bool _pendingVoiceJoin;
 
         GameObject connectVRObject;
         public Vector3 spawnPosition;
@@ -445,6 +446,16 @@ namespace VertexFormCore
         /// </summary>
         public void JoinVoiceLobby()
         {
+            if (!IsFusionRunnerReadyForVoice())
+            {
+                if (!_pendingVoiceJoin)
+                {
+                    Debug.Log("[RoomManager] Voice join deferred: Fusion runner not ready yet. Queuing one-shot pending join.");
+                }
+                _pendingVoiceJoin = true;
+                return;
+            }
+
             if (fusionVoiceClient == null)
             {
                 fusionVoiceClient = FindFirstObjectByType<FusionVoiceClient>();
@@ -466,8 +477,19 @@ namespace VertexFormCore
             if (fusionVoiceClient.Client != null && fusionVoiceClient.Client.State == Photon.Realtime.ClientState.Joined)
             {
                 Debug.Log("[RoomManager] Voice client already joined to voice room");
+                _pendingVoiceJoin = false;
                 EnableVoiceRecorder();
                 return;
+            }
+
+            if (fusionVoiceClient.Client != null)
+            {
+                var state = fusionVoiceClient.Client.State;
+                if (IsVoiceClientTransitionState(state))
+                {
+                    Debug.Log($"[RoomManager] Voice client is transitioning ({state}), delaying manual join request.");
+                    return;
+                }
             }
 
             // Manually connect and join the voice room
@@ -477,6 +499,7 @@ namespace VertexFormCore
             if (success)
             {
                 Debug.Log("[RoomManager] Voice lobby join command sent successfully");
+                _pendingVoiceJoin = false;
                 // Enable recorder after a short delay to ensure connection is established
                 StartCoroutine(EnableVoiceRecorderDelayed(2f));
             }
@@ -484,6 +507,40 @@ namespace VertexFormCore
             {
                 Debug.LogError("[RoomManager] Failed to send voice lobby join command");
             }
+        }
+
+        private bool IsFusionRunnerReadyForVoice()
+        {
+            if (_runner == null)
+                return false;
+
+            if (!_runner.IsRunning)
+                return false;
+
+            // SessionInfo is populated once the runner is in an active session.
+            if (_runner.SessionInfo == null)
+                return false;
+
+            return true;
+        }
+
+        private void TryConsumePendingVoiceJoin(string source)
+        {
+            if (!_pendingVoiceJoin)
+                return;
+
+            if (!IsFusionRunnerReadyForVoice())
+                return;
+
+            Debug.Log($"[RoomManager] Consuming pending voice join from {source}.");
+            JoinVoiceLobby();
+        }
+
+        private static bool IsVoiceClientTransitionState(Photon.Realtime.ClientState state)
+        {
+            return state != Photon.Realtime.ClientState.Disconnected &&
+                   state != Photon.Realtime.ClientState.PeerCreated &&
+                   state != Photon.Realtime.ClientState.Joined;
         }
 
         /// <summary>
@@ -583,6 +640,10 @@ namespace VertexFormCore
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
             Debug.Log($"[RoomManager] OnPlayerJoined callback triggered for player: {player}, Total players: {runner.SessionInfo.PlayerCount}");
+            if (player == runner.LocalPlayer)
+            {
+                TryConsumePendingVoiceJoin("OnPlayerJoined(Local)");
+            }
 
             StartCoroutine(WaitNCall(2f, () =>
             {
@@ -752,6 +813,7 @@ namespace VertexFormCore
         {
             Debug.Log($"[RoomManager] OnConnectedToServer called - Connected to Fusion server. Runner: {runner.name}, State: {runner.State}");
             Log("Connected to server - Ready to join sessions");
+            TryConsumePendingVoiceJoin("OnConnectedToServer");
         }
 
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
@@ -770,6 +832,7 @@ namespace VertexFormCore
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
             Log($"Runner shutdown: {shutdownReason}");
+            _pendingVoiceJoin = false;
 
             // Avoid scene fallback on user-initiated / normal shutdown.
             if (shutdownReason != ShutdownReason.Ok)
@@ -829,6 +892,7 @@ namespace VertexFormCore
         public void OnSceneLoadDone(NetworkRunner runner)
         {
             Debug.Log($"[RoomManager] OnSceneLoadDone - Fusion finished loading scene(s)");
+            TryConsumePendingVoiceJoin("OnSceneLoadDone");
 
             // Notify SceneLoader that the addressable scene is fully loaded by Fusion
             if (SceneLoader.Instance != null && !string.IsNullOrEmpty(mapName))
@@ -839,6 +903,7 @@ namespace VertexFormCore
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
         {
+            TryConsumePendingVoiceJoin("OnSessionListUpdated");
             cashedRooms.Clear();
             roomData.Clear();
 

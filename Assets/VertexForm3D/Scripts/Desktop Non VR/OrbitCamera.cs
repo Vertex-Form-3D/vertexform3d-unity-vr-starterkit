@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 
 public class OrbitCamera : MonoBehaviour
 {
+    [SerializeField] private XRRigController rigController;
     [Header("Target Settings")]
     [SerializeField] private Transform target; // The object to orbit around
     public Vector3 targetOffset = Vector3.up * 1f; // Offset from target's position (e.g., head height)
@@ -46,6 +47,9 @@ public class OrbitCamera : MonoBehaviour
     private Vector3 defaultTargetOffset;
     private void Awake()
     {
+        if (rigController == null)
+            rigController = GetComponentInParent<XRRigController>();
+
         defaultTargetOffset = targetOffset;
         Debug.Log("[OrbitCamera] Awake started");
         if (ProjectManager.instance.platforms.IsVrStylePlatform())
@@ -87,6 +91,8 @@ public class OrbitCamera : MonoBehaviour
 
     private void OnPressedPerformed(InputAction.CallbackContext _)
     {
+        if (rigController != null && rigController.IsUiInputLocked)
+            return;
         if (!DesktopPointerUIHelper.IsPointerOverUIThisFrame())
         {
             if (isActiveAndEnabled)
@@ -98,6 +104,11 @@ public class OrbitCamera : MonoBehaviour
 
     private void OnAxisPerformed(InputAction.CallbackContext context)
     {
+        if (rigController != null && rigController.IsUiInputLocked)
+        {
+            rotationValue = Vector2.zero;
+            return;
+        }
         rotationValue = DesktopMobileControlSettings.SuppressLookWhileMultiTouch
             ? Vector2.zero
             : context.ReadValue<Vector2>();
@@ -138,6 +149,13 @@ public class OrbitCamera : MonoBehaviour
         rotateAllowed = true;
         while (rotateAllowed)
         {
+            if (rigController != null && rigController.IsUiInputLocked)
+            {
+                rotationValue = Vector2.zero;
+                previousValue = Vector2.zero;
+                yield return null;
+                continue;
+            }
             if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
             {
                 rotationValue = Vector2.zero;
@@ -162,6 +180,8 @@ public class OrbitCamera : MonoBehaviour
     public void ApplyTouchLookDelta(Vector2 deltaPixels)
     {
         if (!isActiveAndEnabled || target == null)
+            return;
+        if (rigController != null && rigController.IsUiInputLocked)
             return;
         if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
             return;
@@ -204,6 +224,9 @@ public class OrbitCamera : MonoBehaviour
 
     private void HandleZoom(float scrollInput)
     {
+        if (rigController != null && rigController.IsUiInputLocked)
+            return;
+
         if (!_loggedFirstOrbitZoom)
         {
             Debug.Log($"[OrbitCamera] HandleZoom: first orbit scroll received, scrollInput={scrollInput}");

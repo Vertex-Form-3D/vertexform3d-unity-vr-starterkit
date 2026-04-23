@@ -147,11 +147,7 @@ PlayerSettings:
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
   bundleVersion: 0.0.1
-  preloadedAssets:
-  - {fileID: 11400000, guid: 6dd75be96f6692742b3439abec221beb, type: 2}
-  - {fileID: 645540535794833503, guid: fba6072275013e6448e381f83d131b7f, type: 2}
-  - {fileID: -7720066590039800998, guid: e60ad326389e9b14e9f7ae2c33703862, type: 2}
-  - {fileID: 11400000, guid: 7d6158f0d138d1b4294823be665b00c5, type: 2}
+  preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -856,7 +852,7 @@ PlayerSettings:
   webGLDebugSymbols: 0
   webGLEmscriptenArgs: 
   webGLModulesDirectory: 
-  webGLTemplate: PROJECT:VertexFormMobileDetect
+  webGLTemplate: PROJECT:VertexForm
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
   webGLCompressionFormat: 2

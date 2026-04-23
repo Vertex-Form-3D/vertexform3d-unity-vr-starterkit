@@ -69,9 +69,12 @@ public static class DesktopMobileControlSettings
 
     /// <summary>
     /// Use touch UI + touch-only input routing (e.g. block gamepad move in <see cref="XRRigController"/>).
-    /// False while <see cref="IsImmersiveXrPresentationActive"/> even if JS set mobile from the browser UA.
+    /// False while immersive XR is active on a VR-style target, so headset/controller input is not blocked.
+    /// Non-VR targets (Desktop / WebGPU mobile browser testing) keep mobile controls enabled even if an XR subsystem exists.
     /// </summary>
-    public static bool UseFlatMobileControls => _useMobileControls && !IsImmersiveXrPresentationActive;
+    public static bool UseFlatMobileControls =>
+        _useMobileControls &&
+        (!IsImmersiveXrPresentationActive || !IsVrPlatform);
 
     /// <summary>True when <see cref="ProjectManager"/> reports VR-style target (native VR or WebGPU in a VR shell browser).</summary>
     public static bool IsVrPlatform =>
