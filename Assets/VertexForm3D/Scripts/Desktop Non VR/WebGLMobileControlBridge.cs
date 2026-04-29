@@ -159,7 +159,8 @@ public class WebGLMobileControlBridge : MonoBehaviour
         }
 
         if (string.Equals(v, "WebXRBrowser", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(v, "VR", StringComparison.OrdinalIgnoreCase))
+            string.Equals(v, "VR", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(v, "VrBrowser", StringComparison.OrdinalIgnoreCase))
         {
             kind = WebGpuBrowserKind.WebXRBrowser;
             return true;

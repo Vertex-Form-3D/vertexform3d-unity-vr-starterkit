@@ -217,7 +217,7 @@
     }
 
     /* Quest / Wolvic / Pico shell browsers: set Unity Project Data platform to VR so Fusion & UI match WebXR shells.
-       Not the same as “mobile touch” (PC Chrome can be mobile=false but still support WebXR). */
+       Not the same as "mobile touch" (PC Chrome can be mobile=false but still support WebXR). */
     function vertexFormLikelyVrShellBrowser() {
       var ua = (navigator.userAgent || "").toLowerCase();
       if (/oculusbrowser|oculus|quest\/|meta quest|metabrowser|pico|wolvic|svrbrowser|openxr-mobile|htc|vive/i.test(ua))
@@ -231,6 +231,10 @@
         return "VrBrowser";
       var ua = (navigator.userAgent || "").toLowerCase();
       if (/android/.test(ua))
+        return "AndroidBrowser";
+      /* iOS Safari UA contains "iphone/ipad/ipod" but not "android" — must be caught explicitly
+         or it falls through to DesktopBrowser, which overrides mobile controls to false. */
+      if (/iphone|ipad|ipod/.test(ua))
         return "AndroidBrowser";
       return "DesktopBrowser";
     }
