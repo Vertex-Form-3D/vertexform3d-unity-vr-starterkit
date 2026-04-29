@@ -83,28 +83,28 @@ namespace VertexFormCore.Editor
             return results.ToArray();
         }
 
-        [MenuItem("VertexForm3D SDK/Strip Cesium for WebGL", priority = 201)]
-        public static void ManuallyDisableCesiumWebGL()
-        {
-            var plugins = FindCesiumWebGLPlugins();
-            if (plugins.Length == 0)
-            {
-                Debug.LogWarning("[WebGLCesiumStripper] No Cesium WebGL native plugins found via asset search.");
-                return;
-            }
+        // [MenuItem("VertexForm3D SDK/Strip Cesium for WebGL", priority = 201)]
+        // public static void ManuallyDisableCesiumWebGL()
+        // {
+        //     var plugins = FindCesiumWebGLPlugins();
+        //     if (plugins.Length == 0)
+        //     {
+        //         Debug.LogWarning("[WebGLCesiumStripper] No Cesium WebGL native plugins found via asset search.");
+        //         return;
+        //     }
 
-            int count = 0;
-            foreach (var plugin in plugins)
-            {
-                if (plugin.GetCompatibleWithPlatform(BuildTarget.WebGL))
-                {
-                    plugin.SetCompatibleWithPlatform(BuildTarget.WebGL, false);
-                    plugin.SaveAndReimport();
-                    count++;
-                }
-            }
-            Debug.Log($"[WebGLCesiumStripper] Disabled {count} Cesium WebGL native plugins out of {plugins.Length} found. Rebuild WebGL now.");
-        }
+        //     int count = 0;
+        //     foreach (var plugin in plugins)
+        //     {
+        //         if (plugin.GetCompatibleWithPlatform(BuildTarget.WebGL))
+        //         {
+        //             plugin.SetCompatibleWithPlatform(BuildTarget.WebGL, false);
+        //             plugin.SaveAndReimport();
+        //             count++;
+        //         }
+        //     }
+        //     Debug.Log($"[WebGLCesiumStripper] Disabled {count} Cesium WebGL native plugins out of {plugins.Length} found. Rebuild WebGL now.");
+        // }
     }
 }
 #endif

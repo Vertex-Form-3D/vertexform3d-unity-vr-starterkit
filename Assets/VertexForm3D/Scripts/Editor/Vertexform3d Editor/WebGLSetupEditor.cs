@@ -10,16 +10,16 @@ namespace VertexFormCore.Editor
         private const string MediumURPAssetPath = "Assets/VertexForm3D/Example_Assets/Games/XRI_Examples/Global/RendererData/UniversalRP-MediumQuality.asset";
         private const string WebGLURPAssetPath = "Assets/VertexForm3D/URP Profiles/UniversalRP-WebGL.asset";
 
-        [MenuItem("VertexForm3D SDK/Setup WebGL Quality", priority = 200)]
-        public static void SetupWebGLQuality()
-        {
-            CesiumWebGLAsmdefPatcher.TryPatchIfNeeded(silent: false);
-            CreateWebGLURPAsset();
-            ConfigureWebGLQualityLevel();
-            ConfigureWebGLPlayerSettings();
-            AssetDatabase.SaveAssets();
-            Debug.Log("[WebGL Setup] WebGL quality tier and player settings configured successfully.");
-        }
+        // [MenuItem("VertexForm3D SDK/Setup WebGL Quality", priority = 200)]
+        // public static void SetupWebGLQuality()
+        // {
+        //     CesiumWebGLAsmdefPatcher.TryPatchIfNeeded(silent: false);
+        //     CreateWebGLURPAsset();
+        //     ConfigureWebGLQualityLevel();
+        //     ConfigureWebGLPlayerSettings();
+        //     AssetDatabase.SaveAssets();
+        //     Debug.Log("[WebGL Setup] WebGL quality tier and player settings configured successfully.");
+        // }
 
         private static void CreateWebGLURPAsset()
         {

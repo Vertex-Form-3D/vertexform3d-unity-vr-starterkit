@@ -129,14 +129,14 @@ namespace VertexFormCore.Editor
             return null;
         }
 
-        [MenuItem("VertexForm3D SDK/Patch Cesium asmdef (exclude WebGL runtime)", priority = 199)]
-        public static void PatchFromMenu()
-        {
-            if (TryPatchIfNeeded(silent: false))
-                Debug.Log("[CesiumWebGLAsmdefPatcher] Done. Cesium runtime will not be compiled for WebGL.");
-            else
-                Debug.Log("[CesiumWebGLAsmdefPatcher] No change (WebGL already excluded or package missing).");
-        }
+        // [MenuItem("VertexForm3D SDK/Patch Cesium asmdef (exclude WebGL runtime)", priority = 199)]
+        // public static void PatchFromMenu()
+        // {
+        //     if (TryPatchIfNeeded(silent: false))
+        //         Debug.Log("[CesiumWebGLAsmdefPatcher] Done. Cesium runtime will not be compiled for WebGL.");
+        //     else
+        //         Debug.Log("[CesiumWebGLAsmdefPatcher] No change (WebGL already excluded or package missing).");
+        // }
     }
 }
 #endif
