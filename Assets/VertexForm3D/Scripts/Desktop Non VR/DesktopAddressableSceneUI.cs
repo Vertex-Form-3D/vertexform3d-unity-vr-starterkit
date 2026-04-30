@@ -16,7 +16,12 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public Sprite firstPersonSprite;
     public Sprite thirdPersonSprite;
     public TMP_Text[] flyText;
+    public TMP_Text muteText;
     public Button flyButton;
+
+    public Button muteButton;
+    public Sprite muteOnSprite;
+    public Sprite muteOffSprite;
 
     private PlayerNetworkSetup pns;
 
@@ -71,6 +76,27 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             flyText[1].text = "- Fly is off";
         }
     }
+    public void ManageMuteUI(bool isVoiceEnabled)
+    {
+        if (muteButton == null) return;
+
+        if (isVoiceEnabled)
+        {
+            Debug.Log("Voice is enabled");
+            muteButton.image.sprite = muteOnSprite;
+            muteText.color = Color.green;
+            muteText.text = "- You can speak";
+
+        }
+        else
+        {
+            Debug.Log("Voice is disabled");
+            muteButton.image.sprite = muteOffSprite;
+            muteText.color = Color.red;
+            muteText.text = "- You are muted";
+        }
+
+    }
 
     void AssignModeEvent(PlayerNetworkSetup pns)
     {
@@ -106,7 +132,15 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             modeImage.sprite = firstPersonSprite;
             modeText.text = "First Person mode";
         }
-
+        if (muteButton != null)
+        {
+            muteButton.onClick.AddListener(() =>
+            {
+                pns.playerUIManager.OnTapVoiceToggle(); Invoke(nameof(ManageMuteUI), .1f);
+            });
+        }
+        pns.playerUIManager.onVoiceModeChanged += ManageMuteUI;
+        ManageMuteUI(pns.playerUIManager.IsVoiceEnabled());
         if (flyButton != null)
             flyButton.onClick.AddListener(() => { pns.playerUIManager.OnTapFlyToggle(); Invoke(nameof(ManageFlyUI), .1f); });
         pns.playerUIManager.onFlyModeChanged += ManageFlyUI;

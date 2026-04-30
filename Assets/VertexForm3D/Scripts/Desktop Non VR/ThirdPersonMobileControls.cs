@@ -52,7 +52,8 @@ public class ThirdPersonMobileControls : MonoBehaviour
         if (rig.isMultiplayer && !rig.IsLocalPlayer())
             return;
 
-        if (Touch.activeTouches.Count >= 2)
+        bool joystickHeld = rig.moveInput.sqrMagnitude > 0.01f;
+        if (Touch.activeTouches.Count >= 2 && !joystickHeld)
             ProcessPinchZoom();
         else
             _hadPinch = false;

@@ -363,8 +363,6 @@ public class XRRigController : MonoBehaviour
             return;
         if (isUiInputLocked)
             return;
-        if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
-            return;
         if (isThirdPerson && orbitCamera != null)
         {
             orbitCamera.ApplyTouchLookDelta(deltaPixels);

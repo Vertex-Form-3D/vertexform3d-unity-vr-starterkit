@@ -49,6 +49,7 @@ namespace VertexFormCore
         [SerializeField] private NotificationHandler notificationHandler;
 
         public event Action onFlyModeChanged;
+        public event Action<bool> onVoiceModeChanged;
         public float distanceFromCamera = 1.5f;
         public Transform xrCameraTransform;
         public NetworkObject networkObject;
@@ -67,6 +68,7 @@ namespace VertexFormCore
         private bool isMegaphone = false; // true = Megaphone On, false = Off
         public bool canFlyGlobally = false; // Set by scene/project
         public bool IsFlying() { return isFlying; } // Set by scene/project
+        public bool IsVoiceEnabled() { return isVoiceEnabled; } // Set by scene/project
 
         /// <summary>Runtime mic toggle (settings UI). True = unmuted / should transmit when voice is wired.</summary>
         public bool IsLocalVoiceUnmuted => isVoiceEnabled;
@@ -655,6 +657,7 @@ namespace VertexFormCore
         {
             if (isVoiceEnabled) MuteVoice();
             else UnmuteVoice();
+            onVoiceModeChanged?.Invoke(isVoiceEnabled);
         }
 
         public void OnTapGrabToggle()

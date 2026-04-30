@@ -1,17 +1,14 @@
 using UnityEngine;
+using UnityEngine.InputSystem.EnhancedTouch;
+using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 namespace StarterAssets
 {
     /// <summary>
-    /// Bridges Starter Assets mobile UI (<see cref="UIVirtualJoystick"/>, <see cref="UIVirtualTouchZone"/>, buttons)
-    /// to <see cref="XRRigController"/> + <see cref="OrbitCamera"/> (third person) or first-person look.
-    /// Wire the virtual controls' UnityEvents to these methods in the Inspector.
+    /// Bridges Starter Assets mobile UI (UIVirtualJoystick, UIVirtualTouchZone, buttons)
+    /// to XRRigController + OrbitCamera (third person) or first-person look.
+    /// Look input is polled directly via Enhanced Touch in Update() — no EventSystem dependency.
     /// </summary>
-    /// <remarks>
-    /// Move and look are only driven by this canvas when <see cref="DesktopMobileControlSettings.UseFlatMobileControls"/> is true
-    /// and the Vertex Form platform for this rig is not VR-style (flat browser / flat mobile, not immersive XR).
-    /// Optional <see cref="ThirdPersonMobileControls"/> on the rig adds two-finger pinch zoom (first- and third-person; third-person also updates orbit distance).
-    /// </remarks>
     public class UICanvasControllerInput : MonoBehaviour
     {
         [Header("Vertex Form rig")]
@@ -21,21 +18,21 @@ namespace StarterAssets
         [Tooltip("Optional; defaults to xrRigController.orbitCamera when null.")]
         public OrbitCamera orbitCamera;
 
-        [Header("Look scaling")]
-        [Tooltip("UIVirtualTouchZone sends offset-from-press; we convert successive samples to per-frame deltas, then scale toward screen-pixel units used by OrbitCamera / FPS look.")]
-        [SerializeField]
-        private float lookDeltaToPixelsScale = 800f;
+        [Header("Look zone (direct touch)")]
+        [Tooltip("RectTransform that defines the look-input area. If not assigned, the right half of the screen is used automatically.")]
+        [SerializeField] private RectTransform lookZoneRect;
+
+        [Tooltip("Sensitivity for look input. Screen-pixel delta per frame is multiplied by this value before being applied to the camera.")]
+        [SerializeField] private float lookSensitivity = 0.3f;
 
         [Header("Desktop / mobile toggle")]
         [Tooltip("When true, disables this Canvas while DesktopMobileControlSettings.UseMobileControls is false.")]
-        [SerializeField]
-        private bool driveCanvasEnabledFromSettings = true;
+        [SerializeField] private bool driveCanvasEnabledFromSettings = true;
 
-        [Tooltip("If true, sets DesktopMobileControlSettings.UseMobileControls = true in Awake so the Canvas stays enabled and virtual controls work. Turn off if you only toggle mobile mode from WebGL JS.")]
-        [SerializeField]
-        private bool requestMobileControlsOnAwake = true;
+        [Tooltip("If true, sets DesktopMobileControlSettings.UseMobileControls = true in Awake so the Canvas stays enabled and virtual controls work.")]
+        [SerializeField] private bool requestMobileControlsOnAwake = true;
 
-        private Vector2 _lastLookSample;
+        private int _lookFingerId = -1;
         private Canvas _canvas;
         private bool _startupPlatformSyncAttempted;
 
@@ -54,6 +51,19 @@ namespace StarterAssets
             ApplyCanvasVisibility();
         }
 
+        private void OnEnable()
+        {
+            DesktopMobileControlSettings.Changed += OnMobileSettingsChanged;
+            EnhancedTouchSupport.Enable();
+            ApplyCanvasVisibility();
+        }
+
+        private void OnDisable()
+        {
+            DesktopMobileControlSettings.Changed -= OnMobileSettingsChanged;
+            _lookFingerId = -1;
+        }
+
         private void LateUpdate()
         {
             if (!driveCanvasEnabledFromSettings || _canvas == null)
@@ -64,21 +74,69 @@ namespace StarterAssets
                 ApplyCanvasVisibility();
         }
 
-        private void OnEnable()
+        private void Update()
         {
-            DesktopMobileControlSettings.Changed += OnMobileSettingsChanged;
-            ApplyCanvasVisibility();
+            if (!AllowVirtualInput || xrRigController == null)
+                return;
+            PollLookTouches();
         }
 
-        private void OnDisable()
+        private void PollLookTouches()
         {
-            DesktopMobileControlSettings.Changed -= OnMobileSettingsChanged;
+            var touches = ETouch.activeTouches;
+
+            // Claim a new look touch
+            if (_lookFingerId < 0)
+            {
+                foreach (var t in touches)
+                {
+                    if (t.phase != UnityEngine.InputSystem.TouchPhase.Began) continue;
+                    if (!IsInLookZone(t.screenPosition)) continue;
+                    _lookFingerId = t.touchId;
+                    break;
+                }
+                return;
+            }
+
+            // Process the tracked look touch
+            foreach (var t in touches)
+            {
+                if (t.touchId != _lookFingerId) continue;
+
+                if (t.phase == UnityEngine.InputSystem.TouchPhase.Ended ||
+                    t.phase == UnityEngine.InputSystem.TouchPhase.Canceled)
+                {
+                    _lookFingerId = -1;
+                    return;
+                }
+
+                if (t.phase == UnityEngine.InputSystem.TouchPhase.Moved)
+                    xrRigController.ApplyVirtualUiLook(t.delta * lookSensitivity);
+
+                return;
+            }
+
+            // Touch lost between frames
+            _lookFingerId = -1;
+        }
+
+        private bool IsInLookZone(Vector2 screenPos)
+        {
+            if (lookZoneRect != null)
+            {
+                Canvas c = lookZoneRect.GetComponentInParent<Canvas>();
+                Camera cam = (c != null && c.renderMode != RenderMode.ScreenSpaceOverlay)
+                    ? c.worldCamera : null;
+                return RectTransformUtility.RectangleContainsScreenPoint(lookZoneRect, screenPos, cam);
+            }
+            // Default: right half of screen
+            return screenPos.x > Screen.width * 0.5f;
         }
 
         private void OnMobileSettingsChanged(bool useMobile)
         {
             ApplyCanvasVisibility();
-            _lastLookSample = Vector2.zero;
+            _lookFingerId = -1;
             if (!useMobile && xrRigController != null)
             {
                 xrRigController.moveInput = Vector2.zero;
@@ -93,10 +151,6 @@ namespace StarterAssets
             _canvas.enabled = DesktopMobileControlSettings.UseFlatMobileControls && !IsVrPlatformForThisRig();
         }
 
-        /// <summary>
-        /// Scene/domain reload can reset DesktopMobileControlSettings before WebGL JS sends runtime hints.
-        /// Keep editor/runtime testing deterministic by syncing once from the Platforms asset when available.
-        /// </summary>
         private void TrySyncMobileModeFromPlatformAsset()
         {
             if (_startupPlatformSyncAttempted)
@@ -114,7 +168,6 @@ namespace StarterAssets
             _startupPlatformSyncAttempted = true;
         }
 
-        /// <summary>Uses <see cref="XRRigController.GetPlatformProperty"/> when a rig is assigned; otherwise <see cref="ProjectManager"/>.</summary>
         private bool IsVrPlatformForThisRig()
         {
             if (xrRigController != null)
@@ -135,32 +188,13 @@ namespace StarterAssets
             xrRigController.moveInput = virtualMoveDirection;
         }
 
-        /// <summary>From UIVirtualTouchZone → touchZoneOutputEvent</summary>
-        public void VirtualLookInput(Vector2 virtualLookFromTouchZone)
-        {
-            if (!AllowVirtualInput || xrRigController == null)
-                return;
+        /// <summary>
+        /// Legacy callback from UIVirtualTouchZone. Look is now handled by PollLookTouches() in Update().
+        /// This remains wired in the inspector to avoid breaking serialized references.
+        /// </summary>
+        public void VirtualLookInput(Vector2 lookDelta) { }
 
-            if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
-            {
-                _lastLookSample = Vector2.zero;
-                return;
-            }
-
-            if (virtualLookFromTouchZone.sqrMagnitude < 1e-8f)
-            {
-                _lastLookSample = Vector2.zero;
-                return;
-            }
-
-            Vector2 delta = virtualLookFromTouchZone - _lastLookSample;
-            _lastLookSample = virtualLookFromTouchZone;
-
-            Vector2 deltaPixels = delta * lookDeltaToPixelsScale;
-            xrRigController.ApplyVirtualUiLook(deltaPixels);
-        }
-
-        /// <summary>From UIVirtualButton jump (bool while held, or use click for one-shot).</summary>
+        /// <summary>From UIVirtualButton jump.</summary>
         public void VirtualJumpInput(bool virtualJumpState)
         {
             if (!AllowVirtualInput || xrRigController == null)
@@ -168,7 +202,7 @@ namespace StarterAssets
             xrRigController.SetMobileJumpFromUi(virtualJumpState);
         }
 
-        /// <summary>From UIVirtualButton sprint (bool while held).</summary>
+        /// <summary>From UIVirtualButton sprint.</summary>
         public void VirtualSprintInput(bool virtualSprintState)
         {
             if (!AllowVirtualInput || xrRigController == null)

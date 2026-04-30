@@ -756,7 +756,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a695b0d80e7dbc40b14928ee29b72b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WebGLMobileControlBridge
-  startWithMobileControls: 0
   applyWebGlPlatformHintFromPage: 1
 --- !u!1 &1568883118186553705
 GameObject:
@@ -2623,12 +2622,20 @@ PrefabInstance:
       propertyPath: m_RequestedTrackingOriginMode
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3691527760771623796, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5767715217220676053, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
       propertyPath: m_RenderPostProcessing
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6010792718146615127, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
       propertyPath: m_IgnoreTrackingState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183380161747931381, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6875081996172634699, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}

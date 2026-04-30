@@ -183,8 +183,6 @@ public class OrbitCamera : MonoBehaviour
             return;
         if (rigController != null && rigController.IsUiInputLocked)
             return;
-        if (DesktopMobileControlSettings.SuppressLookWhileMultiTouch)
-            return;
         float mouseX = deltaPixels.x * rotationSpeed * Time.deltaTime;
         float mouseY = deltaPixels.y * rotationSpeed * Time.deltaTime * (invertY ? -1 : 1);
         currentYaw += mouseX;

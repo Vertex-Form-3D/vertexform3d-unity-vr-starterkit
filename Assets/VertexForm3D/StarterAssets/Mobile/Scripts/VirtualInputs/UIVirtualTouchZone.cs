@@ -1,8 +1,12 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
-public class UIVirtualTouchZone : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+/// <summary>
+/// Look-zone touch input using direct Input.touches polling so multi-touch works
+/// reliably (joystick held + look drag simultaneously).
+/// Outputs per-frame screen-pixel delta via touchZoneOutputEvent.
+/// </summary>
+public class UIVirtualTouchZone : MonoBehaviour
 {
     [System.Serializable]
     public class Event : UnityEvent<Vector2> { }
@@ -12,114 +16,78 @@ public class UIVirtualTouchZone : MonoBehaviour, IPointerDownHandler, IDragHandl
     public RectTransform handleRect;
 
     [Header("Settings")]
-    public bool clampToMagnitude;
+    public bool clampToMagnitude;       // kept for inspector compatibility, not used
     public float magnitudeMultiplier = 1f;
     public bool invertXOutputValue;
     public bool invertYOutputValue;
 
-    //Stored Pointer Values
-    private Vector2 pointerDownPosition;
-    private Vector2 currentPointerPosition;
-
     [Header("Output")]
     public Event touchZoneOutputEvent;
 
+    private int _trackedFingerId = -1;
+
     void Start()
     {
-        SetupHandle();
+        if (handleRect)
+            handleRect.gameObject.SetActive(false);
     }
 
-    private void SetupHandle()
+    void Update()
     {
-        if(handleRect)
+        RectTransform zoneRect = containerRect != null ? containerRect : (RectTransform)transform;
+        Camera cam = GetCanvasCamera();
+
+        if (_trackedFingerId < 0)
         {
-            SetObjectActiveState(handleRect.gameObject, false); 
-        }
-    }
+            // Try to claim a new touch that begins inside this zone
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch t = Input.GetTouch(i);
+                if (t.phase != TouchPhase.Began) continue;
+                if (!RectTransformUtility.RectangleContainsScreenPoint(zoneRect, t.position, cam)) continue;
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(containerRect, eventData.position, eventData.pressEventCamera, out pointerDownPosition);
-
-        if(handleRect)
-        {
-            SetObjectActiveState(handleRect.gameObject, true);
-            UpdateHandleRectPosition(pointerDownPosition);
-        }
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(containerRect, eventData.position, eventData.pressEventCamera, out currentPointerPosition);
-        
-        Vector2 positionDelta = GetDeltaBetweenPositions(pointerDownPosition, currentPointerPosition);
-
-        Vector2 clampedPosition = ClampValuesToMagnitude(positionDelta);
-        
-        Vector2 outputPosition = ApplyInversionFilter(clampedPosition);
-
-        OutputPointerEventValue(outputPosition * magnitudeMultiplier);
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        pointerDownPosition = Vector2.zero;
-        currentPointerPosition = Vector2.zero;
-
-        OutputPointerEventValue(Vector2.zero);
-
-        if(handleRect)
-        {
-            SetObjectActiveState(handleRect.gameObject, false);
-            UpdateHandleRectPosition(Vector2.zero);
-        }
-    }
-
-    void OutputPointerEventValue(Vector2 pointerPosition)
-    {
-        touchZoneOutputEvent.Invoke(pointerPosition);
-    }
-
-    void UpdateHandleRectPosition(Vector2 newPosition)
-    {
-        handleRect.anchoredPosition = newPosition;
-    }
-
-    void SetObjectActiveState(GameObject targetObject, bool newState)
-    {
-        targetObject.SetActive(newState);
-    }
-
-    Vector2 GetDeltaBetweenPositions(Vector2 firstPosition, Vector2 secondPosition)
-    {
-        return secondPosition - firstPosition;
-    }
-
-    Vector2 ClampValuesToMagnitude(Vector2 position)
-    {
-        return Vector2.ClampMagnitude(position, 1);
-    }
-
-    Vector2 ApplyInversionFilter(Vector2 position)
-    {
-        if(invertXOutputValue)
-        {
-            position.x = InvertValue(position.x);
+                _trackedFingerId = t.fingerId;
+                if (handleRect)
+                {
+                    handleRect.gameObject.SetActive(true);
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(zoneRect, t.position, cam, out Vector2 local);
+                    handleRect.anchoredPosition = local;
+                }
+                break;
+            }
+            return;
         }
 
-        if(invertYOutputValue)
+        // Find the tracked touch
+        for (int i = 0; i < Input.touchCount; i++)
         {
-            position.y = InvertValue(position.y);
+            Touch t = Input.GetTouch(i);
+            if (t.fingerId != _trackedFingerId) continue;
+
+            if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
+                break; // fall through to release
+
+            if (t.phase == TouchPhase.Moved)
+            {
+                Vector2 delta = t.deltaPosition;
+                if (invertXOutputValue) delta.x = -delta.x;
+                if (invertYOutputValue) delta.y = -delta.y;
+                touchZoneOutputEvent.Invoke(delta * magnitudeMultiplier);
+            }
+            return;
         }
 
-        return position;
+        // Touch ended or lost
+        _trackedFingerId = -1;
+        touchZoneOutputEvent.Invoke(Vector2.zero);
+        if (handleRect)
+            handleRect.gameObject.SetActive(false);
     }
 
-    float InvertValue(float value)
+    private Camera GetCanvasCamera()
     {
-        return -value;
+        Canvas c = GetComponentInParent<Canvas>();
+        if (c == null) return null;
+        return c.renderMode == RenderMode.ScreenSpaceOverlay ? null : c.worldCamera;
     }
-    
 }

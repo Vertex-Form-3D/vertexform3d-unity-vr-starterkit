@@ -390,11 +390,6 @@
         fsBtn.style.display = "none";
         return;
       }
-      /* Flat mobile browsers: true document fullscreen + Unity WebGL canvas often blocks TMP soft keyboard (Unity issue tracker). Layout is already edge-to-edge — skip the fullscreen control. */
-      if (vertexFormIsMobileBrowser() && !vertexFormLikelyVrShellBrowser()) {
-        fsBtn.style.display = "none";
-        return;
-      }
       fsBtn.style.display = "block";
       vertexFormUpdateFullscreenButtonLabel();
       fsBtn.onclick = function (ev) {
