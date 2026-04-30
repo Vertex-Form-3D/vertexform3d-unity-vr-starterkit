@@ -32,6 +32,7 @@ namespace VertexFormCore
         public GameObject bottomButtonParent;
         public GameObject avatarSelectionCanvas;
         public GameObject mainUICanvas;
+        public GameObject mainMenuCanvas;
         public AvatarInputConverter avatarInputConverter;
 
 
@@ -53,6 +54,7 @@ namespace VertexFormCore
         {
             bottomButtonParent.SetActive(false);
             mainUICanvas.SetActive(false);
+            mainMenuCanvas.SetActive(false);
             avatarSelectionCanvas.SetActive(true);
             OnTapCustomAvatarSelection();
         }
@@ -61,6 +63,7 @@ namespace VertexFormCore
         {
             bottomButtonParent.SetActive(true);
             mainUICanvas.SetActive(true);
+            mainMenuCanvas.SetActive(true);
             avatarSelectionCanvas.SetActive(false);
         }
 
