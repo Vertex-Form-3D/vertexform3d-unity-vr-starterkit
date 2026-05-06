@@ -112,6 +112,10 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         {
             clikedBtn.image.color = Color.red;
         }
+        else if (ProjectManager.instance.platforms.webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser && !t.WebXR)
+        {
+            clikedBtn.image.color = Color.red;
+        }
         else
         {
             clikedBtn.image.color = Color.white;

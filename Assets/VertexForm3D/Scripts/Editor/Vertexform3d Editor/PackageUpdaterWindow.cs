@@ -313,9 +313,9 @@ public static class PackageImportResumer
 
 public class PackageUpdaterWindow : EditorWindow
 {
-    private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/version.json";
+    private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/WebGPU/version.json";
     private const string tempFileName = "downloaded_package.unitypackage";
-    private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/version.json";
+    private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/WebGPU/version.json";
     private const string openUpmRegistryName = "OpenUPM";
     private const string openUpmRegistryUrl = "https://package.openupm.com";
     private const string webxrPackageId = "com.de-panther.webxr";

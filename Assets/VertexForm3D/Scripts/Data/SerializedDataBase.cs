@@ -53,6 +53,7 @@ public class WorldData
     public bool Desktop = true;
     public bool VR = true;
     public bool WebGPU = true;
+    public bool WebXR = true;
     // Creates a deep copy to ensure no shared references
     public WorldData Clone()
     {
@@ -67,7 +68,8 @@ public class WorldData
             flyMode = this.flyMode, // Bool is value type
             Desktop = this.Desktop,
             VR = this.VR,
-            WebGPU = this.WebGPU
+            WebGPU = this.WebGPU,
+            WebXR = this.WebXR
         };
     }
 }
