@@ -86,7 +86,7 @@ public static class DesktopMobileControlSettings
     /// Touch-style menu hover (keep hover roots visible for raycasts). Same as mobile controls but never in VR.
     /// </summary>
     public static bool UseMobileMenuHoverUx =>
-        _useMobileControls && !IsVrPlatform && !IsImmersiveXrPresentationActive;
+        _useMobileControls && !(ProjectManager.instance.platforms.platformChoice == platform.Desktop) && !IsVrPlatform && !IsImmersiveXrPresentationActive;
 
     /// <summary>
     /// Mobile + at least two touches: treat as pinch (zoom), not look. Blocks touch axis / virtual look so

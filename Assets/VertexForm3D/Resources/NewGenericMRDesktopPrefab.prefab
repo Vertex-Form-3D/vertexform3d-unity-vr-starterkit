@@ -8439,6 +8439,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec4cd82e501596745b85685cc215bdec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arCameraManager: {fileID: 0}
+  cameraBackground: {fileID: 0}
+  ARsession: {fileID: 0}
+  arPlaneManager: {fileID: 0}
   cameraData: {fileID: 5767715217220676053}
   IsPassthroughOn: 0
 --- !u!114 &6239063487715385760

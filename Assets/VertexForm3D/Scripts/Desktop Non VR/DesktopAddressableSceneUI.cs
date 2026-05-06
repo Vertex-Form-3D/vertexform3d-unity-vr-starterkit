@@ -15,13 +15,14 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public TMP_Text modeText;
     public Sprite firstPersonSprite;
     public Sprite thirdPersonSprite;
-    public TMP_Text[] flyText;
-    public TMP_Text muteText;
     public Button flyButton;
 
     public Button muteButton;
     public Sprite muteOnSprite;
     public Sprite muteOffSprite;
+
+    public Sprite flyOnSprite;
+    public Sprite flyOffSprite;
 
     private PlayerNetworkSetup pns;
 
@@ -58,22 +59,12 @@ public class DesktopAddressableSceneUI : MonoBehaviour
         if (pns != null && pns.playerUIManager.IsFlying())
         {
             Debug.Log("Fly Mode is enabled");
-            foreach (TMP_Text txt in flyText)
-            {
-                txt.color = Color.green;
-                flyButton.image.color = Color.green;
-            }
-            flyText[1].text = "- Fly is on";
+            flyButton.image.sprite = flyOnSprite;
         }
         else
         {
             Debug.Log("Fly Mode is disabled");
-            foreach (TMP_Text txt in flyText)
-            {
-                txt.color = Color.red;
-            }
-            flyButton.image.color = Color.red;
-            flyText[1].text = "- Fly is off";
+            flyButton.image.sprite = flyOffSprite;
         }
     }
     public void ManageMuteUI(bool isVoiceEnabled)
@@ -84,16 +75,12 @@ public class DesktopAddressableSceneUI : MonoBehaviour
         {
             Debug.Log("Voice is enabled");
             muteButton.image.sprite = muteOnSprite;
-            muteText.color = Color.green;
-            muteText.text = "- You can speak";
 
         }
         else
         {
             Debug.Log("Voice is disabled");
             muteButton.image.sprite = muteOffSprite;
-            muteText.color = Color.red;
-            muteText.text = "- You are muted";
         }
 
     }

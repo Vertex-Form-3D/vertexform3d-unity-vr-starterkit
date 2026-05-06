@@ -246,6 +246,7 @@ public class AddressablesBuildEditor : EditorWindow
             pso.projectData.addressableCatalogFilePath = string.IsNullOrEmpty(addressableCatalogFilePath) ? DEFAULT_CATALOG_PATH : addressableCatalogFilePath;
             pso.projectData.catalogFileName = string.IsNullOrEmpty(catalogFileName) ? "VertexForm3DAddressablesCatalog" : catalogFileName;
             EditorUtility.SetDirty(pso);
+            AssetDatabase.SaveAssets();
             UnityEngine.Debug.Log($" Mischief managed! Catalog settings saved: Path = {pso.projectData.addressableCatalogFilePath}, Name = {pso.projectData.catalogFileName}");
         }
         else

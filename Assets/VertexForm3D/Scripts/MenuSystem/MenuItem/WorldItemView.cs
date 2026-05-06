@@ -47,9 +47,8 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     /// </summary>
     private void EnsureHoverVisibleForTouch()
     {
-        if (!DesktopMobileControlSettings.UseMobileMenuHoverUx || howerUI == null)
-            return;
-        howerUI.SetActive(true);
+        if (howerUI == null) return;
+        howerUI.SetActive(DesktopMobileControlSettings.UseMobileMenuHoverUx);
     }
 
     public void SetWorldData(WorldData wd, MenuManager menuManager)
@@ -101,6 +100,22 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         this.worlddata = t;
         worldNameText.text = t.worldName;
         worldImage.sprite = t.worldImage;
+        if (ProjectManager.instance.platforms.platformChoice == platform.WebGPU && !t.WebGPU)
+        {
+            clikedBtn.image.color = Color.red;
+        }
+        else if (ProjectManager.instance.platforms.platformChoice == platform.VR && !t.VR)
+        {
+            clikedBtn.image.color = Color.red;
+        }
+        else if (ProjectManager.instance.platforms.platformChoice == platform.Desktop && !t.Desktop)
+        {
+            clikedBtn.image.color = Color.red;
+        }
+        else
+        {
+            clikedBtn.image.color = Color.white;
+        }
         //placeMaxRoomCountTxt.text = t.maxPlayerCount + "";
 
         if (worlddata.sceneProvider == SceneProvider.Local)

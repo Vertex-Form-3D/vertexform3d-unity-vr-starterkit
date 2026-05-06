@@ -25,12 +25,37 @@ namespace VertexFormCore
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
+#if !UNITY_WEBGL 
+                StartCoroutine(EnsureXRInitializedAtStartup());
+#endif
             }
             else
             {
                 Destroy(gameObject);
             }
         }
+
+#if !UNITY_WEBGL
+        private IEnumerator EnsureXRInitializedAtStartup()
+        {
+            if (XRGeneralSettings.Instance == null || XRGeneralSettings.Instance.Manager == null)
+                yield break;
+            if (!XRGeneralSettings.Instance.Manager.isInitializationComplete)
+            {
+                Debug.Log("[SceneLoader] XR not initialized at startup — initializing now.");
+                yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
+                if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+                {
+                    XRGeneralSettings.Instance.Manager.StartSubsystems();
+                    Debug.Log("[SceneLoader] XR loader started: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
+                }
+                else
+                {
+                    Debug.LogWarning("[SceneLoader] XR initialization ran but no active loader found — check XR Plug-in Management settings for this platform.");
+                }
+            }
+        }
+#endif
 
         Coroutine loadSceneCoroutine;
         public void LoadScnene(string SceneName)
@@ -65,7 +90,7 @@ namespace VertexFormCore
 
             Debug.Log($"[SceneLoader] Preparing to load addressable scene via Fusion: {SceneName}");
             completePerchantage = 0;
-            
+
             // Load the base scene
             var baseSceneOp = SceneManager.LoadSceneAsync("addressableScene");
             while (!baseSceneOp.isDone)
@@ -73,27 +98,28 @@ namespace VertexFormCore
                 completePerchantage = baseSceneOp.progress * 50f; // Base scene is 50% of loading
                 yield return null;
             }
-            
+
             Debug.Log("[SceneLoader] Base scene loaded, waiting for scene to be ready...");
             yield return new WaitForSeconds(0.5f);
 
 #if !UNITY_WEBGL
-            if (XRGeneralSettings.Instance != null &&
-                XRGeneralSettings.Instance.Manager != null &&
-                XRGeneralSettings.Instance.Manager.isInitializationComplete)
+            if (XRGeneralSettings.Instance != null && XRGeneralSettings.Instance.Manager != null)
             {
-                XRGeneralSettings.Instance.Manager.StopSubsystems();
-                XRGeneralSettings.Instance.Manager.DeinitializeLoader();
-                Debug.Log("XR session stopped.");
+                if (XRGeneralSettings.Instance.Manager.isInitializationComplete)
+                {
+                    XRGeneralSettings.Instance.Manager.StopSubsystems();
+                    XRGeneralSettings.Instance.Manager.DeinitializeLoader();
+                    Debug.Log("[SceneLoader] XR session stopped for scene transition.");
+                }
                 yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
                 if (XRGeneralSettings.Instance.Manager.activeLoader != null)
                 {
                     XRGeneralSettings.Instance.Manager.StartSubsystems();
-                    Debug.Log("XR session reinitialized.");
+                    Debug.Log("[SceneLoader] XR session started: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
                 }
                 else
                 {
-                    Debug.LogError("Failed to reinitialize XR Loader.");
+                    Debug.LogWarning("[SceneLoader] XR loader not found after scene transition — check XR Plug-in Management settings.");
                 }
             }
 #endif
@@ -101,16 +127,16 @@ namespace VertexFormCore
             // DON'T load the addressable scene here - let Fusion do it!
             // This ensures NetworkObjects in the addressable scene are properly networked
             // Fusion will load it via CustomNetworkSceneManager
-            
+
             // Just call OnSceneLoaded with the scene name to trigger the Fusion connection
             // Fusion's CustomNetworkSceneManager will handle the actual addressable scene loading
             OnSceneLoaded(SceneName);
-            
+
             loadSceneCoroutine = null;
         }
 
         string currentScene;
-        
+
         public void OnSceneLoaded(string sceneName)
         {
             currentScene = sceneName;
@@ -132,7 +158,7 @@ namespace VertexFormCore
             Caching.ClearCache();
 #endif
         }
-        
+
         public void OnFusionSceneLoaded(string sceneName)
         {
             // Called by RoomManager when Fusion has finished loading the addressable scene

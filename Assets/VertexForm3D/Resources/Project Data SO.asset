@@ -17,7 +17,7 @@ MonoBehaviour:
     DebugEnabled: 1
     anonymousUserNamePrefix: Mystery Guest_
     onlyLocalBundles: 1
-    addressableCatalogFilePath: https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json
+    addressableCatalogFilePath: 'https://storage.googleapis.com/vertex-form-3d-production/[BuildTarget]'
     catalogFileName: VertexForm3DAddressablesCatalog
     defaultSetting:
       standDefault: 0
