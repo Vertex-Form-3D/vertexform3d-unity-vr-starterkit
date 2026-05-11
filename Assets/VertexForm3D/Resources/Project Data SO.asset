@@ -17,7 +17,7 @@ MonoBehaviour:
     DebugEnabled: 1
     anonymousUserNamePrefix: Mystery Guest_
     onlyLocalBundles: 1
-    addressableCatalogFilePath: 'https://storage.googleapis.com/vertex-form-3d-production/[BuildTarget]'
+    addressableCatalogFilePath: https://storage.googleapis.com/yourproject_bucket/Android/YourProjectAddressablesCatalog.json
     catalogFileName: VertexForm3DAddressablesCatalog
     defaultSetting:
       standDefault: 0
@@ -26,7 +26,7 @@ MonoBehaviour:
       flyMode: 1
       megaphone: 1
     currentPackageVersion: 1.1.3
-    versionJsonUrl: https://storage.googleapis.com/vertexform_package_updater/version.json
+    versionJsonUrl: 
     homeSceneData:
       projectDescription: Vertex Form 3D is an open-source VR multiplayer framework
         for building social applications in Unity. Designed with 3D artists in mind,
