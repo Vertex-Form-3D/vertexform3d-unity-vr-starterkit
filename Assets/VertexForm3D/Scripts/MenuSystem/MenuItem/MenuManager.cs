@@ -49,6 +49,13 @@ public class MenuManager : MonoBehaviour
     public Sprite starSprite;
     public Sprite unStarSprite;
     [SerializeField] GridScrollViewPager gridScrollViewPager;
+
+    [Header("Unsupported Platform Popup")]
+    public GameObject platformNotSupportedPopup;
+    public TextMeshProUGUI platformNotSupportedText;
+    public bool autoClosePopup = true;
+    public float autoCloseDelay = 3f;
+
     public static MenuManager Instance;
 
     private void Awake()
@@ -218,6 +225,47 @@ public class MenuManager : MonoBehaviour
     public void CloseWorldInfoScreen()
     {
         worldInfoScreen.SetActive(false);
+    }
+
+    public void ShowUnsupportedPlatformPopup(WorldData wd)
+    {
+        if (platformNotSupportedPopup == null) return;
+        var pl = ProjectManager.instance.platforms;
+        string currentPlatform = GetCurrentPlatformDisplayName(pl);
+        var supported = new List<string>();
+        if (wd.Desktop) supported.Add("Desktop");
+        if (wd.VR) supported.Add("VR");
+        if (wd.WebGPU) supported.Add("WebGPU");
+        if (wd.WebXR) supported.Add("WebXR");
+        if (wd.Mobile) supported.Add("WebXR/Mobile");
+        string supportedList = supported.Count > 0 ? string.Join(", ", supported) : "None";
+        if (platformNotSupportedText != null)
+            platformNotSupportedText.text = $"Not available on {currentPlatform}.\nPlease use supported platforms that are checked in Platform Supported in world:\n{supportedList}";
+        platformNotSupportedPopup.SetActive(true);
+        if (autoClosePopup)
+        {
+            CancelInvoke(nameof(CloseUnsupportedPlatformPopup));
+            Invoke(nameof(CloseUnsupportedPlatformPopup), autoCloseDelay);
+        }
+    }
+
+    public void CloseUnsupportedPlatformPopup()
+    {
+        if (platformNotSupportedPopup != null)
+            platformNotSupportedPopup.SetActive(false);
+    }
+
+    string GetCurrentPlatformDisplayName(Platforms pl)
+    {
+        if (pl.webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser) return "WebXR";
+        if (pl.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser) return "WebXR/Mobile";
+        return pl.platformChoice switch
+        {
+            platform.VR => "VR",
+            platform.Desktop => "Desktop",
+            platform.WebGPU => "WebGPU",
+            _ => pl.platformChoice.ToString()
+        };
     }
     public void HandleScreen(GameObject screen)
     {

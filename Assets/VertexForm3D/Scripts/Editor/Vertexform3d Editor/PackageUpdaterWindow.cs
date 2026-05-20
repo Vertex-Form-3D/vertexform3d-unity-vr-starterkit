@@ -33,6 +33,50 @@ public static class PackageImportResumer
     private const string PrefKey_TotalPackages = "VertexForm3D_TotalPackages";
     private const string PrefKey_IsImporting = "VertexForm3D_IsImporting";
     private const string PrefKey_LastResumeAttempt = "VertexForm3D_LastResumeAttempt";
+    private const string PrefKey_ExcludeDefaultScenes = "VertexForm3D_ExcludeDefaultScenes";
+
+    // Paths excluded when the "Don't include default scene example updates" toggle is enabled.
+    // The actual scene files (addressableScene.unity, HomeScene.unity, LoginScene.unity) are kept;
+    // only the example content folders alongside them are removed.
+    private static readonly string[] ExcludedAssetPaths = new[]
+    {
+        "Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/addressableScene",
+        "Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/Database Scenes",
+    };
+
+    /// <summary>
+    /// Deletes the default example scene assets if the user has opted out of receiving them.
+    /// Called after every package import (which triggers a domain reload) so each newly imported
+    /// copy is removed before the next package in the queue is applied.
+    /// </summary>
+    public static void CleanupExcludedAssetsIfRequested()
+    {
+        if (!EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false))
+            return;
+
+        bool deletedAny = false;
+        foreach (string assetPath in ExcludedAssetPaths)
+        {
+            if (AssetDatabase.LoadMainAssetAtPath(assetPath) == null && !AssetDatabase.IsValidFolder(assetPath))
+                continue;
+
+            if (AssetDatabase.DeleteAsset(assetPath))
+            {
+                Debug.Log($"[PackageImportResumer] Excluded default scene asset removed: {assetPath}");
+                deletedAny = true;
+            }
+            else
+            {
+                Debug.LogWarning($"[PackageImportResumer] Failed to delete excluded asset: {assetPath}");
+            }
+        }
+
+        if (deletedAny)
+        {
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+    }
 
     private static bool hasRegisteredUpdateCallback = false;
     private static double lastPollTime = 0;
@@ -83,6 +127,9 @@ public static class PackageImportResumer
         bool isImporting = EditorPrefs.GetBool(PrefKey_IsImporting, false);
 
         Debug.Log($"[PackageImportResumer] Static constructor called - HasPackages: {hasPackages}, IsImporting: {isImporting}");
+
+        // Strip excluded example scenes from the package that was just imported before we continue.
+        CleanupExcludedAssetsIfRequested();
 
         if (hasPackages && isImporting)
         {
@@ -251,6 +298,7 @@ public static class PackageImportResumer
         else
         {
             Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] All packages imported!");
+            CleanupExcludedAssetsIfRequested();
             ClearImportProgress();
 
             // Refresh update info
@@ -327,6 +375,7 @@ public class PackageUpdaterWindow : EditorWindow
     private const string PrefKey_PackageVersions = "VertexForm3D_PackageVersions"; // Delimited string
     private const string PrefKey_CurrentImportIndex = "VertexForm3D_CurrentImportIndex";
     private const string PrefKey_TotalPackages = "VertexForm3D_TotalPackages";
+    private const string PrefKey_ExcludeDefaultScenes = "VertexForm3D_ExcludeDefaultScenes";
 
     private string statusMessage = "Idle";
     private float downloadProgress = 0f;
@@ -447,6 +496,20 @@ public class PackageUpdaterWindow : EditorWindow
         else
         {
             GUILayout.Label("Fetching update information...");
+        }
+
+        GUILayout.Space(10);
+
+        // Toggle: when enabled, the default example scene assets are removed after each import.
+        bool excludeDefaultScenes = EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false);
+        bool newExcludeDefaultScenes = EditorGUILayout.ToggleLeft(
+            new GUIContent(
+                "Don't include default scene example updates",
+                "When enabled, 'addressableScene' and the 'Database Scenes' folder under Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes will be removed after each package is imported."),
+            excludeDefaultScenes);
+        if (newExcludeDefaultScenes != excludeDefaultScenes)
+        {
+            EditorPrefs.SetBool(PrefKey_ExcludeDefaultScenes, newExcludeDefaultScenes);
         }
 
         GUILayout.Space(10);

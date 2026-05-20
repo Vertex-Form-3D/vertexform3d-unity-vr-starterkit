@@ -69,6 +69,11 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     }
     void LoadWorld()
     {
+        if (!IsPlatformSupported(worlddata))
+        {
+            BoundMenuManager?.ShowUnsupportedPlatformPopup(worlddata);
+            return;
+        }
         SceneLoader.Instance.isCesiumScene = false;
         SceneLoader.Instance.isFlyModeEnabled = worlddata.flyMode;
         if (RoomManager.Instance != null)
@@ -76,6 +81,17 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
             RoomManager.Instance.SetAddressableSceneVisuals(true);
         }
         SceneLoader.Instance.LoadScnene(worlddata.worldKey);
+    }
+
+    bool IsPlatformSupported(WorldData t)
+    {
+        var pl = ProjectManager.instance.platforms;
+        if (pl.platformChoice == platform.WebGPU && !t.WebGPU) return false;
+        if (pl.platformChoice == platform.VR && !t.VR) return false;
+        if (pl.platformChoice == platform.Desktop && !t.Desktop) return false;
+        if (pl.webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser && !t.WebXR) return false;
+        if (pl.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser && !t.Mobile) return false;
+        return true;
     }
 
     public void SetPlayerCountText()
@@ -100,26 +116,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         this.worlddata = t;
         worldNameText.text = t.worldName;
         worldImage.sprite = t.worldImage;
-        if (ProjectManager.instance.platforms.platformChoice == platform.WebGPU && !t.WebGPU)
-        {
-            clikedBtn.image.color = Color.red;
-        }
-        else if (ProjectManager.instance.platforms.platformChoice == platform.VR && !t.VR)
-        {
-            clikedBtn.image.color = Color.red;
-        }
-        else if (ProjectManager.instance.platforms.platformChoice == platform.Desktop && !t.Desktop)
-        {
-            clikedBtn.image.color = Color.red;
-        }
-        else if (ProjectManager.instance.platforms.webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser && !t.WebXR)
-        {
-            clikedBtn.image.color = Color.red;
-        }
-        else
-        {
-            clikedBtn.image.color = Color.white;
-        }
+        clikedBtn.image.color = IsPlatformSupported(t) ? Color.white : Color.red;
         //placeMaxRoomCountTxt.text = t.maxPlayerCount + "";
 
         if (worlddata.sceneProvider == SceneProvider.Local)

@@ -6931,7 +6931,7 @@ PrefabInstance:
     - target: {fileID: 372894276107373193, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1130681497294019706}
+      objectReference: {fileID: 0}
     - target: {fileID: 372894276107373193, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: closeMenu
@@ -6944,6 +6944,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainMap Desktop
       objectReference: {fileID: 0}
+    - target: {fileID: 3830120826446006389, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
+      propertyPath: xrRigController
+      value: 
+      objectReference: {fileID: 1960147723854696638}
     - target: {fileID: 6523210945193379644, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 1
@@ -6951,7 +6955,7 @@ PrefabInstance:
     - target: {fileID: 6523210945193379644, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1130681497294019706}
+      objectReference: {fileID: 0}
     - target: {fileID: 6523210945193379644, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: closeMenu
@@ -6967,7 +6971,7 @@ PrefabInstance:
     - target: {fileID: 7702304639521709582, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1130681497294019706}
+      objectReference: {fileID: 0}
     - target: {fileID: 7702304639521709582, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: closeMenu
@@ -7019,30 +7023,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3354126639405969949, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1130681497294019706}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
 --- !u!1 &3086539277996247641 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3354126639405969949, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
   m_PrefabInstance: {fileID: 313518553489111108}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1130681497294019706
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3086539277996247641}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ed0896c80d32a6499ddf577486a65c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MainMenuScript
-  menuUI: {fileID: 3086539277996247641}
-  xrRigController: {fileID: 1960147723854696638}
 --- !u!1 &7506063009277157243 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7814646950247819071, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
@@ -8439,10 +8426,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec4cd82e501596745b85685cc215bdec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arCameraManager: {fileID: 0}
-  cameraBackground: {fileID: 0}
-  ARsession: {fileID: 0}
-  arPlaneManager: {fileID: 0}
   cameraData: {fileID: 5767715217220676053}
   IsPassthroughOn: 0
 --- !u!114 &6239063487715385760

@@ -7,12 +7,15 @@ public class VoiceRecorderManager : MonoBehaviour
 {
     public Recorder recorder;
     [SerializeField] private FusionVoiceClient fusionVoiceClient;
-    [SerializeField] private float reconnectCooldownSeconds = 4f;
+    [SerializeField] private float reconnectCooldownSeconds = 20f;
+    [Tooltip("Voice client must remain in a non-Joined, non-transition state for this long before we attempt to reconnect. Prevents single-tick blips from forcing a full voice rejoin (which causes audible audio gaps).")]
+    [SerializeField] private float sustainedDisconnectSecondsBeforeReconnect = 10f;
 
     public static VoiceRecorderManager Instance;
     private bool desiredTransmitEnabled = true;
     private float lastReconnectAttemptTime = -999f;
     private Photon.Realtime.ClientState? lastLoggedVoiceState;
+    private float firstNonJoinedAtTime = -1f;
 
     private void Awake()
     {
@@ -97,6 +100,9 @@ public class VoiceRecorderManager : MonoBehaviour
                 var state = fusionVoiceClient.Client.State;
                 if (IsVoiceClientTransitionState(state))
                 {
+                    // Mid-transition (Connecting/Authenticating/...). Don't start the
+                    // sustained-disconnect timer — we're not actually disconnected.
+                    firstNonJoinedAtTime = -1f;
                     if (lastLoggedVoiceState != state)
                     {
                         Debug.Log($"[VoiceRecorderManager] Voice is transitioning ({state}), skipping reconnect attempt.");
@@ -105,19 +111,39 @@ public class VoiceRecorderManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning("[VoiceRecorderManager] Voice disconnected or not joined. Attempting auto-reconnect...");
-                    TryReconnectVoice();
+                    if (firstNonJoinedAtTime < 0f)
+                        firstNonJoinedAtTime = Time.unscaledTime;
+
+                    float disconnectedFor = Time.unscaledTime - firstNonJoinedAtTime;
+                    if (disconnectedFor >= sustainedDisconnectSecondsBeforeReconnect)
+                    {
+                        Debug.LogWarning($"[VoiceRecorderManager] Voice non-Joined for {disconnectedFor:F1}s (state={state}). Attempting auto-reconnect...");
+                        TryReconnectVoice();
+                    }
+                    else if (lastLoggedVoiceState != state)
+                    {
+                        Debug.Log($"[VoiceRecorderManager] Voice non-Joined ({state}); waiting up to {sustainedDisconnectSecondsBeforeReconnect}s before reconnect.");
+                        lastLoggedVoiceState = state;
+                    }
                 }
             }
             else
             {
-                Debug.LogWarning("[VoiceRecorderManager] Voice client is unavailable. Attempting auto-reconnect...");
-                TryReconnectVoice();
+                if (firstNonJoinedAtTime < 0f)
+                    firstNonJoinedAtTime = Time.unscaledTime;
+
+                float disconnectedFor = Time.unscaledTime - firstNonJoinedAtTime;
+                if (disconnectedFor >= sustainedDisconnectSecondsBeforeReconnect)
+                {
+                    Debug.LogWarning($"[VoiceRecorderManager] Voice client unavailable for {disconnectedFor:F1}s. Attempting auto-reconnect...");
+                    TryReconnectVoice();
+                }
             }
         }
         else
         {
             lastLoggedVoiceState = Photon.Realtime.ClientState.Joined;
+            firstNonJoinedAtTime = -1f;
         }
 
         if (fusionVoiceClient != null && fusionVoiceClient.Client != null)

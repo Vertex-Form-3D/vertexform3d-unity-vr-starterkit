@@ -46,9 +46,11 @@ MonoBehaviour:
       sceneProvider: 0
       worldImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
       flyMode: 0
-      Desktop: 1
-      VR: 1
-      WebGPU: 1
+      Desktop: 0
+      VR: 0
+      WebGPU: 0
+      WebXR: 0
+      Mobile: 0
     - worldName: Ocean Villa
       worldKey: Ocean Villa
       worldImagePath: 
@@ -61,6 +63,8 @@ MonoBehaviour:
       Desktop: 1
       VR: 1
       WebGPU: 1
+      WebXR: 1
+      Mobile: 1
     - worldName: Games
       worldKey: Games
       worldImagePath: 
@@ -75,6 +79,8 @@ MonoBehaviour:
       Desktop: 1
       VR: 1
       WebGPU: 1
+      WebXR: 1
+      Mobile: 1
   - categoryName: Other
     showInPlacesNav: 1
     environments:
@@ -92,6 +98,8 @@ MonoBehaviour:
       Desktop: 1
       VR: 1
       WebGPU: 1
+      WebXR: 1
+      Mobile: 1
     - worldName: Bright Space
       worldKey: Bright Space
       worldImagePath: 
@@ -107,6 +115,8 @@ MonoBehaviour:
       Desktop: 1
       VR: 1
       WebGPU: 1
+      WebXR: 1
+      Mobile: 1
     - worldName: Materials Examples
       worldKey: Materials Examples
       worldImagePath: 
@@ -123,6 +133,8 @@ MonoBehaviour:
       Desktop: 1
       VR: 1
       WebGPU: 1
+      WebXR: 1
+      Mobile: 1
     - worldName: Mixed Reality
       worldKey: Mixed Reality
       worldImagePath: 
@@ -139,6 +151,8 @@ MonoBehaviour:
       Desktop: 1
       VR: 1
       WebGPU: 1
+      WebXR: 1
+      Mobile: 1
   rightSectionEnabled: 1
   mirror: 1
   avatarDatas:

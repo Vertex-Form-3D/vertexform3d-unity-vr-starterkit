@@ -54,6 +54,8 @@ public class WorldData
     public bool VR = true;
     public bool WebGPU = true;
     public bool WebXR = true;
+    [Tooltip("WebXR on a mobile browser (WebGpuBrowserKind.MobileBrowser)")]
+    public bool Mobile = true;
     // Creates a deep copy to ensure no shared references
     public WorldData Clone()
     {
@@ -69,7 +71,8 @@ public class WorldData
             Desktop = this.Desktop,
             VR = this.VR,
             WebGPU = this.WebGPU,
-            WebXR = this.WebXR
+            WebXR = this.WebXR,
+            Mobile = this.Mobile
         };
     }
 }

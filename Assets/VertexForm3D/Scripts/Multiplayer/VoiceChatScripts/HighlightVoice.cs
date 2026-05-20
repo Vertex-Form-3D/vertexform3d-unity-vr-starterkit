@@ -118,23 +118,35 @@ namespace VertexFormCore
         {
             if (playerNetworkSetup == null) return;
 
-            // Mic UI (local player)
-            if (micImage != null && playerNetworkSetup.GetPlayerRecorder() != null)
+            // Mic UI: local player only — true when actually transmitting voice (speaking).
+            // For remote players the local Recorder component is inert, so its TransmitEnabled
+            // is meaningless. Always hide the mic image on remotes.
+            if (micImage != null)
             {
-                var recorder = playerNetworkSetup.GetPlayerRecorder();
-                if (recorder != null)
+                if (isLocalPlayer)
                 {
-                    micImage.enabled = recorder.RecordingEnabled && recorder.TransmitEnabled;
+                    var recorder = playerNetworkSetup.GetPlayerRecorder();
+                    micImage.enabled = recorder != null && recorder.IsCurrentlyTransmitting;
+                }
+                else if (micImage.enabled)
+                {
+                    micImage.enabled = false;
                 }
             }
 
-            // Speaker UI (remote players)
-            if (speakerImage != null && playerNetworkSetup.GetPlayerSpeaker() != null)
+            // Speaker UI: remote players only — true when their voice stream is actively playing.
+            // The local player's Speaker (if any) can briefly flip IsPlaying on self-echo paths,
+            // which previously made every player's indicator light up whenever anyone spoke.
+            if (speakerImage != null)
             {
-                var speaker = playerNetworkSetup.GetPlayerSpeaker();
-                if (speaker != null)
+                if (!isLocalPlayer)
                 {
-                    speakerImage.enabled = speaker.IsPlaying;
+                    var speaker = playerNetworkSetup.GetPlayerSpeaker();
+                    speakerImage.enabled = speaker != null && speaker.IsPlaying;
+                }
+                else if (speakerImage.enabled)
+                {
+                    speakerImage.enabled = false;
                 }
             }
 
