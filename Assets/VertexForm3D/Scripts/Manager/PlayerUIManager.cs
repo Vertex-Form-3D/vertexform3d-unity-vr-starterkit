@@ -826,6 +826,10 @@ namespace VertexFormCore
                     var settingsCanvas = settingUI.GetComponentInChildren<Canvas>();
                     if (settingsCanvas != null)
                         settingsCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                    var settingsCanvasScaler = settingUI.GetComponentInChildren<CanvasScaler>();
+                    if (settingsCanvasScaler != null)
+                        settingsCanvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                    settingsCanvasScaler.referenceResolution = new Vector2(1920, 1080);
                     settingUI.SetActive(!settingUI.activeInHierarchy);
                 }
                 if (desktopMenuUI != null) desktopMenuUI.SetActive(false);

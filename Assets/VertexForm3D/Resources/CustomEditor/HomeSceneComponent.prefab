@@ -4320,6 +4320,10 @@ PrefabInstance:
       propertyPath: m_CullingMask.m_Bits
       value: 4294967295
       objectReference: {fileID: 0}
+    - target: {fileID: 5346605152840913830, guid: d43fab14c9f5020478bfab60866ae153, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5463052143461164401, guid: d43fab14c9f5020478bfab60866ae153, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.1
@@ -4633,8 +4637,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 8847139463128583673, guid: d43fab14c9f5020478bfab60866ae153, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1227001691262760998, guid: d43fab14c9f5020478bfab60866ae153, type: 3}
       insertIndex: -1

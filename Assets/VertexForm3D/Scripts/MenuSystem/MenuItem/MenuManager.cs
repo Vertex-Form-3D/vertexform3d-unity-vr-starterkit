@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VertexFormCore;
 using UnityEngine.SceneManagement;
+using VertexForm3D.UI;
 public class MenuManager : MonoBehaviour
 {
     public string worldDataJson
@@ -31,6 +32,9 @@ public class MenuManager : MonoBehaviour
     public GameObject worldScreen;
     public GameObject GuideScreen;
     public GameObject worldInfoScreen;
+
+    [Tooltip("Optional tab/nav button that opens the Main screen. Hidden when UILayoutConfig.showMainPanel is false so users go straight to Places.")]
+    public GameObject mainTabButton;
     public IReadOnlyList<Category> ActiveWorldCategories
     {
         get
@@ -68,7 +72,23 @@ public class MenuManager : MonoBehaviour
     void Start()
     {
         LoadWorldData();
+        ApplyMainPanelVisibility();
         Invoke(nameof(InitCatagory), .5f);
+    }
+
+    /// <summary>
+    /// Honors <see cref="UILayoutConfig.showMainPanel"/>: when false, hides the Main tab button
+    /// and opens the Places (world) screen instead of Main on startup so users skip the landing screen.
+    /// </summary>
+    void ApplyMainPanelVisibility()
+    {
+        var cfg = ProjectManager.instance != null ? ProjectManager.instance.uiLayoutConfig : null;
+        bool showMain = cfg == null || cfg.showMainPanel;
+
+        if (mainTabButton != null) mainTabButton.SetActive(showMain);
+
+        if (!showMain && worldScreen != null)
+            OpenWorldScreen();
     }
 
     public void OnTapHome()

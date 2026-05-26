@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!223 &234464058 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 6958811084378512486, guid: 17702390d522bd6429139623b344358f, type: 3}
+  m_PrefabInstance: {fileID: 1285793042}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &330157846 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3845066483474366430, guid: ec3219196007b5a42aa25d5003165a08, type: 3}
@@ -462,15 +467,54 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoginSceneComponent
       objectReference: {fileID: 0}
-    - target: {fileID: 8421066175226093702, guid: 17702390d522bd6429139623b344358f, type: 3}
-      propertyPath: versionText
+    - target: {fileID: 6958811084378512486, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: m_Camera
       value: 
-      objectReference: {fileID: 753928277}
+      objectReference: {fileID: 1285793045}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2507490096897241786, guid: 17702390d522bd6429139623b344358f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1285793046}
   m_SourcePrefab: {fileID: 100100000, guid: 17702390d522bd6429139623b344358f, type: 3}
+--- !u!224 &1285793043 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7245445183036924785, guid: 17702390d522bd6429139623b344358f, type: 3}
+  m_PrefabInstance: {fileID: 1285793042}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1285793044 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2507490096897241786, guid: 17702390d522bd6429139623b344358f, type: 3}
+  m_PrefabInstance: {fileID: 1285793042}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &1285793045 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 136699148935582987, guid: 17702390d522bd6429139623b344358f, type: 3}
+  m_PrefabInstance: {fileID: 1285793042}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1285793046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285793044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfecb403deccb1841badb5eabea2297f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileUIPinchZoom
+  target: {fileID: 1285793043}
+  canvas: {fileID: 234464058}
+  minScale: 1
+  maxScale: 2
+  zoomSensitivity: 0.006
+  doubleTapToReset: 1
+  doubleTapInterval: 0.35
+  requireFlatMobile: 1
+  mobileBrowserOnly: 1
 --- !u!4 &601219312697770024
 Transform:
   m_ObjectHideFlags: 0

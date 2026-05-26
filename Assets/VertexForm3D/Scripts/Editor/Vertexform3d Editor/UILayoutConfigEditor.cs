@@ -10,10 +10,12 @@ public class UILayoutConfigEditor : Editor
 {
     private SerializedProperty _leftSectionEnabled;
     private SerializedProperty _leftSectionText;
+    private SerializedProperty _showMainPanel;
     private SerializedProperty _mainSectionPanels;
     private SerializedProperty _worldCategories;
     private SerializedProperty _rightSectionEnabled;
     private SerializedProperty _mirror;
+    private SerializedProperty _showAvatarBodyInFirstPerson;
     private SerializedProperty _avatarDatas;
 
     private bool _foldPlatform = true;
@@ -28,10 +30,12 @@ public class UILayoutConfigEditor : Editor
     {
         _leftSectionEnabled = serializedObject.FindProperty("leftSectionEnabled");
         _leftSectionText = serializedObject.FindProperty("leftSectionText");
+        _showMainPanel = serializedObject.FindProperty("showMainPanel");
         _mainSectionPanels = serializedObject.FindProperty("mainSectionPanels");
         _worldCategories = serializedObject.FindProperty("worldCategories");
         _rightSectionEnabled = serializedObject.FindProperty("rightSectionEnabled");
         _mirror = serializedObject.FindProperty("mirror");
+        _showAvatarBodyInFirstPerson = serializedObject.FindProperty("showAvatarBodyInFirstPerson");
         _avatarDatas = serializedObject.FindProperty("avatarDatas");
 
         serializedObject.Update();
@@ -312,8 +316,14 @@ public class UILayoutConfigEditor : Editor
 
                 if (i == UILayoutConfig.MainPanelIndex)
                 {
-                    EditorGUILayout.PropertyField(panel.FindPropertyRelative("backgroundImage"), new GUIContent("Background Image"));
-                    EditorGUILayout.PropertyField(panel.FindPropertyRelative("logoImage"), new GUIContent("Logo Image"));
+                    EditorGUILayout.PropertyField(_showMainPanel,
+                        new GUIContent("Show Main Panel",
+                            "When off, the Main tab is hidden and the UI opens directly on Places. Use this if the logo/background landing screen feels like an extra step."));
+                    using (new EditorGUI.DisabledScope(!_showMainPanel.boolValue))
+                    {
+                        EditorGUILayout.PropertyField(panel.FindPropertyRelative("backgroundImage"), new GUIContent("Background Image"));
+                        EditorGUILayout.PropertyField(panel.FindPropertyRelative("logoImage"), new GUIContent("Logo Image"));
+                    }
                 }
                 else if (i == UILayoutConfig.PlacesPanelIndex)
                 {
@@ -342,6 +352,9 @@ public class UILayoutConfigEditor : Editor
     {
         EditorGUILayout.PropertyField(_rightSectionEnabled, new GUIContent("Enable"));
         EditorGUILayout.PropertyField(_mirror, new GUIContent("Mirror"));
+        EditorGUILayout.PropertyField(_showAvatarBodyInFirstPerson,
+            new GUIContent("Show Avatar Body In First Person",
+                "Desktop/Mobile only. When enabled, the local player's avatar body remains visible in first-person view. Disable to hide the body and avoid camera clipping."));
         EditorGUILayout.PropertyField(_avatarDatas, new GUIContent("Avatar Datas"));
 
 

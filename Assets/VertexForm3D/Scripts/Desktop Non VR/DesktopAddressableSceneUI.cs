@@ -11,6 +11,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public static DesktopAddressableSceneUI Instance;
     public Canvas desktopCanvas;
     public GameObject journeysUI;
+    public GameObject grabUI;
     public Image modeImage;
     public TMP_Text modeText;
     public Sprite firstPersonSprite;
@@ -137,24 +138,49 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             {
                 modeImage.sprite = firstPersonSprite;
                 modeText.text = "First Person mode";
+                ApplyAvatarBodyVisibility(false);
             });
         xrRig.onThirdPersonModeStartEvent.AddListener(() =>
         {
             modeImage.sprite = thirdPersonSprite;
             modeText.text = "Third Person mode";
+            ApplyAvatarBodyVisibility(true);
         });
+
+        // Sync body visibility with the mode we started in.
+        ApplyAvatarBodyVisibility(xrRig.isThirdPerson);
 
         desktopCanvas.gameObject.SetActive(true);
 
     }
 
+    /// <summary>
+    /// Toggles the local player's avatar body for Desktop/Mobile (non-VR) first-person view.
+    /// In third-person we always show the body; in first-person we honor
+    /// <see cref="UILayoutConfig.showAvatarBodyInFirstPerson"/>.
+    /// </summary>
+    private void ApplyAvatarBodyVisibility(bool isThirdPerson)
+    {
+        if (pns == null || pns.avatarHolder == null || pns.avatarHolder.BodyTransform == null)
+            return;
+
+        bool showBody = isThirdPerson;
+        if (!isThirdPerson)
+        {
+            var cfg = ProjectManager.instance != null ? ProjectManager.instance.uiLayoutConfig : null;
+            showBody = cfg == null || cfg.showAvatarBodyInFirstPerson;
+        }
+
+        pns.avatarHolder.BodyTransform.gameObject.SetActive(showBody);
+    }
+
     public void ShowGrabItem()
     {
-        journeysUI.SetActive(true);
+        grabUI.SetActive(true);
     }
     public void HideGrabItem()
     {
-        journeysUI.SetActive(false);
+        grabUI.SetActive(false);
     }
     public void OnTapMenuButton()
     {
