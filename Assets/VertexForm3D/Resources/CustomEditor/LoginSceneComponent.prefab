@@ -1265,6 +1265,7 @@ GameObject:
   - component: {fileID: 7245445183036924785}
   - component: {fileID: 5174940016976635301}
   - component: {fileID: 443375769735460087}
+  - component: {fileID: 5671782481753819889}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -1331,6 +1332,27 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5671782481753819889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2507490096897241786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfecb403deccb1841badb5eabea2297f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileUIPinchZoom
+  target: {fileID: 7245445183036924785}
+  canvas: {fileID: 6958811084378512486}
+  minScale: 1
+  maxScale: 2
+  zoomSensitivity: 0.006
+  doubleTapToReset: 1
+  doubleTapInterval: 0.35
+  requireFlatMobile: 1
+  mobileBrowserOnly: 1
 --- !u!1 &5675913258973784073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1511,7 +1533,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 136699148935582987}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -2663,6 +2685,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7904449962049504332}
   m_SourcePrefab: {fileID: 100100000, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+--- !u!20 &136699148935582987 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 366349417295850675, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+  m_PrefabInstance: {fileID: 355837131902450104}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &136699148935582989 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 366349417295850677, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}

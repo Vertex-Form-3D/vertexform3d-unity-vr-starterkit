@@ -7,6 +7,8 @@ using UnityEngine;
 /// <see cref="WebGLMobileControlBridge.WebGlRuntimePlatformChoiceApplied"/> fires so WebGL builds
 /// that learn their platform from the host page after load still gate correctly.
 /// On unmatched platforms the GameObject is disabled or destroyed depending on <see cref="actionWhenNotMatched"/>.
+/// Optionally, when <see cref="limitShowDuration"/> is enabled, the GameObject is hidden after
+/// <see cref="showDurationSeconds"/> once it is shown on a matching platform.
 /// </summary>
 [DisallowMultipleComponent]
 public class PlatformGameObjectActivator : MonoBehaviour
@@ -42,7 +44,15 @@ public class PlatformGameObjectActivator : MonoBehaviour
     [Tooltip("What to do when the current platform is not in the allowed list.")]
     [SerializeField] private UnmatchedAction actionWhenNotMatched = UnmatchedAction.Disable;
 
+    [Tooltip("When enabled, hides the GameObject after showDurationSeconds once it is shown on a matching platform.")]
+    [SerializeField] private bool limitShowDuration;
+
+    [Tooltip("Seconds to keep the GameObject visible from when it is first shown. Only used when limitShowDuration is enabled.")]
+    [Min(0f)]
+    [SerializeField] private float showDurationSeconds = 5f;
+
     private bool _destroyed;
+    private bool _showDurationTimerStarted;
 
     private void OnEnable()
     {
@@ -54,6 +64,7 @@ public class PlatformGameObjectActivator : MonoBehaviour
     private void OnDisable()
     {
         WebGLMobileControlBridge.WebGlRuntimePlatformChoiceApplied -= OnWebGlPlatformApplied;
+        CancelShowDurationTimer();
     }
 
     private void OnWebGlPlatformApplied(platform p)
@@ -89,18 +100,52 @@ public class PlatformGameObjectActivator : MonoBehaviour
                 Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Re-enabling '{name}' (matched {current}).", this);
                 gameObject.SetActive(true);
             }
+
+            StartShowDurationTimerIfNeeded();
             return;
         }
 
+        CancelShowDurationTimer();
+
+        ApplyHideAction($"PlatformNotMatched ({current})");
+    }
+
+    private void StartShowDurationTimerIfNeeded()
+    {
+        if (!limitShowDuration || showDurationSeconds <= 0f || _showDurationTimerStarted)
+            return;
+
+        _showDurationTimerStarted = true;
+        Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Starting show-duration timer on '{name}' for {showDurationSeconds}s.", this);
+        Invoke(nameof(HideAfterShowDuration), showDurationSeconds);
+    }
+
+    private void CancelShowDurationTimer()
+    {
+        CancelInvoke(nameof(HideAfterShowDuration));
+        _showDurationTimerStarted = false;
+    }
+
+    private void HideAfterShowDuration()
+    {
+        if (_destroyed)
+            return;
+
+        Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Show duration elapsed on '{name}'.", this);
+        ApplyHideAction("ShowDurationElapsed");
+    }
+
+    private void ApplyHideAction(string reason)
+    {
         if (actionWhenNotMatched == UnmatchedAction.Destroy)
         {
-            Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Destroying '{name}' (resolved={current} not in allowed list).", this);
+            Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Destroying '{name}' (reason={reason}).", this);
             _destroyed = true;
             Destroy(gameObject);
         }
         else
         {
-            Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Disabling '{name}' (resolved={current} not in allowed list).", this);
+            Debug.Log($"[{nameof(PlatformGameObjectActivator)}] Disabling '{name}' (reason={reason}).", this);
             gameObject.SetActive(false);
         }
     }

@@ -308,6 +308,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 2826385158458468716}
+  disableHoverOnMobile: 0
 --- !u!1 &638668328095453635
 GameObject:
   m_ObjectHideFlags: 0
@@ -541,6 +542,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 5932492501682636629}
+  disableHoverOnMobile: 0
 --- !u!1 &981457832688227570
 GameObject:
   m_ObjectHideFlags: 0
@@ -838,6 +840,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 5855620116975114318}
+  disableHoverOnMobile: 0
 --- !u!1 &1147222692412877587
 GameObject:
   m_ObjectHideFlags: 0
@@ -1418,6 +1421,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 8451241019261825472}
+  disableHoverOnMobile: 0
 --- !u!1 &2709755507631779733
 GameObject:
   m_ObjectHideFlags: 0
@@ -2422,6 +2426,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 5630213913087896878}
+  disableHoverOnMobile: 0
 --- !u!1 &4786567701263545396
 GameObject:
   m_ObjectHideFlags: 0
@@ -2517,7 +2522,7 @@ MonoBehaviour:
   m_fontSize: 11
   m_fontSizeBase: 11
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 0
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -3155,6 +3160,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 6344612847062447684}
+  disableHoverOnMobile: 0
 --- !u!1 &5598047173718905904
 GameObject:
   m_ObjectHideFlags: 0
@@ -4347,6 +4353,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HowerUIScript
   howerUI:
   - {fileID: 1506608736750326419}
+  disableHoverOnMobile: 0
 --- !u!1 &6855144322373371042
 GameObject:
   m_ObjectHideFlags: 0
@@ -4425,10 +4432,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
