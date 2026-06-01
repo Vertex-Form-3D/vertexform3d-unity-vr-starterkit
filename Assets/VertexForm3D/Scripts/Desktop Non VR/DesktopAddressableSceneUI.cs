@@ -138,40 +138,18 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             {
                 modeImage.sprite = firstPersonSprite;
                 modeText.text = "First Person mode";
-                ApplyAvatarBodyVisibility(false);
             });
         xrRig.onThirdPersonModeStartEvent.AddListener(() =>
         {
             modeImage.sprite = thirdPersonSprite;
             modeText.text = "Third Person mode";
-            ApplyAvatarBodyVisibility(true);
         });
 
-        // Sync body visibility with the mode we started in.
-        ApplyAvatarBodyVisibility(xrRig.isThirdPerson);
+        // Body visibility is handled by AvatarHolder (respects showAvatarBodyInFirstPerson and keeps shadows).
+        pns.avatarHolder?.ApplyBodyVisibilityForPersonMode(xrRig.isThirdPerson);
 
         desktopCanvas.gameObject.SetActive(true);
 
-    }
-
-    /// <summary>
-    /// Toggles the local player's avatar body for Desktop/Mobile (non-VR) first-person view.
-    /// In third-person we always show the body; in first-person we honor
-    /// <see cref="UILayoutConfig.showAvatarBodyInFirstPerson"/>.
-    /// </summary>
-    private void ApplyAvatarBodyVisibility(bool isThirdPerson)
-    {
-        if (pns == null || pns.avatarHolder == null || pns.avatarHolder.BodyTransform == null)
-            return;
-
-        bool showBody = isThirdPerson;
-        if (!isThirdPerson)
-        {
-            var cfg = ProjectManager.instance != null ? ProjectManager.instance.uiLayoutConfig : null;
-            showBody = cfg == null || cfg.showAvatarBodyInFirstPerson;
-        }
-
-        pns.avatarHolder.BodyTransform.gameObject.SetActive(showBody);
     }
 
     public void ShowGrabItem()

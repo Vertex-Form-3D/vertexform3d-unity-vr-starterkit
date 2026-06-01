@@ -231,6 +231,9 @@
       var ua = navigator.userAgent || navigator.vendor || window.opera || "";
       if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua))
         return true;
+      /* iPadOS 13+ desktop UA: "Macintosh" / MacIntel with multi-touch (no "ipad" in UA). */
+      if (navigator.platform === "MacIntel" && typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 1)
+        return true;
       if (typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches)
         return true;
       if (typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 2)
@@ -251,12 +254,8 @@
     function vertexFormResolveWebGpuBrowserKind() {
       if (vertexFormLikelyVrShellBrowser())
         return "VrBrowser";
-      var ua = (navigator.userAgent || "").toLowerCase();
-      if (/android/.test(ua))
-        return "AndroidBrowser";
-      /* iOS Safari UA contains "iphone/ipad/ipod" but not "android" — must be caught explicitly
-         or it falls through to DesktopBrowser, which overrides mobile controls to false. */
-      if (/iphone|ipad|ipod/.test(ua))
+      /* Phones, tablets, and touch-first browsers — not only UA substrings (iPad desktop UA omits "ipad"). */
+      if (vertexFormIsMobileBrowser())
         return "AndroidBrowser";
       return "DesktopBrowser";
     }

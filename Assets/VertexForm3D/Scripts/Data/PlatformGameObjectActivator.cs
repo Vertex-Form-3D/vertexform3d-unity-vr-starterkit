@@ -181,7 +181,9 @@ public class PlatformGameObjectActivator : MonoBehaviour
                     case WebGpuBrowserKind.MobileBrowser:
                         return PlatformKind.Mobile;
                     case WebGpuBrowserKind.DesktopBrowser:
-                        return PlatformKind.Desktop;
+                        return DesktopMobileControlSettings.UseMobileControls
+                            ? PlatformKind.Mobile
+                            : PlatformKind.Desktop;
                     case WebGpuBrowserKind.None:
                     default:
                         // Before the WebGL page calls SendMessage, fall back to the mobile-controls hint.

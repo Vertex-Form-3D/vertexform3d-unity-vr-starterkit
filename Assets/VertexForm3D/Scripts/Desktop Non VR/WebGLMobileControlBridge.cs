@@ -25,6 +25,8 @@ public class WebGLMobileControlBridge : MonoBehaviour
 
     private platform? _pendingWebGlPlatformChoice;
     private WebGpuBrowserKind? _pendingWebGpuBrowserKind;
+    private static bool _mobileHintFromPage;
+    private static bool _mobileHintReceived;
 
     /// <summary>Fired when <see cref="Platforms.platformChoice"/> is set from the host page (after <see cref="ProjectManager"/> exists).</summary>
     public static event Action<platform> WebGlRuntimePlatformChoiceApplied;
@@ -44,6 +46,8 @@ public class WebGLMobileControlBridge : MonoBehaviour
             return;
         string v = value.Trim().ToLowerInvariant();
         bool mobile = v == "1" || v == "true" || v == "yes" || v == "on";
+        _mobileHintFromPage = mobile;
+        _mobileHintReceived = true;
         DesktopMobileControlSettings.SetUseMobileControls(mobile);
         Debug.Log($"[WebGLMobileControlBridge] Template mobile heuristic → UseMobileControls={mobile} (raw: \"{value}\")");
     }
@@ -204,7 +208,8 @@ public class WebGLMobileControlBridge : MonoBehaviour
             Debug.Log($"[WebGLMobileControlBridge] WebGPU runtime → {kind}");
             WebGlRuntimePlatformChoiceApplied?.Invoke(platform.WebGPU);
         }
-        DesktopMobileControlSettings.SetUseMobileControls(kind == WebGpuBrowserKind.MobileBrowser);
+        DesktopMobileControlSettings.SetUseMobileControls(
+            kind == WebGpuBrowserKind.MobileBrowser || (_mobileHintReceived && _mobileHintFromPage));
 
         return true;
     }
