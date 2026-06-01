@@ -544,6 +544,8 @@ namespace VertexFormCore
 
         public void ManageEmojiPanel()
         {
+            CloseSettingsUIIfOpen();
+
             if (!UseHeadMountedMenuPath())
             {
                 if (emojiPanelDesktop == null) return;
@@ -554,10 +556,6 @@ namespace VertexFormCore
             }
             else
             {
-                if (!emojiPanelVR.activeInHierarchy)
-                {
-                    HandleSettingUI();
-                }
                 MoveCanvasToCamera(emojiPanelVR);
                 emojiPanelVR.SetActive(!emojiPanelVR.activeInHierarchy);
             }
@@ -651,6 +649,7 @@ namespace VertexFormCore
         {
             if (isStanding) Sit();
             else Stand();
+            CloseSettingsUIIfOpen();
         }
 
         public void OnTapVoiceToggle()
@@ -658,12 +657,14 @@ namespace VertexFormCore
             if (isVoiceEnabled) MuteVoice();
             else UnmuteVoice();
             onVoiceModeChanged?.Invoke(isVoiceEnabled);
+            CloseSettingsUIIfOpen();
         }
 
         public void OnTapGrabToggle()
         {
             isNearGrab = !isNearGrab;
             ApplyGrabMode();
+            CloseSettingsUIIfOpen();
         }
 
         public void OnTapFlyToggle()
@@ -675,12 +676,14 @@ namespace VertexFormCore
             }
             isFlying = !isFlying;
             ApplyFlyMode();
+            CloseSettingsUIIfOpen();
         }
 
         public void OnTapMegaphoneToggle()
         {
             isMegaphone = !isMegaphone;
             ApplyMegaphoneMode();
+            CloseSettingsUIIfOpen();
         }
 
         // ==================== APPLY FUNCTIONS ====================
@@ -874,6 +877,13 @@ namespace VertexFormCore
                    (settingUI != null && settingUI.activeInHierarchy) ||
                    (emojiPanelDesktop != null && emojiPanelDesktop.activeInHierarchy) ||
                    (emojiPanelVR != null && emojiPanelVR.activeInHierarchy);
+        }
+
+        private void CloseSettingsUIIfOpen()
+        {
+            if (settingUI != null && settingUI.activeInHierarchy)
+                settingUI.SetActive(false);
+            UpdateInputLockFromOpenPanels();
         }
 
         private void UpdateInputLockFromOpenPanels()
