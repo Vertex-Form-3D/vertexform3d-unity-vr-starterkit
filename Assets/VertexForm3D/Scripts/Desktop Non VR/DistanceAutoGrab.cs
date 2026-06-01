@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Photon.Voice;
 using System.Collections;
 using UnityEngine;
@@ -31,6 +32,9 @@ public class DistanceAutoGrab : MonoBehaviour
     [Header("Desktop UI")]
     [SerializeField] private DesktopAddressableSceneUI desktopAddressableSceneUI;
     private bool isJourneyUIVisible;
+
+    // Both hand scripts share one G binding — only handle a press once per frame.
+    private static int _lastSharedGrabInputFrame = -1;
 
     [Header("Input Actions")]
     public InputAction grabKeyPressed;
@@ -119,7 +123,7 @@ public class DistanceAutoGrab : MonoBehaviour
         if (!ProjectManager.instance.platforms.IsDesktopStylePlatform())
             return;
 
-        bool inRange = targetInteractable != null && !targetInteractable.isSelected;
+        bool inRange = ShouldShowGrabHint(targetInteractable);
         SetJourneyUIVisible(inRange);
     }
 
@@ -196,14 +200,34 @@ public class DistanceAutoGrab : MonoBehaviour
 
     private void OnGrabPerformed(InputAction.CallbackContext ctx)
     {
-        if (!isGrabbing)
-        {
-            Grab();
-        }
+        if (_lastSharedGrabInputFrame == Time.frameCount)
+            return;
+        _lastSharedGrabInputFrame = Time.frameCount;
+
+        if (AnyDesktopHandHolding())
+            ReleaseAllHeldObjects();
         else
+            GrabWithBestAvailableHand();
+    }
+
+    private static void GrabWithBestAvailableHand()
+    {
+        DistanceAutoGrab bestHand = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (var hand in FindObjectsByType<DistanceAutoGrab>(FindObjectsSortMode.None))
         {
-            UnGrab();
+            if (hand == null || !IsValidGrabTarget(hand.targetInteractable)) continue;
+
+            float distance = Vector3.Distance(hand.transform.position, hand.targetInteractable.transform.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                bestHand = hand;
+            }
         }
+
+        bestHand?.Grab();
     }
 
     private void OnTriggerPerformed(InputAction.CallbackContext ctx)
@@ -216,9 +240,16 @@ public class DistanceAutoGrab : MonoBehaviour
         }
     }
 
+    private static bool IsValidGrabTarget(XRGrabInteractable interactable)
+    {
+        return interactable != null && !interactable.isSelected && interactable.enabled;
+    }
+
+    private static bool ShouldShowGrabHint(XRGrabInteractable interactable) => IsValidGrabTarget(interactable);
+
     public void Grab()
     {
-        if (targetInteractable != null && !targetInteractable.isSelected)
+        if (IsValidGrabTarget(targetInteractable))
         {
             interactionManager.SelectEnter(interactor, targetInteractable);
             if (interactor.interactablesSelected.Count > 0 && interactor.interactablesSelected[0] == targetInteractable)
@@ -244,22 +275,44 @@ public class DistanceAutoGrab : MonoBehaviour
 
     public void UnGrab()
     {
-        // Prefer our stored reference so ungrab works even if interactablesSelected is out of sync
-        var toRelease = currentGrabbedInteractable;
-        if (toRelease == null && interactor.interactablesSelected.Count > 0)
-            toRelease = interactor.interactablesSelected[0] as XRGrabInteractable;
+        ReleaseAllHeldObjects();
+    }
 
-        if (toRelease != null)
+    private static bool AnyDesktopHandHolding()
+    {
+        var hands = FindObjectsByType<DistanceAutoGrab>(FindObjectsSortMode.None);
+        foreach (var hand in hands)
         {
-            interactionManager.SelectExit(interactor, toRelease);
-            //Debug.Log($"Released: {toRelease.name}");
+            if (hand == null || hand.interactor == null) continue;
+            if (hand.interactor.interactablesSelected.Count > 0)
+                return true;
         }
+        return false;
+    }
 
-        isGrabbing = false;
-        currentGrabbedInteractable = null;
-        targetInteractable = null; // Clear so coroutine can set next target
-        UpdateGrabRangeUI();
-        FindFarGrabTarget();
+    public static void ReleaseAllHeldObjects()
+    {
+        var interactionManager = FindAnyObjectByType<XRInteractionManager>();
+        if (interactionManager == null) return;
+
+        var hands = FindObjectsByType<DistanceAutoGrab>(FindObjectsSortMode.None);
+        foreach (var hand in hands)
+        {
+            if (hand == null || hand.interactor == null) continue;
+
+            var held = new List<IXRSelectInteractable>(hand.interactor.interactablesSelected);
+            foreach (var selected in held)
+            {
+                if (selected is XRGrabInteractable grab)
+                    interactionManager.SelectExit(hand.interactor, grab);
+            }
+
+            hand.isGrabbing = false;
+            hand.currentGrabbedInteractable = null;
+            hand.targetInteractable = null;
+            hand.UpdateGrabRangeUI();
+            hand.FindFarGrabTarget();
+        }
     }
 
     public Coroutine FindFarGrabTargetCoroutine;
@@ -283,7 +336,7 @@ public class DistanceAutoGrab : MonoBehaviour
                         interactable = hit.GetComponentInParent<XRGrabInteractable>();
                     }
 
-                    if (interactable != null && !interactable.isSelected)
+                    if (IsValidGrabTarget(interactable))
                     {
                         float distance = Vector3.Distance(transform.position, interactable.transform.position);
                         if (distance < closestDistance)
@@ -337,15 +390,20 @@ public class DistanceAutoGrab : MonoBehaviour
 
     private void Update()
     {
-        // Periodically verify isGrabbing state (e.g. object was destroyed or selection lost)
-        if (isGrabbing && interactor.interactablesSelected.Count == 0)
+        // Keep local flags aligned when selection ends outside our G toggle (other hand, snapper release, etc.)
+        bool holding = interactor != null && interactor.interactablesSelected.Count > 0;
+        if (isGrabbing && !holding)
         {
-            //Debug.LogWarning("isGrabbing was true but no object is selected. Resetting state.");
             isGrabbing = false;
             currentGrabbedInteractable = null;
             targetInteractable = null;
             UpdateGrabRangeUI();
             FindFarGrabTarget();
+        }
+        else if (!isGrabbing && holding)
+        {
+            isGrabbing = true;
+            currentGrabbedInteractable = interactor.interactablesSelected[0] as XRGrabInteractable;
         }
 
         // Apply pull effect for far grab with physics (use held object reference)

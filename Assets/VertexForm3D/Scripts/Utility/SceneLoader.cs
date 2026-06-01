@@ -155,24 +155,95 @@ namespace VertexFormCore
             }
 
 #if !UNITY_WEBGL
-            Caching.ClearCache();
+            // WARNING: on Android with remote-hosted Addressables, Caching.ClearCache() can
+            // invalidate the bundle Fusion is about to / just finished downloading and force a
+            // re-download on the next visit. Only call this from an explicit "clear data"
+            // action, not on every scene transition.
+            // Caching.ClearCache();
 #endif
         }
 
         public void OnFusionSceneLoaded(string sceneName)
         {
-            // Called by RoomManager when Fusion has finished loading the addressable scene
+            // Called by RoomManager when Fusion has finished loading the addressable scene.
+            // We do NOT flip sceneIsLoaded / completePerchantage here — both are set at the end
+            // of FinalizeFusionSceneLoad, after the post-load main-thread stall is done. That
+            // way the UI/progress bar can't hand control back to the user during the freeze
+            // window that makes the VR world appear glued to the user's head.
+            currentScene = sceneName;
+            Debug.Log($"[SceneLoader] Fusion addressable scene fully loaded: {sceneName} — finalizing.");
+            StartCoroutine(FinalizeFusionSceneLoad(sceneName));
+        }
+
+        /// <summary>
+        /// Runs the expensive post-load work without blocking the main thread for the full duration,
+        /// which on Android/Quest with a freshly-downloaded remote bundle would otherwise present
+        /// as "stuck at 100%" with VR head-locked frames (last frame stays on-screen while head
+        /// poses keep updating, so the world appears to rotate with the user).
+        /// </summary>
+        private IEnumerator FinalizeFusionSceneLoad(string sceneName)
+        {
+            // 1) Activate the world scene so RenderSettings (skybox/ambient/fog) match it.
+            //    Defer DynamicGI.UpdateEnvironment() by a frame so the first post-activation
+            //    frame stays cheap — UpdateEnvironment is a known spike on Android GLES.
+            if (TryResolveWorldScene(out var worldScene) && worldScene.isLoaded)
+            {
+                if (SceneManager.GetActiveScene() != worldScene)
+                {
+                    SceneManager.SetActiveScene(worldScene);
+                    Debug.Log($"[SceneLoader] Active scene set to \"{worldScene.name}\" (path: {worldScene.path}).");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[SceneLoader] Finalize: could not resolve loaded world scene for key \"{sceneName}\".");
+            }
+
+            yield return null;
+            DynamicGI.UpdateEnvironment();
+
+            // 2) Let the renderer present a couple of frames so VR head tracking stays fluid
+            //    before we start the unload pass.
+            yield return null;
+            yield return null;
+
+            // 3) Async unload — Unity chunks the work across frames instead of one giant
+            //    synchronous call. This is the single biggest fix for the "frozen frame"
+            //    hitch after a remote bundle download.
+            var unloadOp = Resources.UnloadUnusedAssets();
+            while (unloadOp != null && !unloadOp.isDone)
+                yield return null;
+
+            // 4) Wait until the local VR player is spawned before dropping the curtain.
+            //    Even after the unload is done, shaders may still be compiling and
+            //    networked objects initializing — revealing the scene too soon causes a
+            //    black/flickery frame burst in VR. Cap the wait so we don't wait forever
+            //    if spawn never arrives (e.g. spectator mode, spawn error).
+            float waitedForPlayer = 0f;
+            const float playerSpawnTimeout = 15f;
+            while (waitedForPlayer < playerSpawnTimeout)
+            {
+                if (RoomManager.Instance != null && RoomManager.Instance.localVRPlayer != null)
+                    break;
+                waitedForPlayer += Time.deltaTime;
+                yield return null;
+            }
+
+            if (waitedForPlayer >= playerSpawnTimeout)
+                Debug.LogWarning("[SceneLoader] Finalize: timed out waiting for local player spawn — dropping curtain anyway.");
+
+            // 5) Let a few more frames render with the player present so shader warm-up
+            //    and initial GI settle before the fade starts.
+            for (int i = 0; i < 5; i++)
+                yield return null;
+
+            // 6) Only now is it safe to tell the rest of the app we're done. Anything gating
+            //    on sceneIsLoaded / completePerchantage == 100 (curtain fade, input handoff,
+            //    UI dismiss) will see a stable, presenting renderer.
             sceneIsLoaded = true;
             completePerchantage = 100f;
-            currentScene = sceneName;
-            Debug.Log($"[SceneLoader] Fusion addressable scene fully loaded: {sceneName}");
 
-            // Apply world lighting/skybox before unloading: RenderSettings follow the active scene.
-            ActivateScene();
-
-            // Defer cleanup until the additive scene is present; early UnloadUnusedAssets during
-            // async load has caused missing skybox/textures on first WebGL visit.
-            Resources.UnloadUnusedAssets();
+            Debug.Log($"[SceneLoader] Finalize complete for: {sceneName}");
         }
 
         /// <summary>
