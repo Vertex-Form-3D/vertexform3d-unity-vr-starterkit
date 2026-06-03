@@ -59,7 +59,6 @@ namespace VertexFormCore
 
         [SerializeField] GameObject[] nonSyncableObjects;
 
-        public CustomAvatarScriptable customAvatarScriptable;
         public AvatarHolder avatarHolder;
         public Transform bodyTransform;
         public Transform headTransform;
@@ -102,9 +101,9 @@ namespace VertexFormCore
             AvatarInputConverter avatarInputConverter = LocalXRRigGameobject.GetComponent<AvatarInputConverter>();
             Debug.Log("-->on selected avatar " + avatarSelectionNumber + "for mine? " + Object.HasInputAuthority);
 
-            GameObject body1 = Instantiate(customAvatarScriptable.avatarDatas[avatarSelectionNumber].body);
+            GameObject body1 = Instantiate(ProjectManager.instance.uiLayoutConfig.avatarDatas[avatarSelectionNumber].body);
             body1.transform.SetParent(bodyTransform, false);
-            GameObject head1 = Instantiate(customAvatarScriptable.avatarDatas[avatarSelectionNumber].head);
+            GameObject head1 = Instantiate(ProjectManager.instance.uiLayoutConfig.avatarDatas[avatarSelectionNumber].head);
             head1.transform.SetParent(headTransform, false);
             body1.transform.localPosition = head1.transform.localPosition = Vector3.zero;
             avatarHolder.SetAvatar(head1, body1);
