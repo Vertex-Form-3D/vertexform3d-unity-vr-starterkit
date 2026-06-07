@@ -75,8 +75,7 @@ public static class PackageImportResumer
                 out int importedCount,
                 out string selectiveImportError))
         {
-            Debug.Log($"[PackageImportResumer] Selective import complete. Imported: {importedCount}, skipped Database Scenes: {excludedCount}.");
-            EditorApplication.delayCall += FinalizeDatabaseScenesExclusionAfterImport;
+            Debug.Log($"[PackageImportResumer] Selective import complete. Imported: {importedCount}, skipped Database Scenes: {excludedCount}. Local Database Scenes were not modified.");
             return;
         }
 
@@ -90,8 +89,7 @@ public static class PackageImportResumer
                 out importedCount,
                 out string manualImportError))
         {
-            Debug.Log($"[PackageImportResumer] Manual import complete. Imported: {importedCount}, skipped Database Scenes: {excludedCount}.");
-            EditorApplication.delayCall += FinalizeDatabaseScenesExclusionAfterImport;
+            Debug.Log($"[PackageImportResumer] Manual import complete. Imported: {importedCount}, skipped Database Scenes: {excludedCount}. Local Database Scenes were not modified.");
             return;
         }
 
@@ -176,12 +174,17 @@ public static class PackageImportResumer
     }
 
     /// <summary>
-    /// After import: restores local Database Scenes from backup, or removes any Database Scenes
-    /// that came from the package when the project did not already have them.
+    /// After a fallback full ImportPackage only: restores backed-up local Database Scenes,
+    /// or removes package-imported Database Scenes when the project did not already have them.
+    /// Selective/manual import never calls this for deletion — local scenes are left untouched.
     /// </summary>
     public static void FinalizeDatabaseScenesExclusionAfterImport()
     {
         if (!EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false))
+            return;
+
+        bool usedFallbackImport = EditorPrefs.GetBool(PrefKey_UsedFallbackPackageImport, false);
+        if (!usedFallbackImport)
             return;
 
         string manifest = EditorPrefs.GetString(PrefKey_SceneBackupManifest, "");
@@ -202,7 +205,7 @@ public static class PackageImportResumer
             string destPath = Path.Combine(ProjectRoot, assetPath);
             Directory.CreateDirectory(Path.GetDirectoryName(destPath));
             FileUtil.CopyFileOrDirectory(backupPath, destPath);
-            Debug.Log($"[PackageImportResumer] Restored preserved scene asset: {assetPath}");
+            Debug.Log($"[PackageImportResumer] Restored your local Database Scenes from backup: {assetPath}");
             changed = true;
         }
 
@@ -343,8 +346,9 @@ public static class PackageImportResumer
 
         Debug.Log($"[PackageImportResumer] Static constructor called - HasPackages: {hasPackages}, IsImporting: {isImporting}");
 
-        // Strip Database Scenes from fallback imports, or restore local copies that were backed up.
-        FinalizeDatabaseScenesExclusionAfterImport();
+        // After a fallback full import, restore backed-up Database Scenes or strip package defaults.
+        if (EditorPrefs.GetBool(PrefKey_UsedFallbackPackageImport, false))
+            FinalizeDatabaseScenesExclusionAfterImport();
 
         if (hasPackages && isImporting)
         {
@@ -519,7 +523,6 @@ public static class PackageImportResumer
             }
             else
             {
-                FinalizeDatabaseScenesExclusionAfterImport();
                 CompleteImportAndRefreshUpdater();
             }
         }
@@ -1160,9 +1163,7 @@ public class PackageUpdaterWindow : EditorWindow
             // Import the package (this may trigger domain reload)
             PackageImportResumer.ImportPackageWithOptionalScenePreservation(packagePath);
 
-            PackageImportResumer.FinalizeDatabaseScenesExclusionAfterImport();
-
-            Debug.Log($"[PackageUpdater] [IMPORT {i + 1}/{totalPackages}] AssetDatabase.ImportPackage returned. Refreshing asset database...");
+            Debug.Log($"[PackageUpdater] [IMPORT {i + 1}/{totalPackages}] Package import returned. Refreshing asset database...");
 
             // Wait for import to complete and asset database to refresh
             AssetDatabase.Refresh();
