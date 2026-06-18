@@ -99,6 +99,25 @@
       text-align: center;
       -webkit-tap-highlight-color: transparent;
     }
+    #vertexform-ios-fullscreen-hint .vf-hint-text {
+      display: block;
+      margin-bottom: 10px;
+    }
+    #vertexform-ios-fullscreen-hint-close {
+      display: inline-block;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 88px;
+      min-height: 36px;
+    }
+    #vertexform-ios-fullscreen-hint-close:active { background: rgba(255,255,255,0.18); }
     /* Optional WebXR entry: shown on Quest / Wolvic-style browsers after Unity loads (user gesture for toggleVR). */
     #vertexform-vr-entry-overlay {
       display: none;
@@ -186,7 +205,10 @@
     </div>
   </div>
   <button id="vertexform-fullscreen-btn" type="button" aria-label="Toggle fullscreen">Fullscreen</button>
-  <div id="vertexform-ios-fullscreen-hint" role="status" aria-live="polite"></div>
+  <div id="vertexform-ios-fullscreen-hint" role="status" aria-live="polite">
+    <span class="vf-hint-text" id="vertexform-ios-fullscreen-hint-text"></span>
+    <button type="button" id="vertexform-ios-fullscreen-hint-close" aria-label="Dismiss message">Got it</button>
+  </div>
   <script>
     /* Mobile browsers use a smaller JS stack than desktop. Unity + matchWebGLToCanvasSize + rapid window
        resizes (URL bar, rotation) can overflow the stack. This does NOT fix WASM — it only avoids alert() spam.
@@ -209,6 +231,9 @@
       var ua = navigator.userAgent || navigator.vendor || window.opera || "";
       if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua))
         return true;
+      /* iPadOS 13+ desktop UA: "Macintosh" / MacIntel with multi-touch (no "ipad" in UA). */
+      if (navigator.platform === "MacIntel" && typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 1)
+        return true;
       if (typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches)
         return true;
       if (typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 2)
@@ -229,12 +254,8 @@
     function vertexFormResolveWebGpuBrowserKind() {
       if (vertexFormLikelyVrShellBrowser())
         return "VrBrowser";
-      var ua = (navigator.userAgent || "").toLowerCase();
-      if (/android/.test(ua))
-        return "AndroidBrowser";
-      /* iOS Safari UA contains "iphone/ipad/ipod" but not "android" — must be caught explicitly
-         or it falls through to DesktopBrowser, which overrides mobile controls to false. */
-      if (/iphone|ipad|ipod/.test(ua))
+      /* Phones, tablets, and touch-first browsers — not only UA substrings (iPad desktop UA omits "ipad"). */
+      if (vertexFormIsMobileBrowser())
         return "AndroidBrowser";
       return "DesktopBrowser";
     }
@@ -306,12 +327,26 @@
 
     function vertexFormShowIosFullscreenHintToast() {
       if (!iosFsHint) return;
-      iosFsHint.textContent = "Tip: In Safari, tap Share → Add to Home Screen, then open this app from your home screen for the most fullscreen layout (iOS limits in-tab fullscreen).";
+      var textEl = document.getElementById("vertexform-ios-fullscreen-hint-text");
+      var closeBtn = document.getElementById("vertexform-ios-fullscreen-hint-close");
+      var message = "Tip: In Safari, tap Share → Add to Home Screen, then open this app from your home screen for the most fullscreen layout (iOS limits in-tab fullscreen).";
+      if (textEl) textEl.textContent = message;
+      else iosFsHint.textContent = message;
       iosFsHint.style.display = "block";
-      clearTimeout(vertexFormShowIosFullscreenHintToast._t);
-      vertexFormShowIosFullscreenHintToast._t = setTimeout(function () {
+      function hide() {
         iosFsHint.style.display = "none";
-      }, 8000);
+        clearTimeout(vertexFormShowIosFullscreenHintToast._t);
+        vertexFormShowIosFullscreenHintToast._t = null;
+      }
+      if (closeBtn) {
+        closeBtn.onclick = function (ev) {
+          if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+          hide();
+        };
+      }
+      /* Auto-dismiss is a safety net only — small iPhones may need longer to read; the Got it button is the primary way to close. */
+      clearTimeout(vertexFormShowIosFullscreenHintToast._t);
+      vertexFormShowIosFullscreenHintToast._t = setTimeout(hide, 20000);
     }
 
     function vertexFormUpdateFullscreenButtonLabel() {

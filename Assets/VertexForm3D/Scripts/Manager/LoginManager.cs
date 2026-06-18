@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -23,11 +24,8 @@ namespace VertexFormCore
             {
                 versionText.text = $"Version: {Application.version}";
             }
-            // if (ProjectManager.instance.projectDataSO.mode == Mode.Spectator && ProjectManager.instance.projectDataSO.projectData.platformSelection == platform.Desktop)
-            // {
-            //     Spectating();
-            // }
         }
+
 
         private void Update()
         {

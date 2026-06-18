@@ -11,6 +11,7 @@ public class DesktopAddressableSceneUI : MonoBehaviour
     public static DesktopAddressableSceneUI Instance;
     public Canvas desktopCanvas;
     public GameObject journeysUI;
+    public GameObject grabUI;
     public Image modeImage;
     public TMP_Text modeText;
     public Sprite firstPersonSprite;
@@ -144,17 +145,20 @@ public class DesktopAddressableSceneUI : MonoBehaviour
             modeText.text = "Third Person mode";
         });
 
+        // Body visibility is handled by AvatarHolder (respects showAvatarBodyInFirstPerson and keeps shadows).
+        pns.avatarHolder?.ApplyBodyVisibilityForPersonMode(xrRig.isThirdPerson);
+
         desktopCanvas.gameObject.SetActive(true);
 
     }
 
     public void ShowGrabItem()
     {
-        journeysUI.SetActive(true);
+        grabUI.SetActive(true);
     }
     public void HideGrabItem()
     {
-        journeysUI.SetActive(false);
+        grabUI.SetActive(false);
     }
     public void OnTapMenuButton()
     {

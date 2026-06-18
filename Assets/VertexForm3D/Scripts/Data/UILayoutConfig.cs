@@ -20,6 +20,8 @@ public class UILayoutConfig : ScriptableObject
     public List<LeftSectionItem> leftSectionItems = new List<LeftSectionItem>();
 
     [Header("Main Section (Panels)")]
+    [Tooltip("When false, the Main panel (background/logo) is hidden and Places becomes the default tab. Useful if you'd rather drop users straight into Places.")]
+    public bool showMainPanel = true;
     public List<MainSectionPanel> mainSectionPanels = new List<MainSectionPanel>();
 
     /// <summary>
@@ -32,6 +34,8 @@ public class UILayoutConfig : ScriptableObject
     [Header("Right Section")]
     public bool rightSectionEnabled = true;
     public bool mirror = true;
+    [Tooltip("When true, the local player's avatar body is visible in first-person mode on Desktop/Mobile (non-VR). When false, the body is hidden so it doesn't clip the camera.")]
+    public bool showAvatarBodyInFirstPerson = true;
     public List<AvatarData> avatarDatas = new List<AvatarData>();
 
     private void Reset()

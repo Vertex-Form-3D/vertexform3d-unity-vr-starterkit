@@ -33,6 +33,7 @@ public class FlyingModeScript : MonoBehaviour
                 Destroy(this);
             }
         }
+        isFlying = false;
         characterController = GetComponent<CharacterController>();
         _inputData = GetComponent<InputData>();
     }

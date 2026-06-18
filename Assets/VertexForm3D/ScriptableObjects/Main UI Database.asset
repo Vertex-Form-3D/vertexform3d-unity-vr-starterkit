@@ -25,6 +25,7 @@ MonoBehaviour:
 
 '
   leftSectionItems: []
+  showMainPanel: 1
   mainSectionPanels:
   - backgroundImage: {fileID: 21300000, guid: 840e3ebdf3aed804da0c4d2a5814a957, type: 3}
     logoImage: {fileID: 21300000, guid: 9c314c1475525d1489f662e4e50f84e8, type: 3}
@@ -46,11 +47,11 @@ MonoBehaviour:
       sceneProvider: 0
       worldImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
       flyMode: 0
-      Desktop: 0
-      VR: 0
-      WebGPU: 0
-      WebXR: 0
-      Mobile: 0
+      Desktop: 1
+      VR: 1
+      WebGPU: 1
+      WebXR: 1
+      Mobile: 1
     - worldName: Ocean Villa
       worldKey: Ocean Villa
       worldImagePath: 
@@ -155,6 +156,7 @@ MonoBehaviour:
       Mobile: 1
   rightSectionEnabled: 1
   mirror: 1
+  showAvatarBodyInFirstPerson: 1
   avatarDatas:
   - head: {fileID: 7979297635213059217, guid: ecff4e45bb4f8524980f969a4fbd9ff2, type: 3}
     body: {fileID: -3372522033569347474, guid: ecff4e45bb4f8524980f969a4fbd9ff2, type: 3}

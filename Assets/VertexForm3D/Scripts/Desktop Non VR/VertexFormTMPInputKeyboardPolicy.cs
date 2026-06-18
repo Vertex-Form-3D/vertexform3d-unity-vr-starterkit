@@ -72,6 +72,12 @@ public class VertexFormTMPInputKeyboardPolicy : MonoBehaviour
         if (pl.KeyboardUsesSpatialXr())
         {
             _xrKeyboard.enabled = true;
+            // Spatial keyboard in immersive WebXR / VR: do not let the display auto-close the keyboard
+            // when its GameObject is briefly disabled (panel swaps, raycaster toggles, EventSystem
+            // deselection from a controller ray pointing at empty space). The default
+            // m_HideKeyboardOnDisable=true causes the keyboard to "appear, then hide when pressing
+            // anywhere on the screen" in WebXR. The user can still dismiss it via the keyboard's Hide key.
+            _xrKeyboard.hideKeyboardOnDisable = false;
             ApplySoftKeyboardFlagsForSpatialVr();
             return;
         }

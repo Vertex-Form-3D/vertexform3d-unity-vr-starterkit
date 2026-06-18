@@ -1,5 +1,5 @@
 using UnityEngine;
-
+[DefaultExecutionOrder(-100000)]
 public class ProjectManager : MonoBehaviour
 {
     public UILayoutConfig uiLayoutConfig;
