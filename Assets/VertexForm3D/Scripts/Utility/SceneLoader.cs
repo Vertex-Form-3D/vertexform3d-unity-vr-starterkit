@@ -172,6 +172,10 @@ namespace VertexFormCore
             // window that makes the VR world appear glued to the user's head.
             currentScene = sceneName;
             Debug.Log($"[SceneLoader] Fusion addressable scene fully loaded: {sceneName} — finalizing.");
+
+            if (EventSystemHandler.Instance != null)
+                EventSystemHandler.Instance.RemoveForeignEventSystems();
+
             StartCoroutine(FinalizeFusionSceneLoad(sceneName));
         }
 
@@ -274,7 +278,7 @@ namespace VertexFormCore
             Debug.Log($"[SceneLoader] Active scene set to \"{worldScene.name}\" (path: {worldScene.path}).");
         }
 
-        bool TryResolveWorldScene(out Scene scene)
+        public bool TryResolveWorldScene(out Scene scene)
         {
             scene = default;
             if (string.IsNullOrEmpty(currentScene))

@@ -48,6 +48,10 @@ namespace VertexFormCore
         [SerializeField] private FusionVoiceClient fusionVoiceClient;
         private bool _isReturningHomeFromDisconnect;
         private bool _pendingVoiceJoin;
+        private bool _addressableSceneReady;
+        private bool _hasPendingNetworkSpawn;
+        private PlayerRef _pendingNetworkSpawnPlayer;
+        private Coroutine _spawnWhenReadyCoroutine;
 
         GameObject connectVRObject;
         public Vector3 spawnPosition;
@@ -217,6 +221,7 @@ namespace VertexFormCore
             Debug.Log($"[RoomManager] NetworkRunner state: {_runner.State}, IsRunning: {_runner.IsRunning}");
 
             this.mapName = mapName;
+            ResetAddressableSceneSpawnState();
 
             _runner.ProvideInput = true;
 
@@ -317,9 +322,10 @@ namespace VertexFormCore
             // Only spawn for the local player
             if (player == _runner.LocalPlayer)
             {
-                Debug.Log($"[SpawnManager] Spawning VR player for local player: {player}");
+                Debug.Log($"[SpawnManager] Local player joined: {player}");
                 SetAddressableSceneVisuals(false);
-                SpawnLocalVRPlayer(player);
+                PositionTempVRPlayerInstantly();
+                TrySpawnNetworkPlayerWhenReady(player);
             }
             else
             {
@@ -327,11 +333,127 @@ namespace VertexFormCore
             }
         }
 
-        private void SpawnLocalVRPlayer(PlayerRef player)
+        private void ResetAddressableSceneSpawnState()
         {
+            _addressableSceneReady = false;
+            _hasPendingNetworkSpawn = false;
+            if (_spawnWhenReadyCoroutine != null)
+            {
+                StopCoroutine(_spawnWhenReadyCoroutine);
+                _spawnWhenReadyCoroutine = null;
+            }
+        }
 
-            // Get spawn points
-            PlayerSpawnPointScript[] playerSpawnPointScripts = FindObjectsByType<PlayerSpawnPointScript>(FindObjectsSortMode.InstanceID);
+        /// <summary>
+        /// Keeps the local temp VR rig visible immediately while the addressable world scene loads.
+        /// </summary>
+        private void PositionTempVRPlayerInstantly()
+        {
+            ConnectVRObject.transform.position = spawnPosition;
+            ConnectVRObject.transform.rotation = Quaternion.identity;
+            ShowLocalTempVRPlayer(true);
+            Debug.Log($"[SpawnManager] Temp VR player positioned instantly at {spawnPosition}");
+        }
+
+        /// <summary>
+        /// Spawns the networked multiplayer player only after Fusion has finished loading the addressable world scene,
+        /// so spawn points from that scene are present before we resolve a spawn position.
+        /// </summary>
+        private void TrySpawnNetworkPlayerWhenReady(PlayerRef player)
+        {
+            if (localVRPlayer != null)
+            {
+                Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+                return;
+            }
+
+            if (_addressableSceneReady)
+            {
+                Debug.Log("[SpawnManager] Addressable scene ready — spawning networked VR player.");
+                SpawnNetworkPlayerAtWorldSpawn(player);
+                return;
+            }
+
+            Debug.Log("[SpawnManager] Addressable scene not ready yet — deferring networked VR player spawn.");
+            _hasPendingNetworkSpawn = true;
+            _pendingNetworkSpawnPlayer = player;
+
+            if (_spawnWhenReadyCoroutine == null)
+                _spawnWhenReadyCoroutine = StartCoroutine(WaitForAddressableSceneThenSpawn(player));
+        }
+
+        private IEnumerator WaitForAddressableSceneThenSpawn(PlayerRef player)
+        {
+            const float timeout = 60f;
+            float elapsed = 0f;
+
+            while (!_addressableSceneReady && elapsed < timeout)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            _spawnWhenReadyCoroutine = null;
+
+            if (!_addressableSceneReady)
+                Debug.LogWarning("[SpawnManager] Timed out waiting for addressable scene load — spawning networked player with fallback position.");
+
+            if (_hasPendingNetworkSpawn && _pendingNetworkSpawnPlayer == player)
+                ConsumePendingNetworkSpawn();
+        }
+
+        private void ConsumePendingNetworkSpawn()
+        {
+            if (!_hasPendingNetworkSpawn)
+                return;
+
+            if (!_addressableSceneReady)
+                return;
+
+            var player = _pendingNetworkSpawnPlayer;
+            _hasPendingNetworkSpawn = false;
+
+            if (_spawnWhenReadyCoroutine != null)
+            {
+                StopCoroutine(_spawnWhenReadyCoroutine);
+                _spawnWhenReadyCoroutine = null;
+            }
+
+            if (localVRPlayer != null)
+                return;
+
+            Debug.Log("[SpawnManager] Addressable scene loaded — spawning deferred networked VR player.");
+            SpawnNetworkPlayerAtWorldSpawn(player);
+        }
+
+        private PlayerSpawnPointScript[] GetSpawnPointsInWorldScene()
+        {
+            if (SceneLoader.Instance != null &&
+                SceneLoader.Instance.TryResolveWorldScene(out Scene worldScene) &&
+                worldScene.isLoaded)
+            {
+                var spawnPoints = new List<PlayerSpawnPointScript>();
+                foreach (var root in worldScene.GetRootGameObjects())
+                    spawnPoints.AddRange(root.GetComponentsInChildren<PlayerSpawnPointScript>(true));
+
+                Debug.Log($"[SpawnManager] Found {spawnPoints.Count} spawn point(s) in world scene \"{worldScene.name}\".");
+                return spawnPoints.ToArray();
+            }
+
+            Debug.LogWarning("[SpawnManager] World scene not resolved after addressable load — using global spawn point search.");
+            return FindObjectsByType<PlayerSpawnPointScript>(FindObjectsSortMode.InstanceID);
+        }
+
+        private void SpawnNetworkPlayerAtWorldSpawn(PlayerRef player)
+        {
+            if (localVRPlayer != null)
+            {
+                Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+                return;
+            }
+
+            // Get spawn points from the loaded addressable world scene
+            PlayerSpawnPointScript[] playerSpawnPointScripts = GetSpawnPointsInWorldScene();
             int pspIndex = 0;
 
             Debug.Log($"[SpawnManager] Found {playerSpawnPointScripts.Length} spawn points");
@@ -353,11 +475,7 @@ namespace VertexFormCore
                 Debug.Log($"[SpawnManager] No spawn points found, using default position: {spawnPosition}");
             }
 
-            // Position the temp VR object at spawn location
-            ConnectVRObject.transform.position = spawnPos;
-            ConnectVRObject.transform.rotation = spawnRot;
-
-            // Spawn the VR player
+            // Spawn the networked multiplayer player at the resolved world position
             SpawnVRPlayer(player, spawnPos, spawnRot);
         }
 
@@ -833,6 +951,7 @@ namespace VertexFormCore
         {
             Log($"Runner shutdown: {shutdownReason}");
             _pendingVoiceJoin = false;
+            ResetAddressableSceneSpawnState();
 
             // Avoid scene fallback on user-initiated / normal shutdown.
             if (shutdownReason != ShutdownReason.Ok)
@@ -892,7 +1011,9 @@ namespace VertexFormCore
         public void OnSceneLoadDone(NetworkRunner runner)
         {
             Debug.Log($"[RoomManager] OnSceneLoadDone - Fusion finished loading scene(s)");
+            _addressableSceneReady = true;
             TryConsumePendingVoiceJoin("OnSceneLoadDone");
+            ConsumePendingNetworkSpawn();
 
             // Notify SceneLoader that the addressable scene is fully loaded by Fusion
             if (SceneLoader.Instance != null && !string.IsNullOrEmpty(mapName))

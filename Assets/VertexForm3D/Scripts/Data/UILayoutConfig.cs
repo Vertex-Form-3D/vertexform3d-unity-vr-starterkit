@@ -73,3 +73,10 @@ public class MainSectionPanel
 
     public Sprite logoImage;
 }
+
+[System.Serializable]
+public class AvatarData
+{
+    public GameObject head;
+    public GameObject body;
+}
