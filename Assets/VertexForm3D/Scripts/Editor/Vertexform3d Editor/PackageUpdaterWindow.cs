@@ -17,6 +17,8 @@ public class PackageUpdateInfo
     public string version;
     public string releaseNotes;
     public string packageUrl;
+    // Asset paths removed in this version; deleted from the project after this package is imported.
+    public List<string> deletedAssets = new List<string>();
 }
 
 /// <summary>
@@ -34,269 +36,143 @@ public static class PackageImportResumer
     private const string PrefKey_IsImporting = "VertexForm3D_IsImporting";
     private const string PrefKey_LastResumeAttempt = "VertexForm3D_LastResumeAttempt";
     private const string PrefKey_ExcludeDefaultScenes = "VertexForm3D_ExcludeDefaultScenes";
-    private const string PrefKey_UsedFallbackPackageImport = "VertexForm3D_UsedFallbackPackageImport";
-    private const string PrefKey_SceneBackupManifest = "VertexForm3D_SceneBackupManifest";
-    private const string SceneBackupRootFolderName = "VertexForm3D_ScenePreserve";
+    // Per-package deleted asset lists. Packages separated by "|||", paths within a package by "|".
+    // ("|" is not a legal character in asset paths, so this is unambiguous.)
+    private const string PrefKey_DeletedAssets = "VertexForm3D_DeletedAssets";
 
-    // Database Scenes are skipped from the package when the toggle is enabled.
-    // If they already exist locally, the local copy is kept. If not, they are not imported.
-    // HomeScene, LoginScene, and addressableScene always update from the package.
-    private static readonly string[] ProtectedSceneFolders = new[]
+    // Paths excluded when the "Don't include default scene example updates" toggle is enabled.
+    // The actual scene files (addressableScene.unity, HomeScene.unity, LoginScene.unity) are kept;
+    // only the example content folders alongside them are removed.
+    private static readonly string[] ExcludedAssetPaths = new[]
     {
+        "Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/addressableScene",
         "Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes/Database Scenes",
     };
 
-    private static readonly string[] ProtectedSceneFiles = Array.Empty<string>();
-
-    private static string SceneBackupRoot =>
-        Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Library", SceneBackupRootFolderName));
-
-    private static string ProjectRoot =>
-        Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-
     /// <summary>
-    /// Imports a package, skipping Database Scenes from the package when requested.
-    /// Tries Unity's internal selective import first, then manual tar.gz extraction.
-    /// Full ImportPackage is only used as a last resort and cleaned up after completion.
+    /// Deletes the default example scene assets if the user has opted out of receiving them.
+    /// Called after every package import (which triggers a domain reload) so each newly imported
+    /// copy is removed before the next package in the queue is applied.
     /// </summary>
-    public static void ImportPackageWithOptionalScenePreservation(string packagePath)
-    {
-        if (!EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false))
-        {
-            AssetDatabase.ImportPackage(packagePath, false);
-            return;
-        }
-
-        if (SelectivePackageImporter.TryImportPackage(
-                packagePath,
-                ProtectedSceneFolders,
-                ProtectedSceneFiles,
-                out int excludedCount,
-                out int importedCount,
-                out string selectiveImportError))
-        {
-            Debug.Log($"[PackageImportResumer] Selective import complete. Imported: {importedCount}, skipped Database Scenes: {excludedCount}. Local Database Scenes were not modified.");
-            return;
-        }
-
-        Debug.LogWarning($"[PackageImportResumer] Selective import unavailable ({selectiveImportError}). Trying manual package extraction.");
-
-        if (ManualUnityPackageImporter.TryImportPackage(
-                packagePath,
-                ProtectedSceneFolders,
-                ProtectedSceneFiles,
-                out excludedCount,
-                out importedCount,
-                out string manualImportError))
-        {
-            Debug.Log($"[PackageImportResumer] Manual import complete. Imported: {importedCount}, skipped Database Scenes: {excludedCount}. Local Database Scenes were not modified.");
-            return;
-        }
-
-        Debug.LogWarning($"[PackageImportResumer] Manual import failed ({manualImportError}). Using full ImportPackage with post-import cleanup.");
-        EditorPrefs.SetBool(PrefKey_UsedFallbackPackageImport, true);
-        BackupProtectedScenesIfRequested();
-        EnsureImportCompletedCallbackRegistered();
-        AssetDatabase.ImportPackage(packagePath, false);
-    }
-
-    private static void EnsureImportCompletedCallbackRegistered()
-    {
-        if (hasRegisteredImportCompletedCallback)
-            return;
-
-        AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
-        hasRegisteredImportCompletedCallback = true;
-    }
-
-    private static void OnImportPackageCompleted(string packageName)
+    public static void CleanupExcludedAssetsIfRequested()
     {
         if (!EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false))
             return;
 
-        if (!EditorPrefs.GetBool(PrefKey_UsedFallbackPackageImport, false))
-            return;
-
-        Debug.Log($"[PackageImportResumer] Fallback import completed for '{packageName}'. Finalizing Database Scenes exclusion...");
-        FinalizeDatabaseScenesExclusionAfterImport();
-        CompleteImportAndRefreshUpdater();
-    }
-
-    /// <summary>
-    /// Copies existing scene assets to a temp backup before import so they can be restored
-    /// after the package overwrites them. Only used when selective import is unavailable.
-    /// </summary>
-    public static void BackupProtectedScenesIfRequested()
-    {
-        if (!EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false))
-            return;
-
-        ClearSceneBackupDirectory();
-
-        List<string> backedUpPaths = new List<string>();
-
-        foreach (string folder in ProtectedSceneFolders)
+        bool deletedAny = false;
+        foreach (string assetPath in ExcludedAssetPaths)
         {
-            if (!ProtectedAssetExists(folder))
+            if (AssetDatabase.LoadMainAssetAtPath(assetPath) == null && !AssetDatabase.IsValidFolder(assetPath))
                 continue;
 
-            string sourcePath = Path.Combine(ProjectRoot, folder);
-            string destPath = Path.Combine(SceneBackupRoot, folder);
-            Directory.CreateDirectory(Path.GetDirectoryName(destPath));
-            FileUtil.CopyFileOrDirectory(sourcePath, destPath);
-            backedUpPaths.Add(folder);
-            Debug.Log($"[PackageImportResumer] Backed up scene folder before import: {folder}");
-        }
-
-        foreach (string file in ProtectedSceneFiles)
-        {
-            string sourcePath = Path.Combine(ProjectRoot, file);
-            if (!File.Exists(sourcePath))
-                continue;
-
-            string destPath = Path.Combine(SceneBackupRoot, file);
-            Directory.CreateDirectory(Path.GetDirectoryName(destPath));
-            FileUtil.CopyFileOrDirectory(sourcePath, destPath);
-            backedUpPaths.Add(file);
-            Debug.Log($"[PackageImportResumer] Backed up scene file before import: {file}");
-        }
-
-        if (backedUpPaths.Count > 0)
-        {
-            EditorPrefs.SetString(PrefKey_SceneBackupManifest, string.Join("|||", backedUpPaths));
-            Debug.Log($"[PackageImportResumer] Scene backup complete ({backedUpPaths.Count} path(s)).");
-        }
-        else
-        {
-            EditorPrefs.DeleteKey(PrefKey_SceneBackupManifest);
-            Debug.Log("[PackageImportResumer] No local Database Scenes to back up; package Database Scenes will be stripped after fallback import.");
-        }
-    }
-
-    /// <summary>
-    /// After a fallback full ImportPackage only: restores backed-up local Database Scenes,
-    /// or removes package-imported Database Scenes when the project did not already have them.
-    /// Selective/manual import never calls this for deletion — local scenes are left untouched.
-    /// </summary>
-    public static void FinalizeDatabaseScenesExclusionAfterImport()
-    {
-        if (!EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false))
-            return;
-
-        bool usedFallbackImport = EditorPrefs.GetBool(PrefKey_UsedFallbackPackageImport, false);
-        if (!usedFallbackImport)
-            return;
-
-        string manifest = EditorPrefs.GetString(PrefKey_SceneBackupManifest, "");
-        HashSet<string> backedUpPaths = string.IsNullOrEmpty(manifest)
-            ? new HashSet<string>()
-            : new HashSet<string>(manifest.Split(new[] { "|||" }, StringSplitOptions.None));
-
-        bool changed = false;
-
-        foreach (string assetPath in backedUpPaths)
-        {
-            string backupPath = Path.Combine(SceneBackupRoot, assetPath);
-            if (!Directory.Exists(backupPath) && !File.Exists(backupPath))
-                continue;
-
-            DeleteProtectedAsset(assetPath);
-
-            string destPath = Path.Combine(ProjectRoot, assetPath);
-            Directory.CreateDirectory(Path.GetDirectoryName(destPath));
-            FileUtil.CopyFileOrDirectory(backupPath, destPath);
-            Debug.Log($"[PackageImportResumer] Restored your local Database Scenes from backup: {assetPath}");
-            changed = true;
-        }
-
-        foreach (string folder in ProtectedSceneFolders)
-        {
-            if (backedUpPaths.Contains(folder) || !ProtectedAssetExists(folder))
-                continue;
-
-            if (DeleteProtectedAsset(folder))
+            if (AssetDatabase.DeleteAsset(assetPath))
             {
-                Debug.Log($"[PackageImportResumer] Removed Database Scenes imported from package: {folder}");
-                changed = true;
+                Debug.Log($"[PackageImportResumer] Excluded default scene asset removed: {assetPath}");
+                deletedAny = true;
+            }
+            else
+            {
+                Debug.LogWarning($"[PackageImportResumer] Failed to delete excluded asset: {assetPath}");
             }
         }
 
-        foreach (string file in ProtectedSceneFiles)
-        {
-            if (backedUpPaths.Contains(file) || AssetDatabase.LoadMainAssetAtPath(file) == null)
-                continue;
-
-            if (DeleteProtectedAsset(file))
-            {
-                Debug.Log($"[PackageImportResumer] Removed scene file imported from package: {file}");
-                changed = true;
-            }
-        }
-
-        if (changed)
+        if (deletedAny)
         {
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
-
-        ClearSceneBackupDirectory();
-        EditorPrefs.DeleteKey(PrefKey_SceneBackupManifest);
-        EditorPrefs.DeleteKey(PrefKey_UsedFallbackPackageImport);
     }
 
-    private static bool ProtectedAssetExists(string assetPath)
+    // Asset paths queued for deletion for the package currently being imported.
+    // Applied after the import's domain reload so the freshly imported assets are already present.
+    private const string PrefKey_PendingDeletedAssets = "VertexForm3D_PendingDeletedAssets";
+
+    /// <summary>
+    /// Deletes the assets that the version.json entry of the just-imported package marked as removed.
+    /// The list is stored in EditorPrefs right before AssetDatabase.ImportPackage is called, so it
+    /// survives the domain reload triggered by the import.
+    ///
+    /// Safe to call repeatedly: paths that already don't exist are skipped, paths that fail to delete
+    /// (e.g. because Unity is still compiling) are re-stored and retried on the next poll cycle.
+    /// </summary>
+    public static void ApplyPendingAssetDeletions()
     {
-        string absolutePath = Path.Combine(ProjectRoot, assetPath);
-        return Directory.Exists(absolutePath)
-            || File.Exists(absolutePath)
-            || AssetDatabase.IsValidFolder(assetPath)
-            || AssetDatabase.LoadMainAssetAtPath(assetPath) != null;
-    }
-
-    private static bool DeleteProtectedAsset(string assetPath)
-    {
-        if (AssetDatabase.IsValidFolder(assetPath) || AssetDatabase.LoadMainAssetAtPath(assetPath) != null)
-            return AssetDatabase.DeleteAsset(assetPath);
-
-        string absolutePath = Path.Combine(ProjectRoot, assetPath);
-        if (Directory.Exists(absolutePath))
-        {
-            Directory.Delete(absolutePath, true);
-            string metaPath = absolutePath + ".meta";
-            if (File.Exists(metaPath))
-                File.Delete(metaPath);
-            return true;
-        }
-
-        if (File.Exists(absolutePath))
-        {
-            File.Delete(absolutePath);
-            string metaPath = absolutePath + ".meta";
-            if (File.Exists(metaPath))
-                File.Delete(metaPath);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static void ClearSceneBackupDirectory()
-    {
-        if (!Directory.Exists(SceneBackupRoot))
+        string pendingStr = EditorPrefs.GetString(PrefKey_PendingDeletedAssets, "");
+        if (string.IsNullOrEmpty(pendingStr))
             return;
 
-        try
+        // If Unity is still compiling, AssetDatabase mutations will fail. Leave the key in place
+        // and let PollForResume retry once compilation settles.
+        if (EditorApplication.isCompiling)
         {
-            Directory.Delete(SceneBackupRoot, true);
+            Debug.Log("[PackageImportResumer] Pending asset deletions deferred - Unity is still compiling.");
+            return;
         }
-        catch (Exception ex)
+
+        string[] assetPaths = pendingStr.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+        List<string> failedPaths = new List<string>();
+        bool deletedAny = false;
+
+        foreach (string assetPath in assetPaths)
         {
-            Debug.LogWarning($"[PackageImportResumer] Failed to clear scene backup directory: {ex.Message}");
+            // Safety: only ever delete inside the Assets folder.
+            if (!assetPath.StartsWith("Assets/"))
+            {
+                Debug.LogWarning($"[PackageImportResumer] Ignoring deleted asset path outside Assets/: {assetPath}");
+                continue;
+            }
+
+            bool exists = AssetDatabase.LoadMainAssetAtPath(assetPath) != null || AssetDatabase.IsValidFolder(assetPath);
+            if (!exists)
+            {
+                Debug.Log($"[PackageImportResumer] Deleted asset already absent, skipping: {assetPath}");
+                continue;
+            }
+
+            if (AssetDatabase.DeleteAsset(assetPath))
+            {
+                Debug.Log($"[PackageImportResumer] ✓ Removed asset deleted in this SDK version: {assetPath}");
+                deletedAny = true;
+            }
+            else
+            {
+                // Re-queue for next retry cycle instead of silently losing the path.
+                Debug.LogWarning($"[PackageImportResumer] ✗ Failed to delete removed asset (will retry): {assetPath}");
+                failedPaths.Add(assetPath);
+            }
         }
+
+        // Re-store any paths that failed so PollForResume retries them.
+        if (failedPaths.Count > 0)
+        {
+            EditorPrefs.SetString(PrefKey_PendingDeletedAssets, string.Join("|", failedPaths));
+            Debug.Log($"[PackageImportResumer] {failedPaths.Count} deletion(s) re-queued for retry.");
+        }
+        else
+        {
+            EditorPrefs.DeleteKey(PrefKey_PendingDeletedAssets);
+        }
+
+        if (deletedAny)
+        {
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+    }
+
+    private static void SetPendingAssetDeletions(string deletedAssetsForPackage)
+    {
+        if (string.IsNullOrEmpty(deletedAssetsForPackage))
+        {
+            EditorPrefs.DeleteKey(PrefKey_PendingDeletedAssets);
+            return;
+        }
+
+        EditorPrefs.SetString(PrefKey_PendingDeletedAssets, deletedAssetsForPackage);
+        Debug.Log($"[PackageImportResumer] Queued asset deletions for after import: {deletedAssetsForPackage.Replace("|", ", ")}");
     }
 
     private static bool hasRegisteredUpdateCallback = false;
-    private static bool hasRegisteredImportCompletedCallback = false;
     private static double lastPollTime = 0;
 
     static PackageImportResumer()
@@ -315,26 +191,37 @@ public static class PackageImportResumer
 
     private static void PollForResume()
     {
+        double currentTime = EditorApplication.timeSinceStartup;
+        if (currentTime - lastPollTime < 2.0)
+            return;
+
+        lastPollTime = currentTime;
+
+        // Always retry pending asset deletions on every poll cycle, even when there is no active
+        // import. This handles the case where a compile error in the imported package prevented
+        // the domain-reload path from completing the deletions.
+        if (!EditorApplication.isCompiling)
+        {
+            string pending = EditorPrefs.GetString(PrefKey_PendingDeletedAssets, "");
+            if (!string.IsNullOrEmpty(pending))
+            {
+                Debug.Log("[PackageImportResumer] PollForResume: Retrying deferred asset deletions...");
+                ApplyPendingAssetDeletions();
+            }
+        }
+
         bool hasPackages = EditorPrefs.GetBool(PrefKey_HasPackagesToImport, false);
         bool isImporting = EditorPrefs.GetBool(PrefKey_IsImporting, false);
 
         if (hasPackages && isImporting)
         {
-            // Poll every 2 seconds as a fallback
-            double currentTime = EditorApplication.timeSinceStartup;
-            if (currentTime - lastPollTime >= 2.0)
+            int currentIndex = EditorPrefs.GetInt(PrefKey_CurrentImportIndex, -1);
+            int totalPackages = EditorPrefs.GetInt(PrefKey_TotalPackages, -1);
+
+            if (currentIndex >= 0 && currentIndex < totalPackages)
             {
-                lastPollTime = currentTime;
-
-                // Check if we should resume (only if delayCall didn't work)
-                int currentIndex = EditorPrefs.GetInt(PrefKey_CurrentImportIndex, -1);
-                int totalPackages = EditorPrefs.GetInt(PrefKey_TotalPackages, -1);
-
-                if (currentIndex >= 0 && currentIndex < totalPackages)
-                {
-                    Debug.Log($"[PackageImportResumer] PollForResume: Fallback check detected pending import ({currentIndex}/{totalPackages}), attempting to resume...");
-                    CheckAndResumeImport();
-                }
+                Debug.Log($"[PackageImportResumer] PollForResume: Fallback check detected pending import ({currentIndex}/{totalPackages}), attempting to resume...");
+                CheckAndResumeImport();
             }
         }
     }
@@ -346,9 +233,11 @@ public static class PackageImportResumer
 
         Debug.Log($"[PackageImportResumer] Static constructor called - HasPackages: {hasPackages}, IsImporting: {isImporting}");
 
-        // After a fallback full import, restore backed-up Database Scenes or strip package defaults.
-        if (EditorPrefs.GetBool(PrefKey_UsedFallbackPackageImport, false))
-            FinalizeDatabaseScenesExclusionAfterImport();
+        // Strip excluded example scenes from the package that was just imported before we continue.
+        CleanupExcludedAssetsIfRequested();
+
+        // Delete assets that the just-imported version marked as removed (version.json "deletedAssets").
+        ApplyPendingAssetDeletions();
 
         if (hasPackages && isImporting)
         {
@@ -450,6 +339,19 @@ public static class PackageImportResumer
         string packagePath = packagePaths[currentIndex];
         string packageVersion = packageVersions[currentIndex];
 
+        // Look up the deleted-assets list for this specific package (stored per-package,
+        // packages separated by "|||", paths within a package by "|").
+        string deletedAssetsForThisPackage = "";
+        string deletedAssetsStr = EditorPrefs.GetString(PrefKey_DeletedAssets, "");
+        if (!string.IsNullOrEmpty(deletedAssetsStr))
+        {
+            string[] deletedAssetsPerPackage = deletedAssetsStr.Split(new[] { "|||" }, StringSplitOptions.None);
+            if (currentIndex < deletedAssetsPerPackage.Length)
+            {
+                deletedAssetsForThisPackage = deletedAssetsPerPackage[currentIndex];
+            }
+        }
+
         Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Importing: {packageVersion}");
         Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Path: {packagePath}");
 
@@ -487,10 +389,26 @@ public static class PackageImportResumer
             Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Updated index to {currentIndex + 1} for next import after domain reload.");
         }
 
-        // Import the package (selectively skips scene examples when the toggle is enabled).
-        Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Importing package...");
-        ImportPackageWithOptionalScenePreservation(packagePath);
-        Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Package import returned");
+        // Queue this version's asset deletions so they are applied after the import's domain reload.
+        // The pending key survives domain reload; PollForResume retries if deletions fail (e.g.
+        // because a compile error in the package is blocking AssetDatabase mutations).
+        SetPendingAssetDeletions(deletedAssetsForThisPackage);
+
+        // Import the package (this will trigger domain reload when it contains scripts).
+        try
+        {
+            Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Calling AssetDatabase.ImportPackage({packagePath}, false)...");
+            AssetDatabase.ImportPackage(packagePath, false);
+            Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] AssetDatabase.ImportPackage returned");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] ✗ AssetDatabase.ImportPackage threw an exception: {ex.Message}\n{ex.StackTrace}");
+            // Clear progress so we don't loop forever on a broken package.
+            // Pending deletions are kept so PollForResume can still apply them.
+            ClearImportProgress();
+            return;
+        }
 
         // Delete temp file AFTER import (but before domain reload completes)
         // Note: We delete the file we just imported, not the next one
@@ -512,34 +430,28 @@ public static class PackageImportResumer
         {
             Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] More packages to import. Will continue after domain reload.");
             Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] Next package index: {currentIndex + 1}, Remaining: {totalPackages - currentIndex - 1}");
-            // The static constructor will automatically resume after domain reload
+            // The static constructor will automatically resume after domain reload.
+            // If no domain reload happens (compile errors), PollForResume picks up after 2 s.
         }
         else
         {
             Debug.Log($"[PackageImportResumer] [IMPORT {currentIndex + 1}/{totalPackages}] All packages imported!");
-            if (EditorPrefs.GetBool(PrefKey_UsedFallbackPackageImport, false))
+            CleanupExcludedAssetsIfRequested();
+            // If no domain reload occurs (e.g. compile errors in the package), apply deletions
+            // here. If a domain reload does occur, CheckAndResumeImport applies them instead.
+            ApplyPendingAssetDeletions();
+            ClearImportProgress();
+
+            // Refresh update info
+            EditorApplication.delayCall += () =>
             {
-                Debug.Log("[PackageImportResumer] Waiting for fallback ImportPackage to finish before cleanup.");
-            }
-            else
-            {
-                CompleteImportAndRefreshUpdater();
-            }
+                var window = EditorWindow.GetWindow<PackageUpdaterWindow>("Package Updater", false);
+                if (window != null)
+                {
+                    Unity.EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(window.FetchUpdateInfo());
+                }
+            };
         }
-    }
-
-    private static void CompleteImportAndRefreshUpdater()
-    {
-        ClearImportProgress();
-
-        EditorApplication.delayCall += () =>
-        {
-            var window = EditorWindow.GetWindow<PackageUpdaterWindow>("Package Updater", false);
-            if (window != null)
-            {
-                Unity.EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(window.FetchUpdateInfo());
-            }
-        };
     }
 
     private static void UpdatePackageVersionStatic(string newVersion)
@@ -569,10 +481,10 @@ public static class PackageImportResumer
         EditorPrefs.DeleteKey(PrefKey_CurrentImportIndex);
         EditorPrefs.DeleteKey(PrefKey_TotalPackages);
         EditorPrefs.DeleteKey(PrefKey_IsImporting);
-        EditorPrefs.DeleteKey(PrefKey_UsedFallbackPackageImport);
+        EditorPrefs.DeleteKey(PrefKey_DeletedAssets);
     }
 
-    public static void SaveDownloadedPackages(List<string> paths, List<string> versions)
+    public static void SaveDownloadedPackages(List<string> paths, List<string> versions, List<string> deletedAssetsPerPackage = null)
     {
         Debug.Log($"[PackageImportResumer] Saving {paths.Count} package(s) for import...");
         EditorPrefs.SetBool(PrefKey_HasPackagesToImport, true);
@@ -581,6 +493,16 @@ public static class PackageImportResumer
         EditorPrefs.SetString(PrefKey_PackageVersions, string.Join("|||", versions));
         EditorPrefs.SetInt(PrefKey_CurrentImportIndex, 0);
         EditorPrefs.SetInt(PrefKey_TotalPackages, paths.Count);
+
+        // Each entry is that package's deleted asset paths joined by "|" (may be empty).
+        if (deletedAssetsPerPackage != null && deletedAssetsPerPackage.Count == paths.Count)
+        {
+            EditorPrefs.SetString(PrefKey_DeletedAssets, string.Join("|||", deletedAssetsPerPackage));
+        }
+        else
+        {
+            EditorPrefs.DeleteKey(PrefKey_DeletedAssets);
+        }
 
         for (int i = 0; i < paths.Count && i < versions.Count; i++)
         {
@@ -591,9 +513,9 @@ public static class PackageImportResumer
 
 public class PackageUpdaterWindow : EditorWindow
 {
-    private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/WebGPU/version.json";
+    private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/Test/version.json";
     private const string tempFileName = "downloaded_package.unitypackage";
-    private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/WebGPU/version.json";
+    private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/Test/version.json";
     private const string openUpmRegistryName = "OpenUPM";
     private const string openUpmRegistryUrl = "https://package.openupm.com";
     private const string webxrPackageId = "com.de-panther.webxr";
@@ -605,8 +527,8 @@ public class PackageUpdaterWindow : EditorWindow
     private const string PrefKey_PackageVersions = "VertexForm3D_PackageVersions"; // Delimited string
     private const string PrefKey_CurrentImportIndex = "VertexForm3D_CurrentImportIndex";
     private const string PrefKey_TotalPackages = "VertexForm3D_TotalPackages";
-    private const string PrefKey_IsImporting = "VertexForm3D_IsImporting";
     private const string PrefKey_ExcludeDefaultScenes = "VertexForm3D_ExcludeDefaultScenes";
+    private const string PrefKey_DeletedAssets = "VertexForm3D_DeletedAssets";
 
     private string statusMessage = "Idle";
     private float downloadProgress = 0f;
@@ -645,7 +567,7 @@ public class PackageUpdaterWindow : EditorWindow
         }
     }
 
-    [MenuItem("VertexForm3D SDK/Package Updater", false, 14)]
+    [MenuItem("Vertex-Form/Package Updater", false, 14)]
     public static PackageUpdaterWindow ShowWindow()
     {
         return GetWindow<PackageUpdaterWindow>("Package Updater");
@@ -678,8 +600,6 @@ public class PackageUpdaterWindow : EditorWindow
     private void OnEnable()
     {
         Debug.Log($"[PackageUpdater] OnEnable called. HasPackagesToImport: {EditorPrefs.GetBool(PrefKey_HasPackagesToImport, false)}");
-        isImporting = EditorPrefs.GetBool(PrefKey_HasPackagesToImport, false)
-            && EditorPrefs.GetBool(PrefKey_IsImporting, false);
         RefreshWebXRInstalledState();
         EditorCoroutineUtility.StartCoroutineOwnerless(FetchUpdateInfo());
     }
@@ -695,6 +615,8 @@ public class PackageUpdaterWindow : EditorWindow
 
     private void OnGUI()
     {
+        VertexFormEditorHeader.Draw(position.width);
+
         GUILayout.Label("Unity Package Updater", EditorStyles.boldLabel);
         GUILayout.Space(10);
 
@@ -718,7 +640,11 @@ public class PackageUpdaterWindow : EditorWindow
                 GUILayout.Label($"Versions to download ({availableUpdates.Count}):", EditorStyles.boldLabel);
                 foreach (var update in availableUpdates)
                 {
-                    GUILayout.Label($"  → {update.version}", EditorStyles.miniLabel);
+                    int deletedCount = update.deletedAssets != null ? update.deletedAssets.Count : 0;
+                    string label = deletedCount > 0
+                        ? $"  → {update.version} (removes {deletedCount} obsolete asset(s))"
+                        : $"  → {update.version}";
+                    GUILayout.Label(label, EditorStyles.miniLabel);
                 }
             }
 
@@ -733,13 +659,12 @@ public class PackageUpdaterWindow : EditorWindow
 
         GUILayout.Space(10);
 
-        // Toggle: when enabled, Database Scenes from the package are not imported.
+        // Toggle: when enabled, the default example scene assets are removed after each import.
         bool excludeDefaultScenes = EditorPrefs.GetBool(PrefKey_ExcludeDefaultScenes, false);
-        string preserveScenesTooltip =
-            "When enabled, 'Database Scenes' from the package are not imported. All other package changes still apply. " +
-            "If you already have local Database Scenes, those are kept.";
         bool newExcludeDefaultScenes = EditorGUILayout.ToggleLeft(
-            new GUIContent("Don't import Database Scenes from package", preserveScenesTooltip),
+            new GUIContent(
+                "Don't include default scene example updates",
+                "When enabled, 'addressableScene' and the 'Database Scenes' folder under Assets/VertexForm3D/Scenes/Vertex Form 3D Scenes will be removed after each package is imported."),
             excludeDefaultScenes);
         if (newExcludeDefaultScenes != excludeDefaultScenes)
         {
@@ -880,7 +805,8 @@ public class PackageUpdaterWindow : EditorWindow
                             {
                                 version = pkg.version,
                                 releaseNotes = pkg.releaseNotes ?? "No release notes available.",
-                                packageUrl = pkg.url ?? defaultPackageUrl
+                                packageUrl = pkg.url ?? defaultPackageUrl,
+                                deletedAssets = pkg.deletedAssets ?? new List<string>()
                             });
                         }
                     }
@@ -1007,6 +933,7 @@ public class PackageUpdaterWindow : EditorWindow
 
         List<string> downloadedPaths = new List<string>();
         List<string> downloadedVersions = new List<string>();
+        List<string> downloadedDeletedAssets = new List<string>(); // per-package, "|"-joined paths
 
         // Phase 1: Download all packages first
         for (int i = 0; i < availableUpdates.Count; i++)
@@ -1048,6 +975,9 @@ public class PackageUpdaterWindow : EditorWindow
                     long fileSize = new FileInfo(tempPath).Length;
                     downloadedPaths.Add(tempPath);
                     downloadedVersions.Add(currentUpdate.version);
+                    downloadedDeletedAssets.Add(currentUpdate.deletedAssets != null
+                        ? string.Join("|", currentUpdate.deletedAssets)
+                        : "");
                     Debug.Log($"[PackageUpdater] [DOWNLOAD {i + 1}/{availableUpdates.Count}] ✓ Package saved: {tempPath} (Size: {fileSize} bytes)");
                 }
                 catch (Exception e)
@@ -1072,7 +1002,7 @@ public class PackageUpdaterWindow : EditorWindow
         downloadProgress = 0f;
 
         // Save the list of downloaded packages to EditorPrefs for resuming after domain reload
-        PackageImportResumer.SaveDownloadedPackages(downloadedPaths, downloadedVersions);
+        PackageImportResumer.SaveDownloadedPackages(downloadedPaths, downloadedVersions, downloadedDeletedAssets);
 
         // Phase 2: Start importing packages sequentially
         // The static PackageImportResumer will handle the import process and resume after domain reloads
@@ -1158,12 +1088,12 @@ public class PackageUpdaterWindow : EditorWindow
             EditorPrefs.SetInt(PrefKey_CurrentImportIndex, i);
             EditorPrefs.SetBool(PrefKey_HasPackagesToImport, true);
 
-            Debug.Log($"[PackageUpdater] [IMPORT {i + 1}/{totalPackages}] Importing package...");
+            Debug.Log($"[PackageUpdater] [IMPORT {i + 1}/{totalPackages}] Calling AssetDatabase.ImportPackage({packagePath}, false)...");
 
             // Import the package (this may trigger domain reload)
-            PackageImportResumer.ImportPackageWithOptionalScenePreservation(packagePath);
+            AssetDatabase.ImportPackage(packagePath, false);
 
-            Debug.Log($"[PackageUpdater] [IMPORT {i + 1}/{totalPackages}] Package import returned. Refreshing asset database...");
+            Debug.Log($"[PackageUpdater] [IMPORT {i + 1}/{totalPackages}] AssetDatabase.ImportPackage returned. Refreshing asset database...");
 
             // Wait for import to complete and asset database to refresh
             AssetDatabase.Refresh();
@@ -1305,6 +1235,7 @@ public class PackageUpdaterWindow : EditorWindow
         EditorPrefs.DeleteKey(PrefKey_PackageVersions);
         EditorPrefs.DeleteKey(PrefKey_CurrentImportIndex);
         EditorPrefs.DeleteKey(PrefKey_TotalPackages);
+        EditorPrefs.DeleteKey(PrefKey_DeletedAssets);
 
         Debug.Log($"[PackageUpdater] ✓ All import progress keys deleted from EditorPrefs");
         Debug.Log($"[PackageUpdater] ===== ClearImportProgress END =====");

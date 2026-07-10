@@ -30,15 +30,8 @@ namespace VertexFormCore.Editor
                 return;
             }
 
-            // Draw Banner
-            GUILayout.Space(5);
-            Texture2D banner = Resources.Load<Texture2D>("VF3DBannerEditor");
-            if (banner != null)
-            {
-                float bannerWidth = Mathf.Min(banner.width, position.width - 10);
-                float bannerHeight = (bannerWidth / banner.width) * banner.height;
-                GUILayout.Label(banner, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight), GUILayout.ExpandWidth(true));
-            }
+            // Draw Header
+            VertexFormEditorHeader.Draw(position.width);
 
             // Back Button
             GUILayout.Space(10);

@@ -7,9 +7,6 @@ using Fusion;
 using UnityEngine.XR;
 #endif
 using UnityEngine.XR.Interaction.Toolkit;
-#if !UNITY_WEBGL
-using CesiumForUnity;
-#endif
 #if UNITY_WEBGL && !UNITY_EDITOR
 using System.Runtime.InteropServices;
 #endif
@@ -67,13 +64,7 @@ namespace VertexFormCore
         {
             OwnerPlayerId = playerId.PlayerId;
             CanTakeSelfie = true;
-#if !UNITY_WEBGL
-            CesiumCameraManager cesiumCameraManager = FindAnyObjectByType<CesiumCameraManager>();
-            if (cesiumCameraManager != null)
-            {
-                cesiumCameraManager.additionalCameras.Add(selfieCam);
-            }
-#endif
+
 
             if (Object.HasInputAuthority)
             {

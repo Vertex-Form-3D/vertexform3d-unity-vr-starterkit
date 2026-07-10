@@ -4,7 +4,6 @@ using System.Linq; // Added for FirstOrDefault
 
 public class ProjectSetUpEditor : EditorWindow
 {
-    private Texture2D bannerTexture;
     private Vector2 scrollPosition;
 
     public static void ShowWindow()
@@ -12,22 +11,12 @@ public class ProjectSetUpEditor : EditorWindow
         GetWindow<ProjectSetUpEditor>("Project Setup");
     }
 
-    private void OnEnable()
-    {
-        bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
-    }
-
     private void OnGUI()
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-        GUILayout.Space(5);
 
-        if (bannerTexture != null)
-        {
-            float bannerWidth = Mathf.Min(bannerTexture.width, position.width - 10);
-            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height;
-            GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
-        }
+        // Header
+        VertexFormEditorHeader.Draw(position.width);
 
         EditorGUILayout.Space(20);
 

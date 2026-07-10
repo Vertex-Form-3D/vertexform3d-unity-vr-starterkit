@@ -1,38 +1,64 @@
 using System;
+
 using TMPro;
+
 using UnityEngine;
+
 using UnityEngine.Events;
+
 using UnityEngine.UI;
 
+
+
 public class CategoryItemView : MonoBehaviour
+
 {
+
     [SerializeField] TextMeshProUGUI categoryNameTxt;
+
     [SerializeField] Button categoryButton;
+
     public UnityEvent OnClickEvent;
+
     public Category category = new Category();
-    MenuManager _ownerMenuManager;
+
+    WorldScreen _ownerWorldScreen;
+
+
 
     void Start()
+
     {
+
         categoryButton.onClick.AddListener(OnClicked);
+
     }
 
-    private void OnClicked()
+
+
+    void OnClicked()
+
     {
-        if (OnClickEvent != null)
-        {
-            OnClickEvent?.Invoke();
-        }
-        MenuManager mgr = _ownerMenuManager != null ? _ownerMenuManager : MenuManager.Instance;
-        if (mgr != null)
-            mgr.InitWorlds(category);
+
+        OnClickEvent?.Invoke();
+
+        _ownerWorldScreen?.InitWorlds(category);
+
     }
 
-    public void SetCategory(Category cat, MenuManager ownerMenuManager)
+
+
+    public void SetCategory(Category cat, WorldScreen ownerWorldScreen)
+
     {
-        _ownerMenuManager = ownerMenuManager;
+
+        _ownerWorldScreen = ownerWorldScreen;
+
         category = cat.Clone();
+
         categoryNameTxt.text = category.categoryName;
+
     }
 
 }
+

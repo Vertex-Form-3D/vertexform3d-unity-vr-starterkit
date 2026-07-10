@@ -8,7 +8,7 @@ using UnityEngine;
 /// <see cref="DesktopMobileControlSettings.UseFlatMobileControls"/> turns off automatically so on-screen
 /// joysticks hide and Input System / XR controller move is not blocked.
 /// The template should call <c>SetWebGpuRuntimeFromJs</c> with <c>VrBrowser</c>, <c>DesktopBrowser</c>, or <c>AndroidBrowser</c>
-/// so <see cref="Platforms.platformChoice"/> is <see cref="platform.WebGPU"/> and <see cref="Platforms.webGpuBrowserKind"/> matches the host.
+/// so <see cref="Platforms.platformChoice"/> is <see cref="platform.Web"/> and <see cref="Platforms.webGpuBrowserKind"/> matches the host.
 /// Legacy <c>SetWebGlPlatformChoiceFromJs</c> (<c>VR</c>/<c>Desktop</c>) still sets native-style <see cref="platform"/> only and clears web browser kind.
 /// Fusion reads platform when the local player spawns — send messages as early as possible after load (before joining a room) so the networked
 /// <see cref="VertexFormCore.PlayerNetworkSetup.Platform"/> and <see cref="VertexFormCore.PlayerNetworkSetup.WebGpuBrowserKind"/> match. Single-player rigs already ran <c>Awake</c>
@@ -69,7 +69,7 @@ public class WebGLMobileControlBridge : MonoBehaviour
 
     /// <summary>
     /// SendMessage-friendly: <c>VrBrowser</c>, <c>DesktopBrowser</c>, or <c>AndroidBrowser</c> (also accepts <c>VR</c>/<c>Desktop</c>/<c>Android</c>).
-    /// Sets <see cref="platform.WebGPU"/> and <see cref="Platforms.webGpuBrowserKind"/>.
+    /// Sets <see cref="platform.Web"/> and <see cref="Platforms.webGpuBrowserKind"/>.
     /// </summary>
     public void SetWebGpuRuntimeFromJs(string value)
     {
@@ -90,7 +90,7 @@ public class WebGLMobileControlBridge : MonoBehaviour
     /// <summary>
     /// SendMessage-friendly: <c>VR</c> / <c>Desktop</c>, or same truthy/falsy strings as mobile (VR = true, Desktop = false).
     /// Updates <see cref="ProjectManager.instance.platforms.platformChoice"/> when the project manager is loaded.
-    /// Clears <see cref="Platforms.webGpuBrowserKind"/> when not using <see cref="platform.WebGPU"/>.
+    /// Clears <see cref="Platforms.webGpuBrowserKind"/> when not using <see cref="platform.Web"/>.
     /// </summary>
     public void SetWebGlPlatformChoiceFromJs(string value)
     {
@@ -179,7 +179,7 @@ public class WebGLMobileControlBridge : MonoBehaviour
             return false;
 
         Platforms pl = ProjectManager.instance.platforms;
-        bool clearWeb = choice != platform.WebGPU;
+        bool clearWeb = choice != platform.Web;
         WebGpuBrowserKind nextWeb = clearWeb ? WebGpuBrowserKind.None : pl.webGpuBrowserKind;
         if (pl.platformChoice != choice || pl.webGpuBrowserKind != nextWeb)
         {
@@ -189,7 +189,7 @@ public class WebGLMobileControlBridge : MonoBehaviour
             Debug.Log($"[WebGLMobileControlBridge] WebGL runtime platform choice → {choice}");
             WebGlRuntimePlatformChoiceApplied?.Invoke(choice);
         }
-        if (choice != platform.WebGPU)
+        if (choice != platform.Web)
             DesktopMobileControlSettings.SetUseMobileControls(false);
 
         return true;
@@ -201,12 +201,12 @@ public class WebGLMobileControlBridge : MonoBehaviour
             return false;
 
         Platforms pl = ProjectManager.instance.platforms;
-        if (pl.platformChoice != platform.WebGPU || pl.webGpuBrowserKind != kind)
+        if (pl.platformChoice != platform.Web || pl.webGpuBrowserKind != kind)
         {
-            pl.platformChoice = platform.WebGPU;
+            pl.platformChoice = platform.Web;
             pl.webGpuBrowserKind = kind;
-            Debug.Log($"[WebGLMobileControlBridge] WebGPU runtime → {kind}");
-            WebGlRuntimePlatformChoiceApplied?.Invoke(platform.WebGPU);
+            Debug.Log($"[WebGLMobileControlBridge] Web runtime → {kind}");
+            WebGlRuntimePlatformChoiceApplied?.Invoke(platform.Web);
         }
         DesktopMobileControlSettings.SetUseMobileControls(
             kind == WebGpuBrowserKind.MobileBrowser || (_mobileHintReceived && _mobileHintFromPage));

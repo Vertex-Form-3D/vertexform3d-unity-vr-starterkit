@@ -7,14 +7,14 @@ public static class PlatformPresentation
 {
     public static bool IsVrStyle(platform platformChoice, WebGpuBrowserKind webGpuBrowserKind) =>
         platformChoice == platform.VR ||
-        (platformChoice == platform.WebGPU && webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser);
+        (platformChoice == platform.Web && webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser);
 
-    /// <summary>Flat screen / M&amp;K or touch UI path (includes WebGPU Android and desktop browsers, and WebGPU before JS sets a kind).</summary>
+    /// <summary>Flat screen / M&amp;K or touch UI path (includes Web Android and desktop browsers, and Web before JS sets a kind).</summary>
     public static bool IsDesktopStyle(platform platformChoice, WebGpuBrowserKind webGpuBrowserKind)
     {
         if (platformChoice == platform.Desktop)
             return true;
-        if (platformChoice == platform.WebGPU)
+        if (platformChoice == platform.Web)
             return webGpuBrowserKind != WebGpuBrowserKind.WebXRBrowser;
         return false;
     }
@@ -25,7 +25,7 @@ public class Platforms : ScriptableObject
 {
     public platform platformChoice = platform.VR;
 
-    [Tooltip("When platform is WebGPU, set from WebGL index.html (SendMessage). In Editor, use this for testing. Ignored for VR/Desktop native targets.")]
+    [Tooltip("When platform is Web, set from WebGL index.html (SendMessage). In Editor, use this for testing. Ignored for VR/Desktop native targets.")]
     public WebGpuBrowserKind webGpuBrowserKind = WebGpuBrowserKind.None;
 
     [HideInInspector]
@@ -39,12 +39,12 @@ public class Platforms : ScriptableObject
     public bool KeyboardUsesSpatialXr() => IsVrStylePlatform();
 
     /// <summary>
-    /// WebGL flat WebGPU: use the device/browser soft keyboard (not the XR spatial keyboard).
+    /// Flat Web (WebGL): use the device/browser soft keyboard (not the XR spatial keyboard).
     /// Uses <see cref="WebGpuBrowserKind.AndroidBrowser"/> and/or the page mobile hint from <see cref="DesktopMobileControlSettings.UseMobileControls"/>
     /// so keyboard routing works before browser kind is applied and on phones that still report <c>DesktopBrowser</c>.
     /// </summary>
     public bool KeyboardUsesMobileSoftKeyboard() =>
-        platformChoice == platform.WebGPU &&
+        platformChoice == platform.Web &&
         !PlatformPresentation.IsVrStyle(platformChoice, webGpuBrowserKind) &&
         (webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser || DesktopMobileControlSettings.UseMobileControls);
 
@@ -74,15 +74,15 @@ public class Platforms : ScriptableObject
             },
             new PlatformSetupGuide
             {
-                title = "WebGL / WebGPU",
-                subtitle = "Browser",
+                title = "Web",
+                subtitle = "Browser (WebGL / WebGPU)",
                 steps = new List<string>
                 {
-                    "Select <b>WebGPU</b> from the <b>Platform</b> dropdown for WebGL / WebGPU builds.",
+                    "Select <b>Web</b> from the <b>Platform</b> dropdown for WebGL / WebGPU builds.",
                     "Go to <b>Edit \u2192 Build Profiles</b> and set <b>WebGL/WebGPU</b> as the active platform.",
                     "The VertexForm template calls Unity with <b>WebXRBrowser</b>, <b>DesktopBrowser</b>, or <b>MobileBrowser</b> so runtime matches Quest shell vs PC vs Android Chrome."
                 },
-                note = "Native targets keep VR or Desktop or WebGPU "
+                note = "Native targets keep VR or Desktop or Web "
             },
             new PlatformSetupGuide
             {

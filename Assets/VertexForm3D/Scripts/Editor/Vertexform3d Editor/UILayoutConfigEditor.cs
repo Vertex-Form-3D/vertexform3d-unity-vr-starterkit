@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEditor.SceneManagement;
 
 
@@ -10,58 +12,363 @@ public class UILayoutConfigEditor : Editor
 {
     private SerializedProperty _leftSectionEnabled;
     private SerializedProperty _leftSectionText;
-    private SerializedProperty _showMainPanel;
-    private SerializedProperty _mainSectionPanels;
+    private SerializedProperty _mainSectionPanelEntries;
     private SerializedProperty _worldCategories;
     private SerializedProperty _rightSectionEnabled;
     private SerializedProperty _mirror;
     private SerializedProperty _showAvatarBodyInFirstPerson;
     private SerializedProperty _avatarDatas;
 
+    private SerializedProperty _legacyShowMainPanel;
+    private SerializedProperty _legacyPlacesPanelEnabled;
+    private SerializedProperty _legacyGuidePanelEnabled;
+    private SerializedProperty _legacyMainTabLabel;
+    private SerializedProperty _legacyMainPanelSortOrder;
+    private SerializedProperty _legacyPlacesTabLabel;
+    private SerializedProperty _legacyPlacesPanelSortOrder;
+    private SerializedProperty _legacyGuideTabLabel;
+    private SerializedProperty _legacyGuidePanelSortOrder;
+    private SerializedProperty _legacyMainSectionPanels;
+    private SerializedProperty _legacyCustomMainPanels;
+
     private bool _foldPlatform = true;
     private bool _foldSettingsUI = true;
     private bool _foldLeft = true;
     private bool _foldMain = true;
     private bool _foldRight = true;
-    private bool[] _foldPanels;
-    private bool[] _foldAvatars;
+    private bool[] _foldPanelEntries;
+
+    private ReorderableList _panelList;
+
+    private const float PanelListDragHandleWidth = 10f;
+    private const float PanelListDragHandleGap = 2f;
 
     private void OnEnable()
     {
         _leftSectionEnabled = serializedObject.FindProperty("leftSectionEnabled");
         _leftSectionText = serializedObject.FindProperty("leftSectionText");
-        _showMainPanel = serializedObject.FindProperty("showMainPanel");
-        _mainSectionPanels = serializedObject.FindProperty("mainSectionPanels");
+        _mainSectionPanelEntries = serializedObject.FindProperty("mainSectionPanelEntries");
         _worldCategories = serializedObject.FindProperty("worldCategories");
         _rightSectionEnabled = serializedObject.FindProperty("rightSectionEnabled");
         _mirror = serializedObject.FindProperty("mirror");
         _showAvatarBodyInFirstPerson = serializedObject.FindProperty("showAvatarBodyInFirstPerson");
         _avatarDatas = serializedObject.FindProperty("avatarDatas");
 
-        serializedObject.Update();
-        while (_mainSectionPanels.arraySize > 3)
-            _mainSectionPanels.DeleteArrayElementAtIndex(_mainSectionPanels.arraySize - 1);
-        while (_mainSectionPanels.arraySize < 3)
-            _mainSectionPanels.arraySize++;
-        if (serializedObject.ApplyModifiedProperties())
-            EditorUtility.SetDirty(target);
+        _legacyShowMainPanel = serializedObject.FindProperty("showMainPanel");
+        _legacyPlacesPanelEnabled = serializedObject.FindProperty("placesPanelEnabled");
+        _legacyGuidePanelEnabled = serializedObject.FindProperty("guidePanelEnabled");
+        _legacyMainTabLabel = serializedObject.FindProperty("mainTabLabel");
+        _legacyMainPanelSortOrder = serializedObject.FindProperty("mainPanelSortOrder");
+        _legacyPlacesTabLabel = serializedObject.FindProperty("placesTabLabel");
+        _legacyPlacesPanelSortOrder = serializedObject.FindProperty("placesPanelSortOrder");
+        _legacyGuideTabLabel = serializedObject.FindProperty("guideTabLabel");
+        _legacyGuidePanelSortOrder = serializedObject.FindProperty("guidePanelSortOrder");
+        _legacyMainSectionPanels = serializedObject.FindProperty("mainSectionPanels");
+        _legacyCustomMainPanels = serializedObject.FindProperty("customMainPanels");
 
-        const int panelCount = 3;
-        if (_foldPanels == null || _foldPanels.Length != panelCount)
+        TryMigrateLegacyPanels();
+        TryMigrateWorldCategoriesToPlacesPanels();
+        RefreshScreenPrefabCache();
+        SanitizeAllPanelEntries();
+        EnsureFoldoutArray();
+        BuildPanelList();
+    }
+
+    void RefreshScreenPrefabCache()
+    {
+        var config = target as UILayoutConfig;
+        if (config == null)
+            return;
+
+        config.RefreshScreenPrefabCache();
+        EditorUtility.SetDirty(config);
+        serializedObject.Update();
+    }
+
+    void BuildPanelList()
+    {
+        _panelList = new ReorderableList(serializedObject, _mainSectionPanelEntries, true, true, true, true)
         {
-            _foldPanels = new bool[panelCount];
-            _foldPanels[0] = true;
+            drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Panels (drag to reorder)"),
+            drawElementCallback = DrawPanelListElement,
+            elementHeightCallback = GetPanelListElementHeight,
+            onAddDropdownCallback = ShowAddPanelMenu
+        };
+    }
+
+    void TryMigrateLegacyPanels()
+    {
+        serializedObject.Update();
+        if (_mainSectionPanelEntries.arraySize > 0)
+            return;
+
+        bool hasLegacyData = _legacyShowMainPanel != null && (
+            _legacyShowMainPanel.boolValue ||
+            _legacyPlacesPanelEnabled.boolValue ||
+            _legacyGuidePanelEnabled.boolValue ||
+            (_legacyCustomMainPanels != null && _legacyCustomMainPanels.arraySize > 0));
+
+        if (!hasLegacyData)
+        {
+            (target as UILayoutConfig)?.EnsureDefaultPanelEntries();
+            serializedObject.Update();
+            if (_mainSectionPanelEntries.arraySize > 0)
+                return;
+        }
+
+        var migrationItems = new List<(int sortOrder, Action addEntry)>();
+
+        migrationItems.Add((_legacyMainPanelSortOrder.intValue, () =>
+        {
+            AddPanelEntry(MainSectionPanelType.Main, _legacyMainTabLabel.stringValue, _legacyShowMainPanel.boolValue, brandingIndex: 0);
+        }
+        ));
+        migrationItems.Add((_legacyPlacesPanelSortOrder.intValue, () =>
+        {
+            AddPanelEntry(MainSectionPanelType.Places, _legacyPlacesTabLabel.stringValue, _legacyPlacesPanelEnabled.boolValue);
+        }
+        ));
+        migrationItems.Add((_legacyGuidePanelSortOrder.intValue, () =>
+        {
+            AddPanelEntry(MainSectionPanelType.Guide, _legacyGuideTabLabel.stringValue, _legacyGuidePanelEnabled.boolValue);
+        }
+        ));
+
+        if (_legacyCustomMainPanels != null)
+        {
+            for (int i = 0; i < _legacyCustomMainPanels.arraySize; i++)
+            {
+                var legacy = _legacyCustomMainPanels.GetArrayElementAtIndex(i);
+                int sortOrder = legacy.FindPropertyRelative("sortOrder").intValue;
+                int capturedIndex = i;
+                migrationItems.Add((sortOrder, () => AddLegacyCustomPanelEntry(_legacyCustomMainPanels.GetArrayElementAtIndex(capturedIndex))));
+            }
+        }
+
+        migrationItems.Sort((a, b) => a.sortOrder.CompareTo(b.sortOrder));
+        foreach (var item in migrationItems)
+            item.addEntry();
+
+        serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(target);
+    }
+
+    void AddPanelEntry(MainSectionPanelType type, string tabLabel, bool enabled, int brandingIndex = -1, GameObject uiPrefab = null)
+    {
+        int index = _mainSectionPanelEntries.arraySize;
+        _mainSectionPanelEntries.InsertArrayElementAtIndex(index);
+        var element = _mainSectionPanelEntries.GetArrayElementAtIndex(index);
+        element.FindPropertyRelative("panelType").enumValueIndex = (int)type;
+        element.FindPropertyRelative("enabled").boolValue = enabled;
+        element.FindPropertyRelative("tabLabel").stringValue = tabLabel ?? GetDefaultTabLabel(type);
+        SanitizePanelEntry(element, type, uiPrefab);
+
+        if (type == MainSectionPanelType.Main && brandingIndex >= 0 &&
+            _legacyMainSectionPanels != null && brandingIndex < _legacyMainSectionPanels.arraySize)
+        {
+            var branding = _legacyMainSectionPanels.GetArrayElementAtIndex(brandingIndex);
+            element.FindPropertyRelative("backgroundImage").objectReferenceValue =
+                branding.FindPropertyRelative("backgroundImage").objectReferenceValue;
+            element.FindPropertyRelative("logoImage").objectReferenceValue =
+                branding.FindPropertyRelative("logoImage").objectReferenceValue;
+        }
+        else if (type == MainSectionPanelType.Main)
+        {
+            element.FindPropertyRelative("backgroundImage").objectReferenceValue = null;
+            element.FindPropertyRelative("logoImage").objectReferenceValue = null;
+        }
+    }
+
+    void SanitizeAllPanelEntries()
+    {
+        if (_mainSectionPanelEntries == null)
+            return;
+
+        bool changed = false;
+        for (int i = 0; i < _mainSectionPanelEntries.arraySize; i++)
+        {
+            var element = _mainSectionPanelEntries.GetArrayElementAtIndex(i);
+            var type = (MainSectionPanelType)element.FindPropertyRelative("panelType").enumValueIndex;
+            if (SanitizePanelEntry(element, type))
+                changed = true;
+        }
+
+        if (changed)
+        {
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(target);
+        }
+    }
+
+    bool SanitizePanelEntry(SerializedProperty element, MainSectionPanelType type, GameObject customUiPrefab = null)
+    {
+        bool changed = false;
+
+        var uiPrefabProp = element.FindPropertyRelative("uiPrefab");
+        var backgroundProp = element.FindPropertyRelative("backgroundImage");
+        var logoProp = element.FindPropertyRelative("logoImage");
+        var categoriesProp = element.FindPropertyRelative("worldCategories");
+
+        switch (type)
+        {
+            case MainSectionPanelType.Main:
+                if (uiPrefabProp.objectReferenceValue != null)
+                {
+                    uiPrefabProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (categoriesProp.arraySize > 0)
+                {
+                    categoriesProp.ClearArray();
+                    changed = true;
+                }
+                break;
+
+            case MainSectionPanelType.Places:
+                if (uiPrefabProp.objectReferenceValue != null)
+                {
+                    uiPrefabProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (backgroundProp.objectReferenceValue != null)
+                {
+                    backgroundProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (logoProp.objectReferenceValue != null)
+                {
+                    logoProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (categoriesProp.arraySize == 0)
+                {
+                    SeedDefaultWorldCategories(categoriesProp);
+                    changed = true;
+                }
+                break;
+
+            case MainSectionPanelType.Guide:
+                if (uiPrefabProp.objectReferenceValue != null)
+                {
+                    uiPrefabProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (backgroundProp.objectReferenceValue != null)
+                {
+                    backgroundProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (logoProp.objectReferenceValue != null)
+                {
+                    logoProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (categoriesProp.arraySize > 0)
+                {
+                    categoriesProp.ClearArray();
+                    changed = true;
+                }
+                break;
+
+            case MainSectionPanelType.Custom:
+                if (customUiPrefab != null && uiPrefabProp.objectReferenceValue != customUiPrefab)
+                {
+                    uiPrefabProp.objectReferenceValue = customUiPrefab;
+                    changed = true;
+                }
+                if (backgroundProp.objectReferenceValue != null)
+                {
+                    backgroundProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (logoProp.objectReferenceValue != null)
+                {
+                    logoProp.objectReferenceValue = null;
+                    changed = true;
+                }
+                if (categoriesProp.arraySize > 0)
+                {
+                    categoriesProp.ClearArray();
+                    changed = true;
+                }
+                break;
+        }
+
+        return changed;
+    }
+
+    void TryMigrateWorldCategoriesToPlacesPanels()
+    {
+        var config = target as UILayoutConfig;
+        if (config == null || config.worldCategories == null || config.worldCategories.Count == 0)
+            return;
+
+        if (config.mainSectionPanelEntries == null)
+            return;
+
+        foreach (var entry in config.mainSectionPanelEntries)
+        {
+            if (entry == null || entry.panelType != MainSectionPanelType.Places)
+                continue;
+            if (entry.worldCategories != null && entry.worldCategories.Count > 0)
+                continue;
+
+            entry.worldCategories = new List<Category>(config.worldCategories);
+            EditorUtility.SetDirty(config);
+            serializedObject.Update();
+            break;
+        }
+    }
+
+    static void SeedDefaultWorldCategories(SerializedProperty worldCategoriesProp)
+    {
+        if (worldCategoriesProp == null || worldCategoriesProp.arraySize > 0)
+            return;
+
+        worldCategoriesProp.arraySize = 3;
+        worldCategoriesProp.GetArrayElementAtIndex(0).FindPropertyRelative("categoryName").stringValue = "Hubs";
+        worldCategoriesProp.GetArrayElementAtIndex(0).FindPropertyRelative("showInPlacesNav").boolValue = true;
+        worldCategoriesProp.GetArrayElementAtIndex(1).FindPropertyRelative("categoryName").stringValue = "Geospatial";
+        worldCategoriesProp.GetArrayElementAtIndex(1).FindPropertyRelative("showInPlacesNav").boolValue = false;
+        worldCategoriesProp.GetArrayElementAtIndex(2).FindPropertyRelative("categoryName").stringValue = "Other";
+        worldCategoriesProp.GetArrayElementAtIndex(2).FindPropertyRelative("showInPlacesNav").boolValue = false;
+    }
+
+    void AddLegacyCustomPanelEntry(SerializedProperty legacy)
+    {
+        AddPanelEntry(
+            MainSectionPanelType.Custom,
+            legacy.FindPropertyRelative("tabLabel").stringValue,
+            legacy.FindPropertyRelative("enabled").boolValue,
+            uiPrefab: legacy.FindPropertyRelative("uiPrefab").objectReferenceValue as GameObject);
+    }
+
+    void EnsureFoldoutArray()
+    {
+        int count = _mainSectionPanelEntries != null ? _mainSectionPanelEntries.arraySize : 0;
+        if (_foldPanelEntries == null || _foldPanelEntries.Length != count)
+        {
+            var previous = _foldPanelEntries;
+            _foldPanelEntries = new bool[count];
+            if (previous != null)
+            {
+                for (int i = 0; i < Mathf.Min(previous.Length, count); i++)
+                    _foldPanelEntries[i] = previous[i];
+            }
+
+            if (count > 0)
+                _foldPanelEntries[0] = true;
         }
     }
 
     public override void OnInspectorGUI()
     {
-        serializedObject.Update();
+        VertexFormEditorHeader.Draw();
 
-        while (_mainSectionPanels.arraySize > 3)
-            _mainSectionPanels.DeleteArrayElementAtIndex(_mainSectionPanels.arraySize - 1);
-        while (_mainSectionPanels.arraySize < 3)
-            _mainSectionPanels.arraySize++;
+        serializedObject.Update();
+        EnsureFoldoutArray();
+        if (_panelList != null)
+            _panelList.serializedProperty = _mainSectionPanelEntries;
 
         DrawHighlightPrefabButtons();
         DrawSectionFoldout("Left Section", ref _foldLeft, DrawLeftSection, useLargeSectionTitle: true);
@@ -79,14 +386,14 @@ public class UILayoutConfigEditor : Editor
     {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("Apply to prefabs", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("Saves pending edits to this asset, assigns it on MainMap.prefab/MainMap Desktop.prefab, then bakes text/images/section visibility into those prefabs (same idea as Apply Project Data).", MessageType.None);
+        EditorGUILayout.HelpBox("Saves pending edits to this asset, then bakes into prefabs:\n• MainMap / Visual Element prefabs (root MainMap): left/right sections, logo, background\n• Any prefab with MenuManager (MainMap, MainMap Desktop): panel tabs + custom panels/buttons", MessageType.None);
         if (GUILayout.Button("Apply to Prefabs", GUILayout.Height(28)))
             ApplyConfigToPrefabs();
         EditorGUILayout.EndVertical();
         GUILayout.Space(6);
     }
 
-    /// <summary>All prefab assets where the prefab root has a MainMap component.</summary>
+    /// <summary>Prefab assets where the root has a MainMap component (visual/branding prefabs).</summary>
     private static List<string> FindMainMapPrefabPaths()
     {
         var paths = new List<string>();
@@ -104,18 +411,19 @@ public class UILayoutConfigEditor : Editor
 
     private void ApplyConfigToPrefabs()
     {
-        // Inspector changes are normally applied after OnInspectorGUI; flush now so baking uses latest text/panels.
         serializedObject.ApplyModifiedProperties();
         EditorUtility.SetDirty(target);
 
         var config = target as UILayoutConfig;
         if (config == null) return;
 
+        config.RefreshScreenPrefabCache();
+        EditorUtility.SetDirty(config);
+
         List<string> mainMapPaths = FindMainMapPrefabPaths();
         if (mainMapPaths.Count == 0)
         {
             Debug.LogWarning("UILayoutConfig: No prefabs found where the prefab root has MainMap. Assign uiLayoutConfig manually if needed.");
-            return;
         }
 
         int prefabsModified = 0;
@@ -180,7 +488,6 @@ public class UILayoutConfigEditor : Editor
 
             if (usingOpenPrefabStage)
             {
-                // Save via prefab stage so Unity doesn't prompt about disk changes.
                 PrefabUtility.SaveAsPrefabAsset(contents, path);
                 prefabsModified++;
             }
@@ -192,10 +499,73 @@ public class UILayoutConfigEditor : Editor
             }
         }
 
+        int menuPrefabsModified = 0;
+        int customPanelsBaked = 0;
+        menuPrefabsModified = ApplyConfigToMenuManagerPrefabs(config, ref customPanelsBaked);
+
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"UILayoutConfig: Baked config into {prefabsModified} MainMap prefab asset(s) with root-level MainMap. Reference updates: {refsUpdated}. Ensure ProjectManager in your bootstrap scene uses this same config for Places/avatars.");
+        Debug.Log($"UILayoutConfig: Baked branding into {prefabsModified} MainMap prefab(s). Updated {menuPrefabsModified} MenuManager prefab(s) with {customPanelsBaked} custom panel(s). Reference updates: {refsUpdated}.");
+    }
+
+    static int ApplyConfigToMenuManagerPrefabs(UILayoutConfig config, ref int customPanelsBaked)
+    {
+        int prefabsModified = 0;
+        var currentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+
+        foreach (string path in MenuManagerPanelPrefabBaker.TargetMenuPrefabPaths)
+        {
+            if (!File.Exists(path))
+                continue;
+
+            GameObject contents = null;
+            bool usingOpenPrefabStage = currentPrefabStage != null &&
+                                        string.Equals(currentPrefabStage.assetPath, path, StringComparison.OrdinalIgnoreCase);
+
+            if (usingOpenPrefabStage)
+                contents = currentPrefabStage.prefabContentsRoot;
+            else
+            {
+                try
+                {
+                    contents = PrefabUtility.LoadPrefabContents(path);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"UILayoutConfig: Could not open '{path}': {e.Message}");
+                    continue;
+                }
+            }
+
+            if (contents == null) continue;
+
+            var menuManager = contents.GetComponentInChildren<MenuManager>(true);
+            if (menuManager == null)
+            {
+                if (!usingOpenPrefabStage)
+                    PrefabUtility.UnloadPrefabContents(contents);
+                Debug.LogWarning($"UILayoutConfig: '{path}' has no MenuManager. Skipping panel bake.");
+                continue;
+            }
+
+            customPanelsBaked += MenuManagerPanelPrefabBaker.Bake(menuManager, config, path);
+
+            if (usingOpenPrefabStage)
+                PrefabUtility.SaveAsPrefabAsset(contents, path);
+            else
+            {
+                PrefabUtility.SaveAsPrefabAsset(contents, path);
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+
+            prefabsModified++;
+        }
+
+        if (prefabsModified == 0)
+            Debug.LogWarning("UILayoutConfig: MainMap / MainMap Desktop prefabs were not found or could not be updated.");
+
+        return prefabsModified;
     }
 
     private static void DrawHighlightPrefabButtons()
@@ -219,17 +589,15 @@ public class UILayoutConfigEditor : Editor
                 if (prefabAsset == null)
                     continue;
 
-                // First requirement: prefab root itself owns MainMap.
-                if (prefabAsset.GetComponent<MainMap>() == null)
+                if (prefabAsset.GetComponentInChildren<MenuManager>(true) == null)
                     continue;
 
-                // Second requirement: classify by whether the prefab name contains "Desktop".
                 string fileName = Path.GetFileNameWithoutExtension(path);
                 bool hasDesktopInName = fileName.IndexOf("Desktop", System.StringComparison.OrdinalIgnoreCase) >= 0;
                 if (hasDesktopInName != requireDesktopInName)
                     continue;
 
-                var obj = AssetDatabase.LoadAssetAtPath<Object>(path);
+                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
                 if (obj != null)
                 {
                     PrefabStageUtility.OpenPrefab(path);
@@ -300,51 +668,235 @@ public class UILayoutConfigEditor : Editor
 
     private void DrawMainSection()
     {
-        for (int i = 0; i < 3; i++)
+        var config = target as UILayoutConfig;
+        EditorGUILayout.HelpBox(
+            "Drag panels to set bottom-nav tab order (after Home). The first Main/Places panel uses the built-in screens in MainMap. " +
+            "Additional Places panels use the WorldScreen prefab; each panel has its own categories and world list via WorldScreen.",
+            MessageType.None);
+
+        if (config != null)
         {
-            var panel = _mainSectionPanels.GetArrayElementAtIndex(i);
-            string header = i == UILayoutConfig.MainPanelIndex ? "Main"
-                : i == UILayoutConfig.PlacesPanelIndex ? "Places"
-                : "Guide";
+            var mainPrefab = config.GetMainScreenPrefab();
+            var worldPrefab = config.GetWorldScreenPrefab();
+            EditorGUILayout.LabelField("Detected Main Screen Prefab",
+                mainPrefab != null ? mainPrefab.name : "(not found)", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("Detected World Screen Prefab",
+                worldPrefab != null ? worldPrefab.name : "(not found)", EditorStyles.miniLabel);
+        }
 
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            _foldPanels[i] = EditorGUILayout.Foldout(_foldPanels[i], header, true);
+        EditorGUILayout.Space(4);
+        _panelList.DoLayoutList();
+        DrawPanelValidationWarnings();
+    }
 
-            if (_foldPanels[i])
-            {
-                EditorGUI.indentLevel++;
+    void ShowAddPanelMenu(Rect buttonRect, ReorderableList list)
+    {
+        var menu = new GenericMenu();
+        menu.AddItem(new GUIContent("Main Panel"), false, () => AddNewPanel(MainSectionPanelType.Main));
+        menu.AddItem(new GUIContent("Places Panel"), false, () => AddNewPanel(MainSectionPanelType.Places));
+        menu.AddItem(new GUIContent("Guide Panel"), false, () => AddNewPanel(MainSectionPanelType.Guide));
+        menu.AddSeparator("");
+        menu.AddItem(new GUIContent("Custom Panel"), false, () => AddNewPanel(MainSectionPanelType.Custom));
+        menu.ShowAsContext();
+    }
 
-                if (i == UILayoutConfig.MainPanelIndex)
+    void AddNewPanel(MainSectionPanelType type)
+    {
+        serializedObject.Update();
+        AddPanelEntry(type, GetDefaultTabLabel(type), enabled: true);
+        serializedObject.ApplyModifiedProperties();
+        EnsureFoldoutArray();
+        if (_foldPanelEntries != null && _foldPanelEntries.Length > 0)
+            _foldPanelEntries[_foldPanelEntries.Length - 1] = true;
+    }
+
+    static string GetDefaultTabLabel(MainSectionPanelType type)
+    {
+        return type switch
+        {
+            MainSectionPanelType.Main => "Main",
+            MainSectionPanelType.Places => "Worlds",
+            MainSectionPanelType.Guide => "Guide",
+            MainSectionPanelType.Custom => "Custom",
+            _ => "Panel"
+        };
+    }
+
+    static string GetPanelTypeTitle(MainSectionPanelType type)
+    {
+        return type switch
+        {
+            MainSectionPanelType.Main => "Main Panel",
+            MainSectionPanelType.Places => "Places Panel",
+            MainSectionPanelType.Guide => "Guide Panel",
+            MainSectionPanelType.Custom => "Custom Panel",
+            _ => "Panel"
+        };
+    }
+
+    static string GetPanelDisplayName(SerializedProperty element)
+    {
+        if (element == null)
+            return "Panel";
+
+        string tabLabel = element.FindPropertyRelative("tabLabel").stringValue;
+        if (!string.IsNullOrWhiteSpace(tabLabel))
+            return tabLabel.Trim();
+
+        var type = (MainSectionPanelType)element.FindPropertyRelative("panelType").enumValueIndex;
+        return GetDefaultTabLabel(type);
+    }
+
+    float GetPanelListElementHeight(int index)
+    {
+        if (_foldPanelEntries == null || index >= _foldPanelEntries.Length || !_foldPanelEntries[index])
+            return EditorGUIUtility.singleLineHeight + 6f;
+
+        var element = _mainSectionPanelEntries.GetArrayElementAtIndex(index);
+        var type = (MainSectionPanelType)element.FindPropertyRelative("panelType").enumValueIndex;
+        float height = EditorGUIUtility.singleLineHeight + 6f;
+        height += (EditorGUIUtility.singleLineHeight + 2f) * 2f;
+        if (type == MainSectionPanelType.Main)
+            height += (EditorGUIUtility.singleLineHeight + 2f) * 2f;
+        else if (type == MainSectionPanelType.Places)
+            height += EditorGUIUtility.singleLineHeight + 2f + EditorGUI.GetPropertyHeight(element.FindPropertyRelative("worldCategories"), true);
+        else if (type == MainSectionPanelType.Guide)
+            height += EditorGUIUtility.singleLineHeight * 2f + 2f;
+        else if (type == MainSectionPanelType.Custom)
+            height += EditorGUIUtility.singleLineHeight + 2f;
+
+        return height + 8f;
+    }
+
+    void DrawPanelListElement(Rect rect, int index, bool isActive, bool isFocused)
+    {
+        rect.x += PanelListDragHandleWidth + PanelListDragHandleGap;
+        rect.width -= PanelListDragHandleWidth + PanelListDragHandleGap;
+
+        var element = _mainSectionPanelEntries.GetArrayElementAtIndex(index);
+        var panelType = (MainSectionPanelType)element.FindPropertyRelative("panelType").enumValueIndex;
+        string header = $"{index + 1}. {GetPanelDisplayName(element)}";
+
+        rect.y += 2f;
+        rect.height = EditorGUIUtility.singleLineHeight;
+        _foldPanelEntries[index] = EditorGUI.Foldout(rect, _foldPanelEntries[index], header, true);
+        if (!_foldPanelEntries[index])
+            return;
+
+        EditorGUI.indentLevel++;
+        float y = rect.y + EditorGUIUtility.singleLineHeight + 2f;
+        float width = rect.width - 4f;
+        float lineHeight = EditorGUIUtility.singleLineHeight;
+
+        DrawProperty(rect.x, ref y, width, lineHeight, element.FindPropertyRelative("enabled"), "Enabled");
+        DrawProperty(rect.x, ref y, width, lineHeight, element.FindPropertyRelative("tabLabel"), "Tab Label");
+
+        switch (panelType)
+        {
+            case MainSectionPanelType.Main:
+                DrawProperty(rect.x, ref y, width, lineHeight, element.FindPropertyRelative("backgroundImage"), "Background Image");
+                DrawProperty(rect.x, ref y, width, lineHeight, element.FindPropertyRelative("logoImage"), "Logo Image");
+                break;
+            case MainSectionPanelType.Places:
                 {
-                    EditorGUILayout.PropertyField(_showMainPanel,
-                        new GUIContent("Show Main Panel",
-                            "When off, the Main tab is hidden and the UI opens directly on Places. Use this if the logo/background landing screen feels like an extra step."));
-                    using (new EditorGUI.DisabledScope(!_showMainPanel.boolValue))
-                    {
-                        EditorGUILayout.PropertyField(panel.FindPropertyRelative("backgroundImage"), new GUIContent("Background Image"));
-                        EditorGUILayout.PropertyField(panel.FindPropertyRelative("logoImage"), new GUIContent("Logo Image"));
-                    }
+                    EditorGUI.LabelField(new Rect(rect.x, y, width, lineHeight), "World Categories", EditorStyles.miniLabel);
+                    y += lineHeight + 2f;
+                    var categories = element.FindPropertyRelative("worldCategories");
+                    float categoriesHeight = EditorGUI.GetPropertyHeight(categories, true);
+                    EditorGUI.PropertyField(new Rect(rect.x, y, width, categoriesHeight), categories, GUIContent.none, true);
+                    y += categoriesHeight;
+                    break;
                 }
-                else if (i == UILayoutConfig.PlacesPanelIndex)
-                {
-                    EditorGUILayout.HelpBox("Toggle per-category visibility with Show In Places Nav.", MessageType.None);
-                    EditorGUILayout.PropertyField(_worldCategories, new GUIContent("World Categories"), true);
-                }
-                else
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    var lockIcon = EditorGUIUtility.IconContent("AssemblyLock");
-                    if (lockIcon != null && lockIcon.image != null)
-                        GUILayout.Label(lockIcon, GUILayout.Width(20), GUILayout.Height(20));
-                    else
-                        GUILayout.Label("🔒", GUILayout.Width(20));
-                    EditorGUILayout.LabelField("Do not edit", EditorStyles.boldLabel);
-                    EditorGUILayout.EndHorizontal();
-                }
+            case MainSectionPanelType.Guide:
+                EditorGUI.HelpBox(new Rect(rect.x, y, width, lineHeight * 2f),
+                    "First Guide panel uses the built-in Guide screen in MainMap.", MessageType.None);
+                break;
+            case MainSectionPanelType.Custom:
+                DrawProperty(rect.x, ref y, width, lineHeight, element.FindPropertyRelative("uiPrefab"), "UI Prefab");
+                break;
+        }
 
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndVertical();
+        EditorGUI.indentLevel--;
+    }
+
+    static void DrawProperty(float x, ref float y, float width, float lineHeight, SerializedProperty property, string label)
+    {
+        EditorGUI.PropertyField(new Rect(x, y, width, lineHeight), property, new GUIContent(label));
+        y += lineHeight + 2f;
+    }
+
+    void DrawPanelValidationWarnings()
+    {
+        if (_mainSectionPanelEntries == null)
+            return;
+
+        var primaryCounts = new Dictionary<MainSectionPanelType, int>();
+        for (int i = 0; i < _mainSectionPanelEntries.arraySize; i++)
+        {
+            var element = _mainSectionPanelEntries.GetArrayElementAtIndex(i);
+            var type = (MainSectionPanelType)element.FindPropertyRelative("panelType").enumValueIndex;
+            if (type == MainSectionPanelType.Custom)
+                continue;
+
+            if (!primaryCounts.ContainsKey(type))
+                primaryCounts[type] = i;
+        }
+
+        for (int i = 0; i < _mainSectionPanelEntries.arraySize; i++)
+        {
+            var element = _mainSectionPanelEntries.GetArrayElementAtIndex(i);
+            var type = (MainSectionPanelType)element.FindPropertyRelative("panelType").enumValueIndex;
+            if (type == MainSectionPanelType.Custom)
+                ValidateCustomPanelPrefab(element, i);
+            else if (primaryCounts.TryGetValue(type, out int primaryIndex) && i != primaryIndex)
+                ValidateExtraTypedPanel(element, type, i);
+        }
+    }
+
+    void ValidateExtraTypedPanel(SerializedProperty element, MainSectionPanelType type, int index)
+    {
+        var config = target as UILayoutConfig;
+        if (config == null)
+            return;
+
+        GameObject prefab = type switch
+        {
+            MainSectionPanelType.Main => config.GetMainScreenPrefab(),
+            MainSectionPanelType.Places => config.GetWorldScreenPrefab(),
+            _ => null
+        };
+
+        var overridePrefab = element.FindPropertyRelative("uiPrefab").objectReferenceValue as GameObject;
+        if (type == MainSectionPanelType.Custom && overridePrefab != null)
+            prefab = overridePrefab;
+
+        if (prefab == null)
+        {
+            string componentName = type == MainSectionPanelType.Main ? nameof(MainScreen) : nameof(WorldScreen);
+            EditorGUILayout.HelpBox(
+                $"Panel [{index + 1}] ({GetPanelDisplayName(element)}): no prefab with a {componentName} component was found in the project.",
+                MessageType.Warning);
+            return;
+        }
+
+        if (MenuManagerPanelPrefabBaker.IsMenuShellPrefab(prefab))
+        {
+            EditorGUILayout.HelpBox(
+                $"Panel [{index + 1}] ({GetPanelDisplayName(element)}): screen prefab must not be the MainMap shell prefab.",
+                MessageType.Error);
+        }
+    }
+
+    void ValidateCustomPanelPrefab(SerializedProperty element, int index)
+    {
+        var prefab = element.FindPropertyRelative("uiPrefab").objectReferenceValue as GameObject;
+        if (prefab == null) return;
+
+        if (MenuManagerPanelPrefabBaker.IsMenuShellPrefab(prefab))
+        {
+            EditorGUILayout.HelpBox(
+                $"Panel [{index + 1}] ({GetPanelDisplayName(element)}): UI Prefab must be a separate panel prefab, not MainMap.",
+                MessageType.Error);
         }
     }
 
@@ -356,7 +908,5 @@ public class UILayoutConfigEditor : Editor
             new GUIContent("Show Avatar Body In First Person",
                 "Desktop/Mobile only. When enabled, the local player's avatar body remains visible in first-person view. Disable to hide the body and avoid camera clipping."));
         EditorGUILayout.PropertyField(_avatarDatas, new GUIContent("Avatar Datas"));
-
-
     }
 }

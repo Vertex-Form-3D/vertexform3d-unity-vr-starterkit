@@ -150,11 +150,23 @@ public class XRRigController : MonoBehaviour
                 AssignInputActions();
             }
         }
+
+        if (!GetPlatformProperty() && (!isMultiplayer || IsLocalPlayer()))
+            EnsureThirdPersonMobileControls();
+
         if (isMultiplayer)
         {
             // On Start, assign all World Space canvases to the current camera so worldCamera is never null at scene open.
             AssignWorldSpaceCanvasesToCurrentCamera();
         }
+    }
+
+    private void EnsureThirdPersonMobileControls()
+    {
+        if (GetComponent<ThirdPersonMobileControls>() != null)
+            return;
+
+        gameObject.AddComponent<ThirdPersonMobileControls>();
     }
 
     /// <summary>Applies VR/Desktop and local/remote state. Call from Start(), not Awake — Fusion sets NetworkObject.IsValid and HasInputAuthority only after spawn completes.</summary>
@@ -229,7 +241,7 @@ public class XRRigController : MonoBehaviour
     }
 
     /// <summary>Returns the camera that should be used for rendering (and for World Space canvas event camera).</summary>
-    private Camera GetCurrentRenderingCamera()
+    public Camera GetCurrentRenderingCamera()
     {
         if (isThirdPerson && orbitCamera != null)
         {
@@ -785,6 +797,25 @@ public class XRRigController : MonoBehaviour
             SwitchToThirdPerson();
         }
     }
+
+    /// <summary>
+    /// Re-applies the current first/third-person camera + world-space canvas setup without changing mode.
+    /// Use after scene/rig changes (e.g. entering Street View) so the active camera and look mechanism
+    /// match the current mode — otherwise the view can feel frozen until a manual FP/TP toggle.
+    /// </summary>
+    public void ReapplyPersonMode()
+    {
+        if (isMultiplayer && !IsLocalPlayer())
+            return;
+
+        if (orbitCamera == null)
+            return;
+
+        if (isThirdPerson)
+            onThirdPersonModeStart();
+        else
+            onFPSModeStart();
+    }
     // New function to switch to first-person mode
     [ContextMenu("SwitchToFirstPerson")]
     public void SwitchToFirstPerson()
@@ -866,6 +897,7 @@ public class XRRigController : MonoBehaviour
             rotateAllowed = false;
         }
     }
+
 }
 
 public enum PersonMode

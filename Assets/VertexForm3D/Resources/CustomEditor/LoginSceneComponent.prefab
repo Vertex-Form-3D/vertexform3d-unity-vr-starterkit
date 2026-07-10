@@ -36,6 +36,7 @@ Transform:
   - {fileID: 3366313541171723181}
   - {fileID: 3055006541861467464}
   - {fileID: 7904228809510471420}
+  - {fileID: 7575510588168371810}
   m_Father: {fileID: 1698974698686989815}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1050270143831841909
@@ -50,6 +51,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c85964740cb79ac4fb73ac394bb76294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &80110290975021698
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7575510588168371810}
+  - component: {fileID: 6510571137978847095}
+  m_Layer: 0
+  m_Name: IdleQuitDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7575510588168371810
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80110290975021698}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1199408002505794689}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6510571137978847095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80110290975021698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b01c2881569ac4e408e79e47ea5d8390, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IdleQuitDetector
+  actionAssets: []
+  idleTimeout: 600
+  idleAction: 1
+  onlyCountWhenInRoom: 1
+  leaveNetworkSessionFirst: 1
+  maxWaitForNetworkLeave: 20
+  webGLSessionEndedMessage: You were disconnected because you were inactive for too
+    long.
+  onIdleStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onIdleTimeUpdated:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &591324064960001441
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,6 +13,8 @@ public class ProjectDataScriptableObjectEditor : UnityEditor.Editor
 
     public override void OnInspectorGUI()
     {
+        VertexFormEditorHeader.Draw();
+
         DrawDefaultInspector();
 
         EditorGUILayout.Space(10);

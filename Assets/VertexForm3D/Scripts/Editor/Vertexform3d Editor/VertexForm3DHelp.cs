@@ -3,8 +3,6 @@ using UnityEditor;
 
 public class VertexForm3DHelp : EditorWindow
 {
-    private Texture2D bannerTexture;
-
     public static void ShowWindow()
     {
         VertexForm3DHelp window = GetWindow<VertexForm3DHelp>("Help & Support");
@@ -12,27 +10,10 @@ public class VertexForm3DHelp : EditorWindow
         window.Show();
     }
 
-    private void OnEnable()
-    {
-        // Load the banner from the Resources folder
-        bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
-    }
-
     private void OnGUI()
     {
-        GUILayout.Space(5);
-
-        // Display Banner Image
-        if (bannerTexture != null)
-        {
-            float bannerWidth = Mathf.Min(bannerTexture.width, position.width - 10); // Fit within window width
-            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height; // Maintain aspect ratio
-            GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
-        }
-        else
-        {
-            EditorGUILayout.HelpBox("Banner image not found. Make sure 'VF3DBannerEditor' is inside the Resources folder.", MessageType.Warning);
-        }
+        // Header
+        VertexFormEditorHeader.Draw(position.width);
 
         GUILayout.Space(10);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);

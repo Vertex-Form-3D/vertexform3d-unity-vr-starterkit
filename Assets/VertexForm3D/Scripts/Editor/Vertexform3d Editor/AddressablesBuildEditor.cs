@@ -9,7 +9,6 @@ using System.Diagnostics;
 
 public class AddressablesBuildEditor : EditorWindow
 {
-    private Texture2D bannerTexture;
     private string addressableCatalogFilePath = "";
     private string catalogFileName = "VertexForm3DAddressablesCatalog";
     private bool useOnlyLocalBundles = true;
@@ -25,7 +24,6 @@ public class AddressablesBuildEditor : EditorWindow
 
     private void OnEnable()
     {
-        bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso != null)
         {
@@ -51,23 +49,8 @@ public class AddressablesBuildEditor : EditorWindow
         GUIStyle sectionStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 14, margin = new RectOffset(10, 10, 5, 5) };
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 12, padding = new RectOffset(10, 10, 5, 5), margin = new RectOffset(10, 10, 5, 5) };
 
-        // Banner
-        if (bannerTexture != null)
-        {
-            float bannerWidth = Mathf.Min(bannerTexture.width * 0.8f, position.width - 20);
-            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height;
-            bannerWidth /= 1.2f;
-            bannerHeight /= 1.2f;
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-        else
-        {
-            EditorGUILayout.HelpBox("Banner image not found. Place 'VF3DBannerEditor' in the Resources folder.", MessageType.Warning);
-        }
+        // Header
+        VertexFormEditorHeader.Draw(position.width);
 
         // Title
         GUILayout.Label("Addressables Management", titleStyle);

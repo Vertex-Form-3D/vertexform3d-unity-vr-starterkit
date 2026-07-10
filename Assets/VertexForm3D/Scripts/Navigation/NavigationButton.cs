@@ -16,6 +16,9 @@ namespace VertexFormCore
 
         private void OnNavigationButtonClicked()
         {
+            if (!ScenePlatformSupport.CanEnterScene(sceneName))
+                return;
+
             onclickButton.interactable = false;
             SceneLoader.Instance.isFlyModeEnabled = flyMode;
             SceneLoader.Instance.LoadScnene(sceneName);

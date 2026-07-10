@@ -31,6 +31,8 @@ namespace VertextFormCore
         /// </summary>
         private void OnGUI()
         {
+            VertexFormEditorHeader.Draw(position.width);
+
             // Responsible for showing available scenes
             for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
             {

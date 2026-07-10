@@ -20,9 +20,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     public GameObject howerUI;
     public WorldData worlddata = new WorldData();
     public bool InitalizeInStart;
-    MenuManager _menuManager;
-
-    MenuManager BoundMenuManager => _menuManager != null ? _menuManager : MenuManager.Instance;
+    WorldScreen _worldScreen;
 
     private void Start()
     {
@@ -51,27 +49,27 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         howerUI.SetActive(DesktopMobileControlSettings.UseMobileMenuHoverUx);
     }
 
-    public void SetWorldData(WorldData wd, MenuManager menuManager)
+    public void SetWorldData(WorldData wd, WorldScreen worldScreen)
     {
-        _menuManager = menuManager;
+        _worldScreen = worldScreen;
         worlddata = wd.Clone();
         UpdateView(worlddata);
     }
 
     public void ShowInfo()
     {
-        BoundMenuManager?.ShowWorldDetails(worlddata);
+        _worldScreen?.ShowWorldDetails(worlddata);
     }
 
     public void OnTapStar()
     {
-        BoundMenuManager?.OnTapStar(worlddata.worldName, starBtn.GetComponent<Image>());
+        _worldScreen?.ToggleStar(worlddata.worldName, starBtn.GetComponent<Image>());
     }
     void LoadWorld()
     {
         if (!IsPlatformSupported(worlddata))
         {
-            BoundMenuManager?.ShowUnsupportedPlatformPopup(worlddata);
+            MenuManager.Instance?.ShowUnsupportedPlatformPopup(worlddata);
             return;
         }
         SceneLoader.Instance.isCesiumScene = false;
@@ -83,16 +81,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         SceneLoader.Instance.LoadScnene(worlddata.worldKey);
     }
 
-    bool IsPlatformSupported(WorldData t)
-    {
-        var pl = ProjectManager.instance.platforms;
-        if (pl.platformChoice == platform.WebGPU && !t.WebGPU) return false;
-        if (pl.platformChoice == platform.VR && !t.VR) return false;
-        if (pl.platformChoice == platform.Desktop && !t.Desktop) return false;
-        if (pl.webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser && !t.WebXR) return false;
-        if (pl.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser && !t.Mobile) return false;
-        return true;
-    }
+    bool IsPlatformSupported(WorldData t) => ScenePlatformSupport.IsPlatformSupported(t);
 
     public void SetPlayerCountText()
     {
@@ -142,10 +131,18 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
             });
         }
 
-        if (BoundMenuManager != null)
-            BoundMenuManager.WorldIsStarredOrNot(worlddata.worldName, starBtn.GetComponent<Image>());
+        if (_worldScreen != null)
+            _worldScreen.ApplyStarIcon(worlddata.worldName, starBtn.GetComponent<Image>());
 
         EnsureHoverVisibleForTouch();
+    }
+
+    public void RefreshStarIcon(string panelKey, Sprite starSprite, Sprite unStarSprite)
+    {
+        if (starBtn == null)
+            return;
+
+        WorldFavorites.ApplyStarIcon(panelKey, worlddata.worldName, starBtn.GetComponent<Image>(), starSprite, unStarSprite);
     }
 
     private void OnDownloadCliked()

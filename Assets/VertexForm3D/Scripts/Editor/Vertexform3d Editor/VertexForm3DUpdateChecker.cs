@@ -327,6 +327,8 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
             };
         }
 
+        VertexFormEditorHeader.Draw(position.width);
+
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
         EditorGUILayout.LabelField(bodyText, richTextWrappedLabel);
         EditorGUILayout.EndScrollView();
@@ -369,6 +371,9 @@ public class VersionPackageInfo
     public string version;
     public string url;
     public string releaseNotes;
+    // Asset paths (relative to project root, e.g. "Assets/VertexForm3D/...") that were removed
+    // in this version. The Package Updater deletes these from user projects after importing.
+    public List<string> deletedAssets = new List<string>();
 }
 
 public static class VersionJsonParser

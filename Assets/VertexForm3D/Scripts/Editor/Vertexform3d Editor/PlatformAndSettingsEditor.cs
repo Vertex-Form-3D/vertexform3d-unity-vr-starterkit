@@ -22,6 +22,8 @@ public class PlatformAndSettingsEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        VertexFormEditorHeader.Draw();
+
         serializedObject.Update();
 
         using (new EditorGUI.DisabledScope(true))
@@ -32,14 +34,14 @@ public class PlatformAndSettingsEditor : Editor
 
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.PropertyField(platformChoiceProp);
-        if (platformChoiceProp.enumValueIndex == (int)platform.WebGPU)
+        if (platformChoiceProp.enumValueIndex == (int)platform.Web)
         {
             EditorGUILayout.PropertyField(
                 webGpuBrowserKindProp,
                 new GUIContent(
-                    "WebGPU Browser Kind (for testing)",
-                    "When platform is WebGPU, set from WebGL index.html (SendMessage). In Editor, use this for testing."));
-            EditorGUILayout.HelpBox("WebGPU browser kind is normally set at runtime from WebGL index.html (SendMessage). Use the field above to test a kind in the Editor.", MessageType.None);
+                    "Web Browser Kind (for testing)",
+                    "When platform is Web, set from WebGL index.html (SendMessage). In Editor, use this for testing."));
+            EditorGUILayout.HelpBox("Web browser kind is normally set at runtime from WebGL index.html (SendMessage). Use the field above to test a kind in the Editor.", MessageType.None);
         }
         bool platformSettingsChanged = EditorGUI.EndChangeCheck();
 
@@ -117,7 +119,7 @@ public class PlatformAndSettingsEditor : Editor
         {
             var editedPlatforms = (Platforms)target;
             bool shouldUseMobileControls =
-                editedPlatforms.platformChoice == platform.WebGPU &&
+                editedPlatforms.platformChoice == platform.Web &&
                 editedPlatforms.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser;
             DesktopMobileControlSettings.SetUseMobileControls(shouldUseMobileControls);
         }

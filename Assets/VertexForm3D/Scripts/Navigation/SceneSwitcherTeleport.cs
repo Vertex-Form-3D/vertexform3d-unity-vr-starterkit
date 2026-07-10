@@ -2,6 +2,7 @@ using Fusion;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using VertexFormCore;
+using TMPro;
 
 
 [RequireComponent(typeof(Collider))]
@@ -9,6 +10,7 @@ using VertexFormCore;
 public class SceneSwitcherTeleport : MonoBehaviour
 {
     public string sceneName;
+    public TMP_Text sceneNameText;
     [SerializeField] bool flyMode;
     void Start()
     {
@@ -16,9 +18,13 @@ public class SceneSwitcherTeleport : MonoBehaviour
         {
             GetComponent<Collider>().isTrigger = true;
         }
+        sceneNameText.text = sceneName;
     }
     public void SwitchScene()
     {
+        if (!ScenePlatformSupport.CanEnterScene(sceneName))
+            return;
+
         SceneLoader.Instance.isFlyModeEnabled = flyMode;
         SceneLoader.Instance.LoadScnene(sceneName);
     }

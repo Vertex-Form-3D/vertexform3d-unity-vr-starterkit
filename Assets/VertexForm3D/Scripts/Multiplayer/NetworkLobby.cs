@@ -16,6 +16,12 @@ public class SessionInfoData
     public int MaxPlayers;
     public string Scene;
     public bool IsOpen;
+    public string StreetViewType;
+    public string WorldKey;
+    public string PanoId;
+    public float Latitude;
+    public float Longitude;
+    public string TourTitle;
 }
 
 /// <summary>
@@ -102,7 +108,7 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
                 PlayerCount = session.PlayerCount,
                 MaxPlayers = session.MaxPlayers,
                 Scene = session.Properties.ContainsKey("Scene") ? session.Properties["Scene"].PropertyValue.ToString() : "",
-                IsOpen = true
+                IsOpen = session.IsOpen,
             });
 
             Debug.Log($"[NetworkLobby] Session: {session.Name} | Scene: {Sessions.Last().Scene} | Players: {session.PlayerCount}/{session.MaxPlayers}"); //| Scene: {session.Properties["Scene"].PropertyValue}");

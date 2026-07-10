@@ -24,6 +24,8 @@ public class SettingsUIEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        VertexFormEditorHeader.Draw();
+
         serializedObject.Update();
 
         EditorGUILayout.BeginHorizontal();

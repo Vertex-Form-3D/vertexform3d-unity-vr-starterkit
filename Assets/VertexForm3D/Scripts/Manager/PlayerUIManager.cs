@@ -160,7 +160,7 @@ namespace VertexFormCore
 
         /// <summary>
         /// World-space VR menu/settings/emoji path when the asset is VR <b>or</b> immersive XR is running
-        /// (WebGL WebXR may use <see cref="platform.WebGPU"/> with a flat browser kind until a session starts).
+        /// (WebGL WebXR may use <see cref="platform.Web"/> with a flat browser kind until a session starts).
         /// </summary>
         private bool UseHeadMountedMenuPath()
         {
@@ -636,11 +636,6 @@ namespace VertexFormCore
 
         private void Update()
         {
-#if UNITY_EDITOR
-            if (Input.GetKeyDown(KeyCode.N)) HandleMenuUI();
-            if (Input.GetKeyDown(KeyCode.M)) HandleSettingUI();
-#endif
-
             PollXrMenuAndSettingsButtons();
         }
 

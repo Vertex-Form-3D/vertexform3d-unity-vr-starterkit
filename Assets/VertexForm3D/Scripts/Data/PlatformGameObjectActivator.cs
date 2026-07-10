@@ -173,7 +173,7 @@ public class PlatformGameObjectActivator : MonoBehaviour
                 return PlatformKind.DesktopVR;
             case platform.Desktop:
                 return PlatformKind.Desktop;
-            case platform.WebGPU:
+            case platform.Web:
                 switch (p.webGpuBrowserKind)
                 {
                     case WebGpuBrowserKind.WebXRBrowser:

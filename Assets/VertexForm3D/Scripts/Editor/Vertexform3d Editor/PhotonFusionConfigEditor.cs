@@ -36,7 +36,8 @@ public class PhotonFusionConfigEditor : EditorWindow
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-        GUILayout.Space(10);
+        VertexFormEditorHeader.Draw(position.width);
+
         GUILayout.Label("Photon Fusion & Voice Configuration", EditorStyles.largeLabel);
         EditorGUILayout.Space(5);
 

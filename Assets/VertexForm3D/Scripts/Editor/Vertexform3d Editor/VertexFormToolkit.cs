@@ -10,7 +10,6 @@ namespace VertexFormCore.Editor
         // Window state
         private Vector2 scrollPosition;
         private Vector2 favoritesScrollPosition;
-        private Texture2D banner;
         private int selectedTab = 0;
         private string searchFilter = "";
 
@@ -136,8 +135,6 @@ namespace VertexFormCore.Editor
 
         private void OnEnable()
         {
-            banner = Resources.Load<Texture2D>("VF3DBannerEditor");
-
             InitializeTabGroups();
 
             // Set up toolbar button style for two-line tabs
@@ -148,15 +145,6 @@ namespace VertexFormCore.Editor
                 toolbarButtonStyle.alignment = TextAnchor.MiddleCenter;
                 toolbarButtonStyle.fixedHeight = tabHeight * 1.5f;
             }*/
-        }
-
-        private void OnFocus()
-        {
-            // Refresh banner if needed
-            if (banner == null)
-            {
-                banner = Resources.Load<Texture2D>("VF3DBannerEditor");
-            }
         }
 
         private void InitializeTabGroups()
@@ -189,18 +177,8 @@ namespace VertexFormCore.Editor
 
         private void OnGUI()
         {
-            // First, draw the banner using layout
-            GUILayout.Space(5);
-            if (banner != null)
-            {
-                float bannerWidth = Mathf.Min(banner.width, position.width - 100);
-                float bannerHeight = ((bannerWidth / banner.width) * banner.height) / 1.2f;
-                GUILayout.Label(banner, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight), GUILayout.ExpandWidth(true));
-            }
-            else
-            {
-                EditorGUILayout.HelpBox("Banner image not found. Make sure 'VF3DBannerEditor' is inside the Resources folder.", MessageType.Warning);
-            }
+            // First, draw the header using layout
+            VertexFormEditorHeader.Draw(position.width);
 
             GUIStyle boldStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
             GUILayout.Label("CREATOR TOOLKIT", boldStyle);
