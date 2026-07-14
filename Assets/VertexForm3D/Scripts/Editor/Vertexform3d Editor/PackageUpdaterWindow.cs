@@ -513,9 +513,9 @@ public static class PackageImportResumer
 
 public class PackageUpdaterWindow : EditorWindow
 {
-    private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/Test/version.json";
+    private const string defaultPackageUrl = "https://storage.googleapis.com/vertexform_package_updater/Test2/version.json";
     private const string tempFileName = "downloaded_package.unitypackage";
-    private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/Test/version.json";
+    private const string jsonUrl = "https://storage.googleapis.com/vertexform_package_updater/Test2/version.json";
     private const string openUpmRegistryName = "OpenUPM";
     private const string openUpmRegistryUrl = "https://package.openupm.com";
     private const string webxrPackageId = "com.de-panther.webxr";
@@ -566,8 +566,9 @@ public class PackageUpdaterWindow : EditorWindow
             return releaseNotesRichTextStyle;
         }
     }
+    //
 
-    [MenuItem("Vertex-Form/Package Updater", false, 14)]
+    [MenuItem("Vertex Form/Package Updater", false, 14)]
     public static PackageUpdaterWindow ShowWindow()
     {
         return GetWindow<PackageUpdaterWindow>("Package Updater");

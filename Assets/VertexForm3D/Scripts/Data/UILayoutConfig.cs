@@ -208,7 +208,10 @@ public class UILayoutConfig : ScriptableObject
                 panelType = MainSectionPanelType.Places,
                 tabLabel = "Worlds",
                 enabled = true,
-                worldCategories = CreateDefaultWorldCategories()
+                // Prefer root legacy categories (scenes) over empty defaults when upgrading old assets.
+                worldCategories = worldCategories != null && worldCategories.Count > 0
+                    ? new List<Category>(worldCategories)
+                    : CreateDefaultWorldCategories()
             },
             new MainSectionPanelEntry
             {

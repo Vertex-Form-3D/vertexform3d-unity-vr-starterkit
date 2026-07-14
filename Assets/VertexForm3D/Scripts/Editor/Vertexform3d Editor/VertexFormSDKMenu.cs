@@ -12,7 +12,7 @@ namespace VertexFormCore.Editor
 {
     public static class VertexFormSDKMenu
     {
-        [MenuItem("Vertex-Form/Project Setup", false, 1)]
+        [MenuItem("Vertex Form/Project Setup", false, 1)]
         public static void OpenProjectSetup()
         {
             ProjectSetUpEditor window = EditorWindow.GetWindow<ProjectSetUpEditor>("Project SetUp");
@@ -21,7 +21,7 @@ namespace VertexFormCore.Editor
         }
 
 
-        [MenuItem("Vertex-Form/Main UI Database", false, 3)]
+        [MenuItem("Vertex Form/Main UI Database", false, 3)]
         public static void OpenMainMapUIDatabase()
         {
             string[] guids = AssetDatabase.FindAssets("t:UILayoutConfig");
@@ -40,7 +40,7 @@ namespace VertexFormCore.Editor
             EditorUtility.OpenPropertyEditor(configAsset);
             Debug.Log("Opened Main Map UI Database: " + assetPath);
         }
-        [MenuItem("Vertex-Form/Platform Selection", false, 2)]
+        [MenuItem("Vertex Form/Platform Selection", false, 2)]
         public static void OpenPlatformAndSettings()
         {
             string[] guids = AssetDatabase.FindAssets("t:Platforms");
@@ -59,7 +59,7 @@ namespace VertexFormCore.Editor
             EditorUtility.OpenPropertyEditor(configAsset);
             Debug.Log("Opened Platform and Settings: " + assetPath);
         }
-        [MenuItem("Vertex-Form/SettingsUI", false, 3)]
+        [MenuItem("Vertex Form/SettingsUI", false, 3)]
         public static void OpenSettingsUI()
         {
             string[] guids = AssetDatabase.FindAssets("t:SettingsUI");
@@ -79,7 +79,7 @@ namespace VertexFormCore.Editor
             Debug.Log("Opened SettingsUI: " + assetPath);
         }
 
-        [MenuItem("Vertex-Form/Creator Toolkit/Favorites", false, 4)]
+        [MenuItem("Vertex Form/Creator Toolkit/Favorites", false, 4)]
         public static void OpenFavorites()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
@@ -87,14 +87,14 @@ namespace VertexFormCore.Editor
         }
 
 
-        [MenuItem("Vertex-Form/Creator Toolkit/XR Game Objects", false, 5)]
+        [MenuItem("Vertex Form/Creator Toolkit/XR Game Objects", false, 5)]
         public static void OpenXRGameObjectsTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("XR GAME OBJECTS");
         }
 
-        [MenuItem("Vertex-Form/Creator Toolkit/Scene Switching", false, 6)]
+        [MenuItem("Vertex Form/Creator Toolkit/Scene Switching", false, 6)]
         public static void OpenSceneSwitchingTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
@@ -102,42 +102,42 @@ namespace VertexFormCore.Editor
         }
 
 
-        [MenuItem("Vertex-Form/Creator Toolkit/Player Position", false, 7)]
+        [MenuItem("Vertex Form/Creator Toolkit/Player Position", false, 7)]
         public static void OpenPlayerPositionTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("PLAYER POSITION");
         }
 
-        [MenuItem("Vertex-Form/Creator Toolkit/UI Elements", false, 8)]
+        [MenuItem("Vertex Form/Creator Toolkit/UI Elements", false, 8)]
         public static void OpenUIElementsTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("UI ELEMENTS");
         }
 
-        [MenuItem("Vertex-Form/Creator Toolkit/Presentation Tools", false, 9)]
+        [MenuItem("Vertex Form/Creator Toolkit/Presentation Tools", false, 9)]
         public static void OpenPresentationToolsTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("PRESENTATION TOOLS");
         }
 
-        [MenuItem("Vertex-Form/Creator Toolkit/Avatars", false, 10)]
+        [MenuItem("Vertex Form/Creator Toolkit/Avatars", false, 10)]
         public static void OpenAvatarsTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("AVATARS");
         }
 
-        [MenuItem("Vertex-Form/Creator Toolkit/Dev Tools", false, 11)]
+        [MenuItem("Vertex Form/Creator Toolkit/Dev Tools", false, 11)]
         public static void OpenDevToolsTab()
         {
             VertexFormToolkit window = EditorWindow.GetWindow<VertexFormToolkit>("VertexForm 3D");
             window.SelectTab("DEV TOOLS");
         }
 
-        [MenuItem("Vertex-Form/Build Addressables", false, 12)]
+        [MenuItem("Vertex Form/Build Addressables", false, 12)]
         public static void OpenBuildAddressablesWindow()
         {
             AddressablesBuildEditor window = EditorWindow.GetWindow<AddressablesBuildEditor>("Build Addressables");
@@ -145,7 +145,7 @@ namespace VertexFormCore.Editor
             window.Show();
         }
 
-        [MenuItem("Vertex-Form/XR Device Simulator", false, 1000)]
+        [MenuItem("Vertex Form/XR Device Simulator", false, 1000)]
         private static void AddXRDeviceSimulator()
         {
             GameObject g = Object.Instantiate(Resources.Load<GameObject>("CustomEditor/XR Device Simulator"));
@@ -153,7 +153,7 @@ namespace VertexFormCore.Editor
             EditorGUIUtility.PingObject(g);
         }
 
-        [MenuItem("Vertex-Form/Help", false, 15)]
+        [MenuItem("Vertex Form/Help", false, 15)]
         public static void OpenHelp()
         {
             VertexForm3DHelp.ShowWindow();

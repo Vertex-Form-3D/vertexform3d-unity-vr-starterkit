@@ -300,7 +300,7 @@ public class UILayoutConfigEditor : Editor
     void TryMigrateWorldCategoriesToPlacesPanels()
     {
         var config = target as UILayoutConfig;
-        if (config == null || config.worldCategories == null || config.worldCategories.Count == 0)
+        if (config == null || !CategoriesHaveWorlds(config.worldCategories))
             return;
 
         if (config.mainSectionPanelEntries == null)
@@ -310,7 +310,10 @@ public class UILayoutConfigEditor : Editor
         {
             if (entry == null || entry.panelType != MainSectionPanelType.Places)
                 continue;
-            if (entry.worldCategories != null && entry.worldCategories.Count > 0)
+
+            // Skip only when the Places panel already has real world/scene data.
+            // Empty default categories (Hubs/Geospatial/Other with no environments) must not block migration.
+            if (CategoriesHaveWorlds(entry.worldCategories))
                 continue;
 
             entry.worldCategories = new List<Category>(config.worldCategories);
@@ -318,6 +321,20 @@ public class UILayoutConfigEditor : Editor
             serializedObject.Update();
             break;
         }
+    }
+
+    static bool CategoriesHaveWorlds(List<Category> categories)
+    {
+        if (categories == null || categories.Count == 0)
+            return false;
+
+        foreach (var category in categories)
+        {
+            if (category?.environments != null && category.environments.Count > 0)
+                return true;
+        }
+
+        return false;
     }
 
     static void SeedDefaultWorldCategories(SerializedProperty worldCategoriesProp)
