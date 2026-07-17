@@ -18,6 +18,9 @@ public class SettingsUIEditor : Editor
         "Photon CCU: the session-list lobby uses a second NetworkRunner (one extra CCU) so worlds can show live player counts. " +
         "Choose game-sessions-only to skip that runner and hide counts, freeing a CCU for more players in rooms.";
 
+    private static readonly string IdleTimeoutHelp =
+        "IdleQuitDetector uses this value at runtime. After this many minutes with no input, the user is quit or sent home (per IdleQuitDetector on the login scene).";
+
     private void OnEnable()
     {
         hasInitializedDefaultSettingsFoldout = false;
@@ -74,6 +77,11 @@ public class SettingsUIEditor : Editor
 
         EditorGUILayout.Space(2);
         EditorGUILayout.HelpBox(PhotonCcuHelp, MessageType.Info);
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("idleTimeoutMinutes"));
+
+        EditorGUILayout.Space(2);
+        EditorGUILayout.HelpBox(IdleTimeoutHelp, MessageType.Info);
 
         serializedObject.ApplyModifiedProperties();
     }

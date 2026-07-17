@@ -622,14 +622,16 @@ public class PackageUpdaterWindow : EditorWindow
 
     private void OnGUI()
     {
+        VertexFormEditorHeader.Draw(position.width);
+
+        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
+
         GUILayout.Label("Unity Package Updater", EditorStyles.boldLabel);
         GUILayout.Space(10);
 
         EditorGUILayout.HelpBox("Check the latest package update information below. Click 'Update Package' to download and import all available newer versions sequentially.", MessageType.Info);
 
         GUILayout.Space(10);
-
-        scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
 
         if (updateInfo != null)
         {

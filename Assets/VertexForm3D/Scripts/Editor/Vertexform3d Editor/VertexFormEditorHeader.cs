@@ -36,14 +36,14 @@ public static class VertexFormEditorHeader
     }
 
     /// <summary>
-    /// Creates a window title: "[Logo] Vertex Form > {panelName}".
+    /// Creates a window title: "Vertex Form > {panelName}" (text only; branding banner is drawn in-window).
     /// </summary>
     public static GUIContent CreateWindowTitle(string panelName)
     {
         string text = string.IsNullOrEmpty(panelName)
             ? "Vertex Form"
             : $"{BrandedTitlePrefix}{panelName}";
-        return new GUIContent(text, LogoTexture);
+        return new GUIContent(text);
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public static class VertexFormEditorHeader
     }
 
     /// <summary>
-    /// Draws the large SDK banner (intended for Project Setup only).
+    /// Draws the large SDK banner at the top of Vertex Form editor windows.
     /// </summary>
     public static void Draw(float viewWidth)
     {

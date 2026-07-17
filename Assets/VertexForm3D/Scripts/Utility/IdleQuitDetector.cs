@@ -90,6 +90,11 @@ public class IdleQuitDetector : MonoBehaviour
     // Head movement below this (meters per frame) is treated as a headset resting on a desk.
     private const float HeadMoveThresholdMeters = 0.005f;
 
+    private void Start()
+    {
+        ApplyIdleTimeoutFromSettings();
+    }
+
     private void OnEnable()
     {
         actionStarted = false;
@@ -145,6 +150,16 @@ public class IdleQuitDetector : MonoBehaviour
     public void NotifyUserActivity()
     {
         ResetTimer();
+    }
+
+    private void ApplyIdleTimeoutFromSettings()
+    {
+        if (ProjectManager.instance == null || ProjectManager.instance.settingsUI == null)
+            return;
+
+        int minutes = ProjectManager.instance.settingsUI.idleTimeoutMinutes;
+        if (minutes > 0)
+            idleTimeout = minutes * 60f;
     }
 
     private void OnAnyInputPerformed(InputAction.CallbackContext context)

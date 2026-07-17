@@ -18,8 +18,7 @@ public class VertexForm3DHelp : EditorWindow
 
     private void OnGUI()
     {
-        GUILayout.Space(10);
-        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        VertexFormEditorHeader.Draw(position.width);
 
         EditorGUILayout.LabelField("Need Help? Reach Out to Us!", EditorStyles.boldLabel);
         GUILayout.Space(5);
