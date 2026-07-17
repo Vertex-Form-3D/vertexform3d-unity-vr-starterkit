@@ -8,14 +8,20 @@ public class ProjectSetUpEditor : EditorWindow
 
     public static void ShowWindow()
     {
-        GetWindow<ProjectSetUpEditor>("Project Setup");
+        var window = GetWindow<ProjectSetUpEditor>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Project Setup");
+    }
+
+    private void OnEnable()
+    {
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Project Setup");
     }
 
     private void OnGUI()
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-        // Header
+        // Large banner kept only on Project Setup
         VertexFormEditorHeader.Draw(position.width);
 
         EditorGUILayout.Space(20);

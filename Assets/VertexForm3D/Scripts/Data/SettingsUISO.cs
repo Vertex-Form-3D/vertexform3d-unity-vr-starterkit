@@ -12,6 +12,7 @@ public enum PhotonCcuAllocation
 }
 
 [CreateAssetMenu(fileName = "SettingsUI", menuName = "Scriptable Objects/SettingsUI")]
+[Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
 public class SettingsUISO : ScriptableObject
 {
     public string anonymousUserNamePrefix = "Mystery Guest_";

@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 public class SettingsUIEditor : Editor
 {
     private const string SettingsUIPrefabFileName = "SettingsUI.prefab";
+    private const string WindowPanelName = "Settings";
     private bool hasInitializedDefaultSettingsFoldout;
 
     private static readonly string DefaultSettingsHelp =
@@ -20,11 +21,12 @@ public class SettingsUIEditor : Editor
     private void OnEnable()
     {
         hasInitializedDefaultSettingsFoldout = false;
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
     }
 
     public override void OnInspectorGUI()
     {
-        VertexFormEditorHeader.Draw();
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
 
         serializedObject.Update();
 

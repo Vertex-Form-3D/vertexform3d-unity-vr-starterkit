@@ -13,13 +13,19 @@ namespace VertexFormCore.Editor
 
         public static void Open(ToolkitItem item, EditorWindow parentWindow, FavoritesTab favoritesTab)
         {
-            ToolkitDetailWindow window = GetWindow<ToolkitDetailWindow>("Toolkit Item Details");
+            ToolkitDetailWindow window = GetWindow<ToolkitDetailWindow>();
+            VertexFormEditorHeader.ApplyWindowTitle(window, "Toolkit Item Details");
             window.item = item;
             window.parentWindow = parentWindow;
             window.favoritesTab = favoritesTab;
             window.parentToolkitWindow = parentWindow as VertexFormToolkit;
             window.minSize = new Vector2(400, 600);
             window.Show();
+        }
+
+        private void OnEnable()
+        {
+            VertexFormEditorHeader.ApplyWindowTitle(this, "Toolkit Item Details");
         }
 
         private void OnGUI()
@@ -29,9 +35,6 @@ namespace VertexFormCore.Editor
                 Close();
                 return;
             }
-
-            // Draw Header
-            VertexFormEditorHeader.Draw(position.width);
 
             // Back Button
             GUILayout.Space(10);

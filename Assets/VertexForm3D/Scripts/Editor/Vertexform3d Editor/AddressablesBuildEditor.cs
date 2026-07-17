@@ -17,13 +17,15 @@ public class AddressablesBuildEditor : EditorWindow
 
     public static void ShowWindow()
     {
-        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>("VertexForm3D Addressables");
+        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Addressables Management");
         window.minSize = new Vector2(500, 600);
         window.Show();
     }
 
     private void OnEnable()
     {
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Addressables Management");
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso != null)
         {
@@ -48,9 +50,6 @@ public class AddressablesBuildEditor : EditorWindow
         GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20, alignment = TextAnchor.MiddleCenter, margin = new RectOffset(0, 0, 10, 10) };
         GUIStyle sectionStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 14, margin = new RectOffset(10, 10, 5, 5) };
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 12, padding = new RectOffset(10, 10, 5, 5), margin = new RectOffset(10, 10, 5, 5) };
-
-        // Header
-        VertexFormEditorHeader.Draw(position.width);
 
         // Title
         GUILayout.Label("Addressables Management", titleStyle);

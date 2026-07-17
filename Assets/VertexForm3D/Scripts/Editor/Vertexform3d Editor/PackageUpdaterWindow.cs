@@ -327,7 +327,8 @@ public static class PackageImportResumer
             // Refresh update info
             EditorApplication.delayCall += () =>
             {
-                var window = EditorWindow.GetWindow<PackageUpdaterWindow>("Package Updater", false);
+                var window = EditorWindow.GetWindow<PackageUpdaterWindow>(false);
+                VertexFormEditorHeader.ApplyWindowTitle(window, "Package Updater");
                 if (window != null)
                 {
                     Unity.EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(window.FetchUpdateInfo());
@@ -445,7 +446,8 @@ public static class PackageImportResumer
             // Refresh update info
             EditorApplication.delayCall += () =>
             {
-                var window = EditorWindow.GetWindow<PackageUpdaterWindow>("Package Updater", false);
+                var window = EditorWindow.GetWindow<PackageUpdaterWindow>(false);
+                VertexFormEditorHeader.ApplyWindowTitle(window, "Package Updater");
                 if (window != null)
                 {
                     Unity.EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(window.FetchUpdateInfo());
@@ -571,7 +573,9 @@ public class PackageUpdaterWindow : EditorWindow
     [MenuItem("Vertex Form/Package Updater", false, 14)]
     public static PackageUpdaterWindow ShowWindow()
     {
-        return GetWindow<PackageUpdaterWindow>("Package Updater");
+        var window = GetWindow<PackageUpdaterWindow>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Package Updater");
+        return window;
     }
 
     /// <summary>
@@ -580,7 +584,8 @@ public class PackageUpdaterWindow : EditorWindow
     /// </summary>
     public static void ShowWindowAndUpdate(string packageUrl, string version = "Latest", string releaseNotes = "Update available from version.json")
     {
-        var window = GetWindow<PackageUpdaterWindow>("Package Updater");
+        var window = GetWindow<PackageUpdaterWindow>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Package Updater");
         window.Show();
 
         // Create a temporary PackageUpdateInfo with the URL
@@ -600,6 +605,7 @@ public class PackageUpdaterWindow : EditorWindow
 
     private void OnEnable()
     {
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Package Updater");
         Debug.Log($"[PackageUpdater] OnEnable called. HasPackagesToImport: {EditorPrefs.GetBool(PrefKey_HasPackagesToImport, false)}");
         RefreshWebXRInstalledState();
         EditorCoroutineUtility.StartCoroutineOwnerless(FetchUpdateInfo());
@@ -616,8 +622,6 @@ public class PackageUpdaterWindow : EditorWindow
 
     private void OnGUI()
     {
-        VertexFormEditorHeader.Draw(position.width);
-
         GUILayout.Label("Unity Package Updater", EditorStyles.boldLabel);
         GUILayout.Space(10);
 

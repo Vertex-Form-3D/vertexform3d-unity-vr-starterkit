@@ -184,7 +184,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8760440307939310241}
   - component: {fileID: 530759986040293045}
-  - component: {fileID: 5705055970647895067}
   - component: {fileID: 5772689704957484011}
   m_Layer: 0
   m_Name: Camera
@@ -259,14 +258,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &5705055970647895067
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6496859351492612052}
-  m_Enabled: 1
 --- !u!114 &5772689704957484011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -748,6 +739,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!82 &8683219644163387768

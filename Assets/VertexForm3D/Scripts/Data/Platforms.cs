@@ -21,6 +21,7 @@ public static class PlatformPresentation
 }
 
 [CreateAssetMenu(fileName = "Platform and Settings", menuName = "ScriptableObjects/Platform and Settings", order = 1)]
+[Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
 public class Platforms : ScriptableObject
 {
     public platform platformChoice = platform.VR;

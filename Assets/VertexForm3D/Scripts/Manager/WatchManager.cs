@@ -51,6 +51,8 @@ public class WatchManager : MonoBehaviour
     public void ManageEmojiPanel()
     {
         emojiPanel.SetActive(!emojiPanel.activeInHierarchy);
+        var playerSetup = GetComponentInParent<PlayerNetworkSetup>();
+        playerSetup?.playerUIManager?.RefreshInputLockFromOpenPanels();
     }
 
     public void ShowTime()

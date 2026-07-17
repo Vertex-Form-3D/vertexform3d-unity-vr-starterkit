@@ -10,10 +10,16 @@ public class ProjectDataScriptableObjectEditor : UnityEditor.Editor
     private const string EmailObjectName = "Email";
     private const string LogoImageName = "VertexForm3D_Logo";
     private const string BackgroundImageName = "VertexForm3D_Background";
+    private const string WindowPanelName = "Project Data";
+
+    private void OnEnable()
+    {
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+    }
 
     public override void OnInspectorGUI()
     {
-        VertexFormEditorHeader.Draw();
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
 
         DrawDefaultInspector();
 

@@ -14,6 +14,9 @@ using VertexFormCore;
 /// PC Standalone use Application.Quit(); WebGL additionally calls a browser hook that closes
 /// the tab when allowed, or replaces the page with a "Session ended / Rejoin" screen.
 ///
+/// Use <see cref="enableOnWebGL"/>, <see cref="enableOnAndroidVR"/>, and <see cref="enableOnDesktop"/>
+/// to turn idle handling on or off per platform (all enabled by default).
+///
 /// Activity is detected automatically on every platform — any button press on any device (keyboard,
 /// mouse, gamepad, XR controllers, touch), pointer movement, and VR headset presence / head motion —
 /// so no Input Action assets need to be wired. <see cref="actionAssets"/> is an optional extra source.
@@ -32,6 +35,17 @@ public class IdleQuitDetector : MonoBehaviour
     [Tooltip("Optional extra Input System assets whose actions also reset the AFK timer. Device-wide button presses, pointer motion and VR headset presence are already detected automatically.")]
     public InputActionAsset[] actionAssets;
 
+    [Header("Platform Enable")]
+    [Tooltip("Run AFK idle handling on WebGL builds.")]
+    public bool enableOnWebGL = true;
+
+    [Tooltip("Run AFK idle handling on Android / Quest VR builds.")]
+    public bool enableOnAndroidVR = true;
+
+    [Tooltip("Run AFK idle handling on Desktop standalone builds (Windows, Mac, Linux). Also applies in the Unity Editor.")]
+    public bool enableOnDesktop = true;
+
+    [Header("Idle Settings")]
     [Tooltip("Time in seconds of inactivity before considering the user idle")]
     public float idleTimeout = 600f;
 
@@ -152,10 +166,37 @@ public class IdleQuitDetector : MonoBehaviour
     private static bool IsInRoom =>
         RoomManager.Instance != null && RoomManager.Instance.IsRunnerBusy;
 
+    /// <summary>
+    /// True when idle handling is enabled for the platform this build is running on.
+    /// </summary>
+    public bool IsEnabledOnCurrentPlatform
+    {
+        get
+        {
+#if UNITY_EDITOR
+            return enableOnDesktop;
+#elif UNITY_WEBGL
+            return enableOnWebGL;
+#elif UNITY_ANDROID
+            return enableOnAndroidVR;
+#else
+            return enableOnDesktop;
+#endif
+        }
+    }
+
     private void Update()
     {
         if (actionStarted)
             return;
+
+        // Platform toggle off: keep timer at zero and skip idle actions.
+        if (!IsEnabledOnCurrentPlatform)
+        {
+            ResetTimer();
+            CurrentIdleTime = 0f;
+            return;
+        }
 
         if (DetectPolledActivity())
             ResetTimer();

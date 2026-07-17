@@ -312,7 +312,7 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
     {
         var window = CreateInstance<VertexForm3DUpdatePromptWindow>();
         window.bodyText = body ?? string.Empty;
-        window.titleContent = new GUIContent("Vertex Form 3D SDK Update Available");
+        VertexFormEditorHeader.ApplyWindowTitle(window, "SDK Update Available");
         window.minSize = new Vector2(460, 320);
         window.ShowUtility();
     }
@@ -326,8 +326,6 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
                 richText = true
             };
         }
-
-        VertexFormEditorHeader.Draw(position.width);
 
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
         EditorGUILayout.LabelField(bodyText, richTextWrappedLabel);

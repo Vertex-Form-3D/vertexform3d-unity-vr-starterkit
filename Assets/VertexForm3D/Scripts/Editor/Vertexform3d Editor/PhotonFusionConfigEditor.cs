@@ -23,11 +23,13 @@ public class PhotonFusionConfigEditor : EditorWindow
     [MenuItem("Window/Photon Fusion Config Manager")]
     public static void ShowWindow()
     {
-        GetWindow<PhotonFusionConfigEditor>("Photon Fusion Config Manager");
+        var window = GetWindow<PhotonFusionConfigEditor>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Photon Fusion Config");
     }
 
     private void OnEnable()
     {
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Photon Fusion Config");
         filePath = Path.Combine(Application.persistentDataPath, "PhotonFusionConfig.json");
         LoadAllData();
     }
@@ -35,8 +37,6 @@ public class PhotonFusionConfigEditor : EditorWindow
     private void OnGUI()
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-
-        VertexFormEditorHeader.Draw(position.width);
 
         GUILayout.Label("Photon Fusion & Voice Configuration", EditorStyles.largeLabel);
         EditorGUILayout.Space(5);

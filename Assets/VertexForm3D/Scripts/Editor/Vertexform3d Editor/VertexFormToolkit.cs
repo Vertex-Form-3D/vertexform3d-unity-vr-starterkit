@@ -135,6 +135,7 @@ namespace VertexFormCore.Editor
 
         private void OnEnable()
         {
+            VertexFormEditorHeader.ApplyWindowTitle(this, "Creator Toolkit");
             InitializeTabGroups();
 
             // Set up toolbar button style for two-line tabs
@@ -177,9 +178,6 @@ namespace VertexFormCore.Editor
 
         private void OnGUI()
         {
-            // First, draw the header using layout
-            VertexFormEditorHeader.Draw(position.width);
-
             GUIStyle boldStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
             GUILayout.Label("CREATOR TOOLKIT", boldStyle);
             // Add space after banner

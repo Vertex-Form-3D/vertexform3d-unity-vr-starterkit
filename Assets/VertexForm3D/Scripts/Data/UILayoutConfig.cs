@@ -8,6 +8,7 @@ using UnityEngine;
 /// Main section panels are defined as an ordered list (drag to reorder in the editor).
 /// </summary>
 [CreateAssetMenu(fileName = "Main UI Database", menuName = "VertexForm3D/Main UI Database", order = 0)]
+[Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
 public class UILayoutConfig : ScriptableObject
 {
     public const int MainPanelIndex = 0;

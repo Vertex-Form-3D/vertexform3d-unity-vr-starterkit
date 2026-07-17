@@ -7,6 +7,7 @@ public class PlatformAndSettingsEditor : Editor
 {
     /// <summary>Below this inspector width, first two guides stack vertically so text stays readable.</summary>
     private const float MinWidthSideBySide = 420f;
+    private const string WindowPanelName = "Platforms";
 
     private static GUIStyle s_RichWordWrap;
 
@@ -20,9 +21,14 @@ public class PlatformAndSettingsEditor : Editor
         }
     }
 
+    private void OnEnable()
+    {
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+    }
+
     public override void OnInspectorGUI()
     {
-        VertexFormEditorHeader.Draw();
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
 
         serializedObject.Update();
 

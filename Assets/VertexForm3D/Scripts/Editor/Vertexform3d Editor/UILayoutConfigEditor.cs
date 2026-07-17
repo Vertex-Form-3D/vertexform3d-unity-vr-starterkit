@@ -42,9 +42,11 @@ public class UILayoutConfigEditor : Editor
 
     private const float PanelListDragHandleWidth = 10f;
     private const float PanelListDragHandleGap = 2f;
+    private const string WindowPanelName = "Main UI Database";
 
     private void OnEnable()
     {
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
         _leftSectionEnabled = serializedObject.FindProperty("leftSectionEnabled");
         _leftSectionText = serializedObject.FindProperty("leftSectionText");
         _mainSectionPanelEntries = serializedObject.FindProperty("mainSectionPanelEntries");
@@ -380,7 +382,7 @@ public class UILayoutConfigEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        VertexFormEditorHeader.Draw();
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
 
         serializedObject.Update();
         EnsureFoldoutArray();

@@ -96,9 +96,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IdleQuitDetector
   actionAssets: []
+  enableOnWebGL: 1
+  enableOnAndroidVR: 0
+  enableOnDesktop: 0
   idleTimeout: 600
   idleAction: 1
-  onlyCountWhenInRoom: 1
+  onlyCountWhenInRoom: 0
   leaveNetworkSessionFirst: 1
   maxWaitForNetworkLeave: 20
   webGLSessionEndedMessage: You were disconnected because you were inactive for too
@@ -2717,7 +2720,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6183380161747931381, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6875081996172634699, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
       propertyPath: m_ActionAssets.Array.size

@@ -5,16 +5,19 @@ public class VertexForm3DHelp : EditorWindow
 {
     public static void ShowWindow()
     {
-        VertexForm3DHelp window = GetWindow<VertexForm3DHelp>("Help & Support");
-        window.minSize = new Vector2(450, 350); // Adjusted window size
+        VertexForm3DHelp window = GetWindow<VertexForm3DHelp>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Help & Support");
+        window.minSize = new Vector2(450, 350);
         window.Show();
+    }
+
+    private void OnEnable()
+    {
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Help & Support");
     }
 
     private void OnGUI()
     {
-        // Header
-        VertexFormEditorHeader.Draw(position.width);
-
         GUILayout.Space(10);
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 

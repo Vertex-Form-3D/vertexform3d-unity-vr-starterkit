@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "Project Data SO", menuName = "ScriptableObjects/Project Data System", order = 1)]
+[Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
 public class ProjectDataScriptableObject : ScriptableObject
 {
     public ProjectData projectData;
