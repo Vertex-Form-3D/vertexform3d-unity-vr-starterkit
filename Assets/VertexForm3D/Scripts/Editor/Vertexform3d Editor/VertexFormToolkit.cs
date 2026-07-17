@@ -178,10 +178,7 @@ namespace VertexFormCore.Editor
 
         private void OnGUI()
         {
-            GUIStyle boldStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
-            GUILayout.Label("CREATOR TOOLKIT", boldStyle);
-            // Add space after banner
-            GUILayout.Space(10);
+            VertexFormEditorHeader.DrawPanelTitle("Creator Toolkit");
 
             // Reserve space for tabs using GUILayout
             Rect tabAreaRect = GUILayoutUtility.GetRect(position.width, tabHeight * 1.5f);

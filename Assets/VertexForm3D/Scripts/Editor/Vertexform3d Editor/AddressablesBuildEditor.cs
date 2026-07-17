@@ -46,13 +46,12 @@ public class AddressablesBuildEditor : EditorWindow
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
 
+        VertexFormEditorHeader.DrawPanelTitle("Addressables Management");
+
         // Styles
-        GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20, alignment = TextAnchor.MiddleCenter, margin = new RectOffset(0, 0, 10, 10) };
         GUIStyle sectionStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 14, margin = new RectOffset(10, 10, 5, 5) };
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 12, padding = new RectOffset(10, 10, 5, 5), margin = new RectOffset(10, 10, 5, 5) };
 
-        // Title
-        GUILayout.Label("Addressables Management", titleStyle);
         EditorGUILayout.HelpBox("This window manages the Addressables system for your project, allowing you to configure, build, and manage local and remote asset bundles.", MessageType.Info, true);
 
         // Build Button

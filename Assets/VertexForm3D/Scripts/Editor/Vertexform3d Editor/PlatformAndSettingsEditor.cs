@@ -29,6 +29,7 @@ public class PlatformAndSettingsEditor : Editor
     public override void OnInspectorGUI()
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+        VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
 
         serializedObject.Update();
 

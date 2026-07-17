@@ -383,6 +383,7 @@ public class UILayoutConfigEditor : Editor
     public override void OnInspectorGUI()
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+        VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
 
         serializedObject.Update();
         EnsureFoldoutArray();

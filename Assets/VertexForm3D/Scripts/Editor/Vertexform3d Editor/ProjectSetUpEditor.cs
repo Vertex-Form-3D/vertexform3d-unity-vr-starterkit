@@ -24,9 +24,9 @@ public class ProjectSetUpEditor : EditorWindow
         // Large banner kept only on Project Setup
         VertexFormEditorHeader.Draw(position.width);
 
-        EditorGUILayout.Space(20);
+        EditorGUILayout.Space(12);
+        VertexFormEditorHeader.DrawPanelTitle("Project Setup");
 
-        GUIStyle headerStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
         GUIStyle subHeaderStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 18 };
         GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
         boxStyle.normal.background = MakeTex(2, 2, new Color(0.13f, 0.13f, 0.13f)); // Dark gray
@@ -38,9 +38,6 @@ public class ProjectSetUpEditor : EditorWindow
             fontSize = 13,
             normal = { textColor = Color.white }
         };
-
-        GUILayout.Label("PROJECT SETUP", headerStyle);
-        EditorGUILayout.Space(15);
 
         DrawSection("Project Settings", subHeaderStyle, boxStyle, textStyle,
             "Step 1: Open Player Settings\n" +

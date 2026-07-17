@@ -3,17 +3,19 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Shared Vertex Form editor chrome: Project Setup banner, and branded window titles
-/// of the form "[Logo] Vertex Form > Panel Name".
+/// Shared Vertex Form editor chrome: Project Setup banner, large panel titles,
+/// and branded window titles of the form "Vertex Form > Panel Name".
 /// </summary>
 public static class VertexFormEditorHeader
 {
     private const string HeaderAssetPath = "Assets/VertexForm3D/UI/vertexform-header-for-SDK.png";
     private const string LogoAssetPath = "Assets/VertexForm3D/UI/vertexform-Logo.png";
     private const string BrandedTitlePrefix = "Vertex Form > ";
+    private const float PanelTitleBottomSpace = 18f;
 
     private static Texture2D cachedHeader;
     private static Texture2D cachedLogo;
+    private static GUIStyle panelTitleStyle;
 
     private static Texture2D HeaderTexture
     {
@@ -80,6 +82,40 @@ public static class VertexFormEditorHeader
     public static void BrandHostWindow(Object target, string panelName)
     {
         // No-op for docked Inspector. Floating SO panels use VertexFormScriptableObjectWindow.
+    }
+
+    private static GUIStyle PanelTitleStyle
+    {
+        get
+        {
+            if (panelTitleStyle == null)
+            {
+                panelTitleStyle = new GUIStyle(EditorStyles.label)
+                {
+                    fontStyle = FontStyle.Bold,
+                    fontSize = 25,
+                    alignment = TextAnchor.MiddleLeft,
+                    wordWrap = true,
+                    padding = new RectOffset(0, 0, 4, 0),
+                    margin = new RectOffset(4, 4, 6, 0)
+                };
+            }
+
+            return panelTitleStyle;
+        }
+    }
+
+    /// <summary>
+    /// Draws the large all-caps panel title used across Vertex Form windows
+    /// (same style as Creator Toolkit), with space below before content.
+    /// </summary>
+    public static void DrawPanelTitle(string title)
+    {
+        if (string.IsNullOrEmpty(title))
+            return;
+
+        GUILayout.Label(title.ToUpperInvariant(), PanelTitleStyle);
+        GUILayout.Space(PanelTitleBottomSpace);
     }
 
     /// <summary>

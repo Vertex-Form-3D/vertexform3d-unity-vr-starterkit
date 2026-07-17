@@ -38,8 +38,7 @@ public class PhotonFusionConfigEditor : EditorWindow
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-        GUILayout.Label("Photon Fusion & Voice Configuration", EditorStyles.largeLabel);
-        EditorGUILayout.Space(5);
+        VertexFormEditorHeader.DrawPanelTitle("Photon Fusion Config");
 
         EditorGUILayout.HelpBox(
             "Manage your Photon Fusion, Voice, and Ready Player Me configuration in one place.\n" +

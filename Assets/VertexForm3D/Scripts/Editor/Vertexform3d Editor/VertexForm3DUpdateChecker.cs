@@ -319,6 +319,8 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
 
     private void OnGUI()
     {
+        VertexFormEditorHeader.DrawPanelTitle("SDK Update Available");
+
         if (richTextWrappedLabel == null)
         {
             richTextWrappedLabel = new GUIStyle(EditorStyles.wordWrappedLabel)

@@ -20,6 +20,7 @@ public class ProjectDataScriptableObjectEditor : UnityEditor.Editor
     public override void OnInspectorGUI()
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+        VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
 
         DrawDefaultInspector();
 

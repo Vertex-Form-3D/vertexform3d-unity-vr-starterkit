@@ -37,6 +37,8 @@ namespace VertextFormCore
         /// </summary>
         private void OnGUI()
         {
+            VertexFormEditorHeader.DrawPanelTitle("Scene Changer");
+
             // Responsible for showing available scenes
             for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
             {
