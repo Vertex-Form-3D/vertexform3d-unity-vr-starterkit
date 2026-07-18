@@ -384,6 +384,7 @@ public class UILayoutConfigEditor : Editor
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
         VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
+        VertexFormEditorHeader.BeginPanelBody();
 
         serializedObject.Update();
         EnsureFoldoutArray();
@@ -400,6 +401,8 @@ public class UILayoutConfigEditor : Editor
         DrawApplyToSceneBlock();
 
         serializedObject.ApplyModifiedProperties();
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 
     private void DrawApplyToSceneBlock()

@@ -626,6 +626,7 @@ public class PackageUpdaterWindow : EditorWindow
         VertexFormEditorHeader.DrawPanelTitle("Package Updater");
 
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
+        VertexFormEditorHeader.BeginPanelBody();
 
         EditorGUILayout.HelpBox("Check the latest package update information below. Click 'Update Package' to download and import all available newer versions sequentially.", MessageType.Info);
 
@@ -745,9 +746,12 @@ public class PackageUpdaterWindow : EditorWindow
             EditorGUI.ProgressBar(EditorGUILayout.GetControlRect(), downloadProgress, progressText);
         }
 
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
 
+        VertexFormEditorHeader.BeginPanelBody();
         GUILayout.Label("Status: " + statusMessage, EditorStyles.miniLabel);
+        VertexFormEditorHeader.EndPanelBody();
     }
 
     public IEnumerator FetchUpdateInfo()

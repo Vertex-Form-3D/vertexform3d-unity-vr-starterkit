@@ -320,6 +320,7 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
     private void OnGUI()
     {
         VertexFormEditorHeader.DrawPanelTitle("SDK Update Available");
+        VertexFormEditorHeader.BeginPanelBody();
 
         if (richTextWrappedLabel == null)
         {
@@ -357,6 +358,8 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
             Close();
         }
         EditorGUILayout.EndHorizontal();
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 }
 

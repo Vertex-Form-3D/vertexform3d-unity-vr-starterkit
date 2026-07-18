@@ -47,6 +47,7 @@ public class AddressablesBuildEditor : EditorWindow
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
 
         VertexFormEditorHeader.DrawPanelTitle("Addressables Management");
+        VertexFormEditorHeader.BeginPanelBody();
 
         // Styles
         GUIStyle sectionStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 14, margin = new RectOffset(10, 10, 5, 5) };
@@ -176,6 +177,7 @@ public class AddressablesBuildEditor : EditorWindow
         // EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(10);
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
     }
 

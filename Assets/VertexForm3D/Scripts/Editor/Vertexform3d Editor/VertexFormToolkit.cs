@@ -179,12 +179,13 @@ namespace VertexFormCore.Editor
         private void OnGUI()
         {
             VertexFormEditorHeader.DrawPanelTitle("Creator Toolkit");
+            VertexFormEditorHeader.BeginPanelBody();
 
             // Reserve space for tabs using GUILayout
-            Rect tabAreaRect = GUILayoutUtility.GetRect(position.width, tabHeight * 1.5f);
+            Rect tabAreaRect = GUILayoutUtility.GetRect(VertexFormEditorHeader.PanelBodyWidth(position.width), tabHeight * 1.5f);
 
             // Calculate available width for tabs
-            float availableWidth = position.width - 10;
+            float availableWidth = tabAreaRect.width - 10;
             float tabWidth = availableWidth / tabGroups.Count;
 
             // Calculate dynamic font size based on tab width
@@ -346,6 +347,8 @@ namespace VertexFormCore.Editor
 
                 GUILayout.EndScrollView();
             }
+
+            VertexFormEditorHeader.EndPanelBody();
         }
 
         private void DrawSubTabs()
@@ -373,7 +376,7 @@ namespace VertexFormCore.Editor
             }
 
             // Calculate available width for subtabs (same as main tabs)
-            float availableWidth = position.width - 10;
+            float availableWidth = VertexFormEditorHeader.PanelBodyWidth(position.width) - 10;
             float subTabWidth = availableWidth / subCategories.Count;
 
             // Calculate dynamic font size based on tab width (same logic as main tabs)
@@ -392,7 +395,7 @@ namespace VertexFormCore.Editor
             EditorGUILayout.LabelField("Sub-Categories:", subtitleStyle);
 
             // Reserve space for subtabs using GUILayout (similar to main tabs)
-            Rect subTabAreaRect = GUILayoutUtility.GetRect(position.width - 20, subTabHeight * 1.5f);
+            Rect subTabAreaRect = GUILayoutUtility.GetRect(availableWidth - 10, subTabHeight * 1.5f);
 
             // Create base subtab style mirroring the main tab base style
             GUIStyle baseSubTabStyle = new GUIStyle(EditorStyles.toolbarButton);
@@ -598,7 +601,7 @@ namespace VertexFormCore.Editor
 
             // Calculate total required width and available width
             float totalRequiredWidth = tabWidths.Values.Sum();
-            float availableWidth = position.width - 10;
+            float availableWidth = VertexFormEditorHeader.PanelBodyWidth(position.width) - 10;
             bool tabsNeedOverlap = totalRequiredWidth > availableWidth;
 
             // Use a horizontal layout for the tabs
@@ -678,7 +681,7 @@ namespace VertexFormCore.Editor
             }
 
             // Calculate how many tiles can fit in a row based on window width
-            float availableWidth = position.width - 20; // Subtract for margins
+            float availableWidth = VertexFormEditorHeader.PanelBodyWidth(position.width) - 20; // Subtract for margins
             int tilesPerRow = Mathf.Max(1, Mathf.FloorToInt(availableWidth / (tileWidth + spacing)));
             int rowCount = Mathf.CeilToInt((float)itemCount / tilesPerRow);
 

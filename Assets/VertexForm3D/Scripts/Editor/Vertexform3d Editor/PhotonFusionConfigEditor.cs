@@ -39,6 +39,7 @@ public class PhotonFusionConfigEditor : EditorWindow
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
         VertexFormEditorHeader.DrawPanelTitle("Photon Fusion Config");
+        VertexFormEditorHeader.BeginPanelBody();
 
         EditorGUILayout.HelpBox(
             "Manage your Photon Fusion, Voice, and Ready Player Me configuration in one place.\n" +
@@ -119,6 +120,7 @@ public class PhotonFusionConfigEditor : EditorWindow
             EditorGUILayout.HelpBox("✓ PhotonAppSettings.asset found and ready.", MessageType.Info);
         }
 
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
     }
 

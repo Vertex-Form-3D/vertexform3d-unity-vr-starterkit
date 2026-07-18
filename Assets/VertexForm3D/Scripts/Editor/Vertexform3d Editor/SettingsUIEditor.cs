@@ -19,7 +19,7 @@ public class SettingsUIEditor : Editor
         "Choose game-sessions-only to skip that runner and hide counts, freeing a CCU for more players in rooms.";
 
     private static readonly string IdleTimeoutHelp =
-        "IdleQuitDetector uses this value at runtime. After this many minutes with no input, the user is quit or sent home (per IdleQuitDetector on the login scene).";
+        "Set the number of minutes a user can remain inactive before IdleQuitDetector automatically quits the session or returns them to the Home scene (configured on the Login scene).";
 
     private void OnEnable()
     {
@@ -31,6 +31,7 @@ public class SettingsUIEditor : Editor
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
         VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
+        VertexFormEditorHeader.BeginPanelBody();
 
         serializedObject.Update();
 
@@ -85,5 +86,7 @@ public class SettingsUIEditor : Editor
         EditorGUILayout.HelpBox(IdleTimeoutHelp, MessageType.Info);
 
         serializedObject.ApplyModifiedProperties();
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 }

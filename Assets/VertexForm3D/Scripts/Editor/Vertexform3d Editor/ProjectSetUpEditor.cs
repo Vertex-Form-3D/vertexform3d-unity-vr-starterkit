@@ -26,6 +26,7 @@ public class ProjectSetUpEditor : EditorWindow
 
         EditorGUILayout.Space(12);
         VertexFormEditorHeader.DrawPanelTitle("Project Setup");
+        VertexFormEditorHeader.BeginPanelBody();
 
         GUIStyle subHeaderStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 18 };
         GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
@@ -101,22 +102,7 @@ public class ProjectSetUpEditor : EditorWindow
             }
         }
         GUILayout.EndVertical();
-
-        EditorGUILayout.Space(15);
-
-        DrawSection("Cesium Setup", subHeaderStyle, boxStyle, textStyle,
-            "Step 1: Open Cesium Panel\n" +
-            "Click the Cesium button from the menu.\n\n" +
-            "Step 2: Connect to Cesium ion\n" +
-            "Tap the Connect button and follow the browser login.\n\n" +
-            "Step 3: Authorize Access\n" +
-            "Allow permissions on the Cesium website.\n\n" +
-            "Step 4: Return to Unity\n" +
-            "Unity will auto-complete the link once you return.",
-            "Open Cesium Window",
-            () => EditorApplication.ExecuteMenuItem("Cesium/Cesium")
-        );
-
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
     }
 

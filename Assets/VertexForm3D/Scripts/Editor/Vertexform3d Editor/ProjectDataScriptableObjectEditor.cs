@@ -21,6 +21,7 @@ public class ProjectDataScriptableObjectEditor : UnityEditor.Editor
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
         VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
+        VertexFormEditorHeader.BeginPanelBody();
 
         DrawDefaultInspector();
 
@@ -29,6 +30,8 @@ public class ProjectDataScriptableObjectEditor : UnityEditor.Editor
         {
             ApplyToPrefab();
         }
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 
     private void ApplyToPrefab()

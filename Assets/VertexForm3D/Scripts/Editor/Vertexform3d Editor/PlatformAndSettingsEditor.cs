@@ -30,6 +30,7 @@ public class PlatformAndSettingsEditor : Editor
     {
         VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
         VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
+        VertexFormEditorHeader.BeginPanelBody();
 
         serializedObject.Update();
 
@@ -61,6 +62,7 @@ public class PlatformAndSettingsEditor : Editor
         {
             EditorGUILayout.HelpBox("No platform guides configured. Right-click the asset and select Reset to populate defaults.", MessageType.Info);
             serializedObject.ApplyModifiedProperties();
+            VertexFormEditorHeader.EndPanelBody();
             return;
         }
 
@@ -68,7 +70,7 @@ public class PlatformAndSettingsEditor : Editor
         EditorGUILayout.Space(4);
 
         float viewW = EditorGUIUtility.currentViewWidth;
-        float usableW = Mathf.Max(100f, viewW - 20f);
+        float usableW = Mathf.Max(100f, VertexFormEditorHeader.PanelBodyWidth(viewW) - 20f);
         int helpBoxPadH = EditorStyles.helpBox.padding.left + EditorStyles.helpBox.padding.right;
 
         if (guides.Count >= 2)
@@ -130,6 +132,8 @@ public class PlatformAndSettingsEditor : Editor
                 editedPlatforms.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser;
             DesktopMobileControlSettings.SetUseMobileControls(shouldUseMobileControls);
         }
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 
     /// <param name="innerContentWidth">Width inside the help box for one row (after horizontal padding).</param>

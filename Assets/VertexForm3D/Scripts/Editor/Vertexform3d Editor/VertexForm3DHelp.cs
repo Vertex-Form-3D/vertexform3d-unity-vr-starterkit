@@ -20,6 +20,7 @@ public class VertexForm3DHelp : EditorWindow
     {
         VertexFormEditorHeader.Draw(position.width);
         VertexFormEditorHeader.DrawPanelTitle("Help & Support");
+        VertexFormEditorHeader.BeginPanelBody();
 
         EditorGUILayout.LabelField("Need Help? Reach Out to Us!", EditorStyles.boldLabel);
         GUILayout.Space(5);
@@ -57,5 +58,7 @@ public class VertexForm3DHelp : EditorWindow
             Application.OpenURL("https://vertexform3d.com/contact/");
         }
         EditorGUILayout.EndVertical();
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 }

@@ -12,6 +12,7 @@ public static class VertexFormEditorHeader
     private const string LogoAssetPath = "Assets/VertexForm3D/UI/vertexform-Logo.png";
     private const string BrandedTitlePrefix = "Vertex Form > ";
     private const float PanelTitleBottomSpace = 18f;
+    private const int PanelTitleLeftPadding = 14;
 
     private static Texture2D cachedHeader;
     private static Texture2D cachedLogo;
@@ -96,7 +97,7 @@ public static class VertexFormEditorHeader
                     fontSize = 25,
                     alignment = TextAnchor.MiddleLeft,
                     wordWrap = true,
-                    padding = new RectOffset(0, 0, 4, 0),
+                    padding = new RectOffset(PanelTitleLeftPadding, 0, 4, 0),
                     margin = new RectOffset(4, 4, 6, 0)
                 };
             }
@@ -116,6 +117,36 @@ public static class VertexFormEditorHeader
 
         GUILayout.Label(title.ToUpperInvariant(), PanelTitleStyle);
         GUILayout.Space(PanelTitleBottomSpace);
+    }
+
+    /// <summary>
+    /// Begins the padded content area used below the panel title so all panel items
+    /// share the same horizontal inset as the header. Pair with <see cref="EndPanelBody"/>.
+    /// </summary>
+    public static void BeginPanelBody()
+    {
+        GUILayout.BeginHorizontal();
+        GUILayout.Space(PanelTitleLeftPadding);
+        GUILayout.BeginVertical();
+    }
+
+    /// <summary>
+    /// Ends the padded content area started by <see cref="BeginPanelBody"/>.
+    /// </summary>
+    public static void EndPanelBody()
+    {
+        GUILayout.EndVertical();
+        GUILayout.Space(PanelTitleLeftPadding);
+        GUILayout.EndHorizontal();
+    }
+
+    /// <summary>
+    /// Width available inside the padded panel body for a given view width.
+    /// Use instead of raw position.width when computing layout inside the body.
+    /// </summary>
+    public static float PanelBodyWidth(float viewWidth)
+    {
+        return Mathf.Max(0f, viewWidth - (PanelTitleLeftPadding * 2f));
     }
 
     /// <summary>
