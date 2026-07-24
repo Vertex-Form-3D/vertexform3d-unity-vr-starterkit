@@ -161,7 +161,7 @@ namespace StarterAssets
 
             Platforms pl = ProjectManager.instance.platforms;
             bool shouldUseMobileControls =
-                pl.platformChoice == platform.WebGPU &&
+                pl.platformChoice == platform.Web &&
                 (pl.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser ||
                  DesktopMobileControlSettings.UseMobileControls);
 

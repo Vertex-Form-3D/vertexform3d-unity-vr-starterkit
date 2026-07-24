@@ -20,7 +20,13 @@ namespace VertextFormCore
         public static void Init()
         {
             SceneChanger window = (SceneChanger)EditorWindow.GetWindow(typeof(SceneChanger));
+            VertexFormEditorHeader.ApplyWindowTitle(window, "Scene Changer");
             window.Show();
+        }
+
+        private void OnEnable()
+        {
+            VertexFormEditorHeader.ApplyWindowTitle(this, "Scene Changer");
         }
 
         /// <summary>
@@ -31,6 +37,9 @@ namespace VertextFormCore
         /// </summary>
         private void OnGUI()
         {
+            VertexFormEditorHeader.DrawPanelTitle("Scene Changer");
+            VertexFormEditorHeader.BeginPanelBody();
+
             // Responsible for showing available scenes
             for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
             {
@@ -90,6 +99,7 @@ namespace VertextFormCore
                 OpenPersistentPath();
             }
 
+            VertexFormEditorHeader.EndPanelBody();
         }
 
         /// <summary>

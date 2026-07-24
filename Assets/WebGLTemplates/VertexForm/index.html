@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en-us">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <!-- width=device-width + safe-area; rotating the device reflows the layout; Unity uses matchWebGLToCanvasSize to match canvas to this size -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <title>{{{ PRODUCT_NAME }}}</title>
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     html {
       width: 100%;
       height: 100%;
@@ -22,6 +27,7 @@
       /* iOS Safari dynamic toolbar */
       height: -webkit-fill-available;
     }
+
     body {
       width: 100%;
       height: 100%;
@@ -36,15 +42,20 @@
       inset: 0;
       height: -webkit-fill-available;
     }
+
     #unity-container {
       position: absolute;
-      left: 0; top: 0; right: 0; bottom: 0;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
       width: 100%;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
     }
+
     #unity-canvas {
       width: 100%;
       height: 100%;
@@ -53,13 +64,36 @@
       outline: none;
       touch-action: none;
     }
+
     #unity-loading-bar {
-      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-      width: 240px; text-align: center; font-family: system-ui, sans-serif; color: #bbb; font-size: 14px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 240px;
+      text-align: center;
+      font-family: system-ui, sans-serif;
+      color: #bbb;
+      font-size: 14px;
       z-index: 2;
     }
-    #unity-progress-bar-empty { width: 100%; height: 12px; margin-top: 8px; background: #333; border-radius: 4px; overflow: hidden; }
-    #unity-progress-bar-full { width: 0%; height: 100%; background: #8bc; transition: width 0.1s; }
+
+    #unity-progress-bar-empty {
+      width: 100%;
+      height: 12px;
+      margin-top: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    #unity-progress-bar-full {
+      width: 0%;
+      height: 100%;
+      background: #8bc;
+      transition: width 0.1s;
+    }
+
     /* Fullscreen: must follow a user tap/click (browser policy). Uses Unity's SetFullscreen. */
     #vertexform-fullscreen-btn {
       display: none;
@@ -71,14 +105,18 @@
       font-size: 15px;
       font-family: system-ui, -apple-system, sans-serif;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.55);
       color: #eee;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
     }
-    #vertexform-fullscreen-btn:active { background: rgba(0,0,0,0.75); }
+
+    #vertexform-fullscreen-btn:active {
+      background: rgba(0, 0, 0, 0.75);
+    }
+
     #vertexform-ios-fullscreen-hint {
       display: none;
       position: fixed;
@@ -94,30 +132,36 @@
       font-size: 14px;
       line-height: 1.4;
       font-family: system-ui, -apple-system, sans-serif;
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
       text-align: center;
       -webkit-tap-highlight-color: transparent;
     }
+
     #vertexform-ios-fullscreen-hint .vf-hint-text {
       display: block;
       margin-bottom: 10px;
     }
+
     #vertexform-ios-fullscreen-hint-close {
       display: inline-block;
       padding: 8px 18px;
       font-size: 14px;
       font-weight: 600;
-      border: 1px solid rgba(255,255,255,0.25);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 8px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.08);
       color: #fff;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       min-width: 88px;
       min-height: 36px;
     }
-    #vertexform-ios-fullscreen-hint-close:active { background: rgba(255,255,255,0.18); }
+
+    #vertexform-ios-fullscreen-hint-close:active {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
     /* Optional WebXR entry: shown on Quest / Wolvic-style browsers after Unity loads (user gesture for toggleVR). */
     #vertexform-vr-entry-overlay {
       display: none;
@@ -130,7 +174,11 @@
       background: rgba(0, 0, 0, 0.72);
       font-family: system-ui, -apple-system, sans-serif;
     }
-    #vertexform-vr-entry-overlay[aria-hidden="false"] { display: flex; }
+
+    #vertexform-vr-entry-overlay[aria-hidden="false"] {
+      display: flex;
+    }
+
     #vertexform-vr-entry-card {
       max-width: 400px;
       width: 100%;
@@ -138,25 +186,29 @@
       border-radius: 16px;
       background: #1a1a1f;
       color: #eee;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
+
     #vertexform-vr-entry-card h2 {
       margin: 0 0 10px 0;
       font-size: 1.35rem;
       font-weight: 600;
     }
+
     #vertexform-vr-entry-sub {
       margin: 0 0 22px 0;
       font-size: 0.95rem;
       line-height: 1.45;
       color: #aaa;
     }
+
     .vertexform-vr-entry-actions {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
+
     #vertexform-vr-enter-btn {
       padding: 14px 18px;
       font-size: 1.05rem;
@@ -168,29 +220,40 @@
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
+
     #vertexform-vr-enter-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
-    #vertexform-vr-enter-btn:not(:disabled):active { filter: brightness(0.92); }
+
+    #vertexform-vr-enter-btn:not(:disabled):active {
+      filter: brightness(0.92);
+    }
+
     #vertexform-vr-continue-btn {
       padding: 12px 16px;
       font-size: 0.95rem;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       background: transparent;
       color: #ccc;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    #vertexform-vr-continue-btn:active { background: rgba(255,255,255,0.06); }
+
+    #vertexform-vr-continue-btn:active {
+      background: rgba(255, 255, 255, 0.06);
+    }
   </style>
 </head>
+
 <body>
-  <div id="vertexform-vr-entry-overlay" role="dialog" aria-modal="true" aria-labelledby="vertexform-vr-entry-title" aria-hidden="true">
+  <div id="vertexform-vr-entry-overlay" role="dialog" aria-modal="true" aria-labelledby="vertexform-vr-entry-title"
+    aria-hidden="true">
     <div id="vertexform-vr-entry-card">
       <h2 id="vertexform-vr-entry-title">Enter VR</h2>
-      <p id="vertexform-vr-entry-sub">Use your headset for immersive WebXR. Choose Enter VR when you are ready, or continue using the site in the browser window.</p>
+      <p id="vertexform-vr-entry-sub">Use your headset for immersive WebXR. Choose Enter VR when you are ready, or
+        continue using the site in the browser window.</p>
       <div class="vertexform-vr-entry-actions">
         <button type="button" id="vertexform-vr-enter-btn">Enter VR</button>
         <button type="button" id="vertexform-vr-continue-btn">Continue without VR</button>
@@ -201,7 +264,9 @@
     <canvas id="unity-canvas" tabindex="-1"></canvas>
     <div id="unity-loading-bar">
       <div>Loading {{{ PRODUCT_NAME }}}...</div>
-      <div id="unity-progress-bar-empty"><div id="unity-progress-bar-full"></div></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
     </div>
   </div>
   <button id="vertexform-fullscreen-btn" type="button" aria-label="Toggle fullscreen">Fullscreen</button>
@@ -231,12 +296,7 @@
       var ua = navigator.userAgent || navigator.vendor || window.opera || "";
       if (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua))
         return true;
-      /* iPadOS 13+ desktop UA: "Macintosh" / MacIntel with multi-touch (no "ipad" in UA). */
-      if (navigator.platform === "MacIntel" && typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 1)
-        return true;
       if (typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches)
-        return true;
-      if (typeof navigator.maxTouchPoints === "number" && navigator.maxTouchPoints > 2)
         return true;
       return false;
     }
@@ -401,7 +461,7 @@
           if (!ok && sub) {
             sub.textContent = "Immersive VR is not available in this tab (HTTPS required, or browser blocked WebXR). You can still continue in the browser.";
           }
-        }).catch(function () {});
+        }).catch(function () { });
       }
 
       btnVr.onclick = function (ev) {
@@ -512,4 +572,5 @@
     document.body.appendChild(script);
   </script>
 </body>
+
 </html>

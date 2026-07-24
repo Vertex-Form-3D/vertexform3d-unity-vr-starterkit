@@ -4,10 +4,13 @@ using UnityEngine.Video;
 using TMPro;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using QuantumVertex;
+using System.Collections;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+[DefaultExecutionOrder(-50)]
 public class VideoPlayerController : MonoBehaviour
 {
     [SerializeField] private bool loadVideoFromAddressables = false; // New field for Addressables
@@ -35,24 +38,47 @@ public class VideoPlayerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI totalTimeText;
 
     private bool isPlaying = false;
+    private bool autoPlayWhenReady;
     private RenderTexture renderTexture;
     Material originalSkyboxMaterial;
+    Material videoSkyboxMaterial;
     private AsyncOperationHandle<VideoClip> videoClipHandle;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    private static readonly bool UseDirectVideoTexture = true;
+#else
+    private static readonly bool UseDirectVideoTexture = false;
+#endif
+
+    void Awake()
+    {
+        // Capture autoplay intent, then disable Unity's built-in playOnAwake so playback
+        // cannot start before render targets / Prepare() are set up (required on WebGL).
+        autoPlayWhenReady = videoPlayer.playOnAwake;
+        videoPlayer.playOnAwake = false;
+    }
 
     void Start()
     {
+        StartCoroutine(InitializeWhenReady());
+    }
+
+    IEnumerator InitializeWhenReady()
+    {
         originalSkyboxMaterial = RenderSettings.skybox;
-        // Load video from Addressables if enabled
+
+        var streamingSource = GetComponent<StreamingVideoSource>();
+        if (streamingSource != null)
+            yield return streamingSource.WaitUntilReady();
+
         if (loadVideoFromAddressables && !string.IsNullOrEmpty(videoKey))
         {
             LoadVideoFromAddressables();
+            yield break;
         }
-        else
-        {
-            // Initialize video player settings based on PlayerType
-            SetupVideoPlayer();
-            InitializeVideoPlayer();
-        }
+
+        SetupVideoPlayer();
+        InitializeVideoPlayer();
     }
 
     void LoadVideoFromAddressables()
@@ -75,31 +101,38 @@ public class VideoPlayerController : MonoBehaviour
 
     void InitializeVideoPlayer()
     {
-        if (videoPlayer.playOnAwake)
-        {
-            VideoPlay();
-        }
-        else
-        {
-            VideoStop();
-        }
-        // Setup video player events
+        videoPlayer.isLooping = isLooping;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // Browsers block autoplay with sound; background login video does not need audio.
+        if (videoPlayer.audioTrackCount > 0)
+            videoPlayer.SetDirectAudioMute(0, true);
+#endif
+
         videoPlayer.loopPointReached += OnVideoLoop;
         videoPlayer.prepareCompleted += OnVideoPrepared;
-        videoPlayer.Prepare();
+        videoPlayer.errorReceived += OnVideoError;
 
-        // Setup button listeners
+        if (UseDirectVideoTexture)
+        {
+            videoPlayer.sendFrameReadyEvents = true;
+            videoPlayer.frameReady += OnVideoFrameReady;
+        }
+
         if (playPauseButton != null) playPauseButton.onClick.AddListener(PlayOrPauseVideo);
         if (restartButton != null)
         {
             restartButton.onClick.AddListener(RestartVideo);
-            restartButton.gameObject.SetActive(false); // Hide restart button initially
+            restartButton.gameObject.SetActive(false);
         }
         if (skipForwardButton != null) skipForwardButton.onClick.AddListener(SkipForward);
         if (skipBackwardButton != null) skipBackwardButton.onClick.AddListener(SkipBackward);
-
-        // Setup slider listener
         if (timeSlider != null) timeSlider.onValueChanged.AddListener(OnSliderValueChanged);
+
+        if (!autoPlayWhenReady)
+            isPlaying = false;
+
+        videoPlayer.Prepare();
     }
 
     void SetupVideoPlayer()
@@ -107,58 +140,103 @@ public class VideoPlayerController : MonoBehaviour
         switch (PlayerType)
         {
             case VideoPlayerType.skybox:
-                renderTexture = new RenderTexture(1920, 1080, 24); // Adjust resolution as needed
-                videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-                videoPlayer.targetTexture = renderTexture;
-
-                // Create or load a material for the skybox
-                Material videoSkyboxMat = Resources.Load<Material>("CustomEditor/Video Player/VideoSkybox_Mat");
-                if (videoSkyboxMat != null)
+                videoSkyboxMaterial = Resources.Load<Material>("CustomEditor/Video Player/VideoSkybox_Mat");
+                if (videoSkyboxMaterial == null)
                 {
-                    videoSkyboxMat.mainTexture = renderTexture; // Assign RenderTexture to material
-                    RenderSettings.skybox = videoSkyboxMat;
-                    DynamicGI.UpdateEnvironment();
+                    Debug.LogError("VideoSkybox_Mat not found in Resources/CustomEditor!");
+                    break;
+                }
+
+                if (UseDirectVideoTexture)
+                {
+                    videoPlayer.renderMode = VideoRenderMode.APIOnly;
+                    videoPlayer.targetTexture = null;
                 }
                 else
                 {
-                    Debug.LogError("VideoSkybox_Mat not found in Resources/CustomEditor!");
+                    renderTexture = new RenderTexture(1920, 1080, 24);
+                    videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                    videoPlayer.targetTexture = renderTexture;
+                    videoSkyboxMaterial.mainTexture = renderTexture;
                 }
+
+                RenderSettings.skybox = videoSkyboxMaterial;
+                DynamicGI.UpdateEnvironment();
                 break;
 
             case VideoPlayerType.rawImage:
-                // Create a RenderTexture at runtime
-                renderTexture = new RenderTexture(1920, 1080, 24); // Adjust resolution as needed
-                videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-                videoPlayer.targetTexture = renderTexture;
-
-                // Assign RenderTexture to RawImage
-                if (rawImage != null)
+                if (UseDirectVideoTexture)
                 {
-                    rawImage.texture = renderTexture;
+                    videoPlayer.renderMode = VideoRenderMode.APIOnly;
+                    videoPlayer.targetTexture = null;
                 }
                 else
                 {
-                    Debug.LogError("RawImage component not assigned for rawImage PlayerType!");
+                    renderTexture = new RenderTexture(1920, 1080, 24);
+                    videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                    videoPlayer.targetTexture = renderTexture;
+                    if (rawImage != null)
+                        rawImage.texture = renderTexture;
+                    else
+                        Debug.LogError("RawImage component not assigned for rawImage PlayerType!");
                 }
                 break;
 
             case VideoPlayerType.renderer:
-                // Create a RenderTexture at runtime
-                renderTexture = new RenderTexture(1920, 1080, 24); // Adjust resolution as needed
-                videoPlayer.renderMode = VideoRenderMode.RenderTexture;
-                videoPlayer.targetTexture = renderTexture;
-
-                // Assign RenderTexture to Renderer's material
-                if (targetRenderer != null)
+                if (UseDirectVideoTexture)
                 {
-                    targetRenderer.material.mainTexture = renderTexture;
+                    videoPlayer.renderMode = VideoRenderMode.APIOnly;
+                    videoPlayer.targetTexture = null;
                 }
                 else
                 {
-                    Debug.LogError("Renderer component not assigned for renderer PlayerType!");
+                    renderTexture = new RenderTexture(1920, 1080, 24);
+                    videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                    videoPlayer.targetTexture = renderTexture;
+                    if (targetRenderer != null)
+                        targetRenderer.material.mainTexture = renderTexture;
+                    else
+                        Debug.LogError("Renderer component not assigned for renderer PlayerType!");
                 }
                 break;
         }
+    }
+
+    void ApplyDirectVideoTexture(Texture texture)
+    {
+        if (texture == null)
+            return;
+
+        switch (PlayerType)
+        {
+            case VideoPlayerType.skybox:
+                if (videoSkyboxMaterial != null)
+                {
+                    videoSkyboxMaterial.mainTexture = texture;
+                    RenderSettings.skybox = videoSkyboxMaterial;
+                    DynamicGI.UpdateEnvironment();
+                }
+                break;
+            case VideoPlayerType.rawImage:
+                if (rawImage != null)
+                    rawImage.texture = texture;
+                break;
+            case VideoPlayerType.renderer:
+                if (targetRenderer != null)
+                    targetRenderer.material.mainTexture = texture;
+                break;
+        }
+    }
+
+    void OnVideoFrameReady(VideoPlayer source, long frameIdx)
+    {
+        if (UseDirectVideoTexture)
+            ApplyDirectVideoTexture(source.texture);
+    }
+
+    void OnVideoError(VideoPlayer source, string message)
+    {
+        Debug.LogError($"[VideoPlayerController] Video error on '{source.url}': {message}", this);
     }
 
     void Update()
@@ -208,9 +286,14 @@ public class VideoPlayerController : MonoBehaviour
         if (timeSlider != null)
         {
             timeSlider.minValue = 0f;
-            timeSlider.maxValue = 1f; // Fixed: Set maxValue instead of minValue
+            timeSlider.maxValue = 1f;
         }
         UpdateTimeDisplay();
+
+        if (autoPlayWhenReady)
+            VideoPlay();
+        else if (playPauseIconImage != null)
+            playPauseIconImage.sprite = Resources.Load<Sprite>("play");
     }
 
     public void PlayOrPauseVideo()
@@ -248,15 +331,16 @@ public class VideoPlayerController : MonoBehaviour
         if (playPauseIconImage != null) playPauseIconImage.sprite = Resources.Load<Sprite>("pause");
         if (PlayerType == VideoPlayerType.skybox)
         {
-            Material videoSkyboxMat = Resources.Load<Material>("CustomEditor/Video Player/VideoSkybox_Mat");
-            if (videoSkyboxMat != null)
+            if (UseDirectVideoTexture)
+                ApplyDirectVideoTexture(videoPlayer.texture);
+            else if (videoSkyboxMaterial != null && renderTexture != null)
             {
-                videoSkyboxMat.mainTexture = renderTexture;
-                RenderSettings.skybox = videoSkyboxMat; // Apply video skybox
+                videoSkyboxMaterial.mainTexture = renderTexture;
+                RenderSettings.skybox = videoSkyboxMaterial;
                 DynamicGI.UpdateEnvironment();
             }
         }
-        if (restartButton != null) restartButton.gameObject.SetActive(false); // Hide restart button
+        if (restartButton != null) restartButton.gameObject.SetActive(false);
     }
 
     void RestartVideo()
@@ -268,11 +352,12 @@ public class VideoPlayerController : MonoBehaviour
         if (playPauseIconImage != null) playPauseIconImage.sprite = Resources.Load<Sprite>("pause");
         if (PlayerType == VideoPlayerType.skybox)
         {
-            Material videoSkyboxMat = Resources.Load<Material>("CustomEditor/VideoSkybox_Mat");
-            if (videoSkyboxMat != null)
+            if (UseDirectVideoTexture)
+                ApplyDirectVideoTexture(videoPlayer.texture);
+            else if (videoSkyboxMaterial != null && renderTexture != null)
             {
-                videoSkyboxMat.mainTexture = renderTexture;
-                RenderSettings.skybox = videoSkyboxMat; // Apply video skybox
+                videoSkyboxMaterial.mainTexture = renderTexture;
+                RenderSettings.skybox = videoSkyboxMaterial;
                 DynamicGI.UpdateEnvironment();
             }
         }
@@ -398,13 +483,20 @@ public class VideoPlayerController : MonoBehaviour
 
     void OnDestroy()
     {
-        // Release RenderTexture
+        if (videoPlayer != null)
+        {
+            videoPlayer.loopPointReached -= OnVideoLoop;
+            videoPlayer.prepareCompleted -= OnVideoPrepared;
+            videoPlayer.errorReceived -= OnVideoError;
+            if (UseDirectVideoTexture)
+                videoPlayer.frameReady -= OnVideoFrameReady;
+        }
+
         if (renderTexture != null)
         {
             renderTexture.Release();
             Destroy(renderTexture);
         }
-        // Release Addressable handle
         if (videoClipHandle.IsValid())
         {
             Addressables.Release(videoClipHandle);

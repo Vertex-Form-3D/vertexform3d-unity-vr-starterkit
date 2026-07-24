@@ -4,34 +4,30 @@ using System.Linq; // Added for FirstOrDefault
 
 public class ProjectSetUpEditor : EditorWindow
 {
-    private Texture2D bannerTexture;
     private Vector2 scrollPosition;
 
     public static void ShowWindow()
     {
-        GetWindow<ProjectSetUpEditor>("Project Setup");
+        var window = GetWindow<ProjectSetUpEditor>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Project Setup");
     }
 
     private void OnEnable()
     {
-        bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Project Setup");
     }
 
     private void OnGUI()
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-        GUILayout.Space(5);
 
-        if (bannerTexture != null)
-        {
-            float bannerWidth = Mathf.Min(bannerTexture.width, position.width - 10);
-            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height;
-            GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
-        }
+        // Large banner kept only on Project Setup
+        VertexFormEditorHeader.Draw(position.width);
 
-        EditorGUILayout.Space(20);
+        EditorGUILayout.Space(12);
+        VertexFormEditorHeader.DrawPanelTitle("Project Setup");
+        VertexFormEditorHeader.BeginPanelBody();
 
-        GUIStyle headerStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
         GUIStyle subHeaderStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 18 };
         GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
         boxStyle.normal.background = MakeTex(2, 2, new Color(0.13f, 0.13f, 0.13f)); // Dark gray
@@ -43,9 +39,6 @@ public class ProjectSetUpEditor : EditorWindow
             fontSize = 13,
             normal = { textColor = Color.white }
         };
-
-        GUILayout.Label("PROJECT SETUP", headerStyle);
-        EditorGUILayout.Space(15);
 
         DrawSection("Project Settings", subHeaderStyle, boxStyle, textStyle,
             "Step 1: Open Player Settings\n" +
@@ -109,22 +102,7 @@ public class ProjectSetUpEditor : EditorWindow
             }
         }
         GUILayout.EndVertical();
-
-        EditorGUILayout.Space(15);
-
-        DrawSection("Cesium Setup", subHeaderStyle, boxStyle, textStyle,
-            "Step 1: Open Cesium Panel\n" +
-            "Click the Cesium button from the menu.\n\n" +
-            "Step 2: Connect to Cesium ion\n" +
-            "Tap the Connect button and follow the browser login.\n\n" +
-            "Step 3: Authorize Access\n" +
-            "Allow permissions on the Cesium website.\n\n" +
-            "Step 4: Return to Unity\n" +
-            "Unity will auto-complete the link once you return.",
-            "Open Cesium Window",
-            () => EditorApplication.ExecuteMenuItem("Cesium/Cesium")
-        );
-
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
     }
 

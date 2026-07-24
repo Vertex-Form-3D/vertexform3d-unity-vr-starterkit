@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 public class SettingsUIEditor : Editor
 {
     private const string SettingsUIPrefabFileName = "SettingsUI.prefab";
+    private const string WindowPanelName = "Settings";
     private bool hasInitializedDefaultSettingsFoldout;
 
     private static readonly string DefaultSettingsHelp =
@@ -17,13 +18,21 @@ public class SettingsUIEditor : Editor
         "Photon CCU: the session-list lobby uses a second NetworkRunner (one extra CCU) so worlds can show live player counts. " +
         "Choose game-sessions-only to skip that runner and hide counts, freeing a CCU for more players in rooms.";
 
+    private static readonly string IdleTimeoutHelp =
+        "Set the number of minutes a user can remain inactive before IdleQuitDetector automatically quits the session or returns them to the Home scene (configured on the Login scene).";
+
     private void OnEnable()
     {
         hasInitializedDefaultSettingsFoldout = false;
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
     }
 
     public override void OnInspectorGUI()
     {
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+        VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
+        VertexFormEditorHeader.BeginPanelBody();
+
         serializedObject.Update();
 
         EditorGUILayout.BeginHorizontal();
@@ -71,6 +80,13 @@ public class SettingsUIEditor : Editor
         EditorGUILayout.Space(2);
         EditorGUILayout.HelpBox(PhotonCcuHelp, MessageType.Info);
 
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("idleTimeoutMinutes"));
+
+        EditorGUILayout.Space(2);
+        EditorGUILayout.HelpBox(IdleTimeoutHelp, MessageType.Info);
+
         serializedObject.ApplyModifiedProperties();
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 }

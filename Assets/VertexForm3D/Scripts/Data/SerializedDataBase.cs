@@ -8,6 +8,7 @@ namespace VertexFormCore
     /// Legacy standalone scene database. Prefer editing worlds under Main UI Database → Places panel (UILayoutConfig.worldCategories).
     /// </summary>
     [CreateAssetMenu(menuName = "Data", fileName = "DataBase", order = 1)]
+    [Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
     public class SerializedDataBase : ScriptableObject
     {
         [SerializeField] public List<Category> worldCategories;

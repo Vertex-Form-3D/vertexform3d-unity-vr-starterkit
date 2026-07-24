@@ -48,6 +48,31 @@ namespace VertexFormCore
         [SerializeField] private FusionVoiceClient fusionVoiceClient;
         private bool _isReturningHomeFromDisconnect;
         private bool _pendingVoiceJoin;
+        private int _connectGeneration;
+
+        // Deferred spawn state: the networked VR player is only spawned once Fusion has finished
+        // loading the addressable world scene, so spawn points from that scene are available.
+        private bool _addressableSceneReady;
+        private bool _hasPendingNetworkSpawn;
+        private PlayerRef _pendingNetworkSpawnPlayer;
+        private Coroutine _spawnWhenReadyCoroutine;
+
+        /// <summary>
+        /// Scene key reported to <see cref="SceneLoader.OnFusionSceneLoaded"/> after a base-only session
+        /// (see <see cref="ConnectToBaseSession"/>) finishes loading, when there is no world <see cref="mapName"/>.
+        /// </summary>
+        private string _pendingPostLoadSceneKey;
+
+        /// <summary>
+        /// Raised after Fusion finishes loading the session scene(s). The argument is the world map name
+        /// (null for base-only sessions). Feature layers (e.g. Street View in WorldExpo) subscribe to this
+        /// instead of the core calling into them directly.
+        /// </summary>
+        public event Action<string> FusionScenesLoaded;
+
+        /// <summary>True while the runner is starting or in an active session (not fully shut down).</summary>
+        public bool IsRunnerBusy =>
+            _runner != null && (_runner.IsRunning || _runner.State == NetworkRunner.States.Starting);
 
         GameObject connectVRObject;
         public Vector3 spawnPosition;
@@ -180,9 +205,70 @@ namespace VertexFormCore
         /// <param name="mapName">The addressable scene key/name (e.g., "Journeys Experience")</param>
         public async void ConnectToRoom(string mapName)
         {
-            Debug.Log($"[RoomManager] ConnectToRoom called with session name: {mapName}");
+            _pendingPostLoadSceneKey = null;
+            await ConnectToFusionSession(mapName, mapName, isVisible: true, isOpen: true, playerCount: 0, sessionProperties: null);
+        }
 
-            // Check if NetworkRunner is assigned, create one if not
+        /// <summary>
+        /// Creates or joins a Fusion session that starts on the base "addressableScene" only (no world map),
+        /// leaving any additive/world content to be loaded by the caller after connect. This is the generic
+        /// building block feature layers build on (e.g. Street View instances in WorldExpo).
+        /// </summary>
+        /// <param name="sessionName">Fusion session/room name.</param>
+        /// <param name="isVisible">Whether the session is listed in the lobby.</param>
+        /// <param name="maxPlayers">Max players (0 = Fusion default).</param>
+        /// <param name="sessionProperties">Optional custom session properties.</param>
+        /// <param name="postLoadSceneKey">
+        /// Optional scene key reported to <see cref="SceneLoader.OnFusionSceneLoaded"/> once Fusion finishes
+        /// loading the base scene, so the loader can finalize against feature-specific additive content
+        /// the core doesn't otherwise know about.
+        /// </param>
+        public async void ConnectToBaseSession(
+            string sessionName,
+            bool isVisible,
+            int maxPlayers,
+            Dictionary<string, SessionProperty> sessionProperties,
+            string postLoadSceneKey = null)
+        {
+            if (string.IsNullOrEmpty(sessionName))
+            {
+                Debug.LogError("[RoomManager] ConnectToBaseSession called with an empty session name.");
+                return;
+            }
+
+            _pendingPostLoadSceneKey = postLoadSceneKey;
+
+            await ConnectToFusionSession(
+                mapName: null,
+                sessionName,
+                isVisible,
+                isOpen: true,
+                maxPlayers,
+                sessionProperties);
+        }
+
+        private async Task ConnectToFusionSession(
+            string mapName,
+            string sessionName,
+            bool isVisible,
+            bool isOpen,
+            int playerCount,
+            Dictionary<string, SessionProperty> sessionProperties)
+        {
+            int generation = ++_connectGeneration;
+            Debug.Log($"[RoomManager] ConnectToFusionSession session={sessionName}, world={(string.IsNullOrEmpty(mapName) ? "(base only)" : mapName)}, visible={isVisible}");
+
+            await EnsureRunnerShutDownAsync();
+            if (generation != _connectGeneration)
+            {
+                Debug.Log("[RoomManager] Connect superseded by a newer request — aborting.");
+                return;
+            }
+
+            // Reuse an existing shutdown runner on this object before adding another component.
+            if (_runner == null)
+                _runner = FindIdleRunnerOnObject();
+
             if (_runner == null)
             {
                 Debug.Log("[RoomManager] NetworkRunner is null, creating one...");
@@ -217,6 +303,7 @@ namespace VertexFormCore
             Debug.Log($"[RoomManager] NetworkRunner state: {_runner.State}, IsRunning: {_runner.IsRunning}");
 
             this.mapName = mapName;
+            ResetAddressableSceneSpawnState();
 
             _runner.ProvideInput = true;
 
@@ -239,7 +326,6 @@ namespace VertexFormCore
             }
 
             // Register and add the addressable scene for Fusion to load
-            string sessionName = mapName;
             if (!string.IsNullOrEmpty(mapName))
             {
                 // Register the addressable scene with our custom scene manager
@@ -258,22 +344,21 @@ namespace VertexFormCore
             {
                 GameMode = GameMode.Shared,
                 CustomPhotonAppSettings = appSettings,
-                SessionName = sessionName, // Use scene name for the room, not the path
-                Scene = sceneInfo, // Add scene information for both scenes
+                SessionName = sessionName,
+                Scene = sceneInfo,
                 SceneManager = _runner.GetComponent<CustomNetworkSceneManager>(),
                 CustomLobbyName = "default_lobby",
-                IsVisible = true,
-                IsOpen = true
+                IsVisible = isVisible,
+                IsOpen = isOpen,
+                SessionProperties = sessionProperties,
             };
+
+            if (playerCount > 0)
+                startGameArgs.PlayerCount = playerCount;
 
             // Start game session
             Debug.Log($"[RoomManager] About to call StartGame with session name: {sessionName} (scene path: {mapName})");
 
-            // Add timeout to prevent hanging
-            /*StartCoroutine(WaitNCall(4f, () =>
-            {
-                //SetAddressableSceneVisuals(false);
-            }));*/
             var startGameTask = _runner.StartGame(startGameArgs);
             var timeoutTask = Task.Delay(TimeSpan.FromSeconds(30)); // 30 second timeout
 
@@ -281,8 +366,8 @@ namespace VertexFormCore
 
             if (completedTask == timeoutTask)
             {
-                Debug.LogError("[RoomManager] StartGame timed out after 30 seconds!");
-                ConnectToRoom(mapName); // Retry connection
+                Debug.LogError("[RoomManager] StartGame timed out after 30 seconds — shutting down runner.");
+                await EnsureRunnerShutDownAsync();
                 return;
             }
 
@@ -317,9 +402,10 @@ namespace VertexFormCore
             // Only spawn for the local player
             if (player == _runner.LocalPlayer)
             {
-                Debug.Log($"[SpawnManager] Spawning VR player for local player: {player}");
+                Debug.Log($"[SpawnManager] Local player joined: {player}");
                 SetAddressableSceneVisuals(false);
-                SpawnLocalVRPlayer(player);
+                PositionTempVRPlayerInstantly();
+                TrySpawnNetworkPlayerWhenReady(player);
             }
             else
             {
@@ -327,37 +413,264 @@ namespace VertexFormCore
             }
         }
 
-        private void SpawnLocalVRPlayer(PlayerRef player)
+        private void ResetAddressableSceneSpawnState()
         {
+            _addressableSceneReady = false;
+            _hasPendingNetworkSpawn = false;
+            if (_spawnWhenReadyCoroutine != null)
+            {
+                StopCoroutine(_spawnWhenReadyCoroutine);
+                _spawnWhenReadyCoroutine = null;
+            }
+        }
 
-            // Get spawn points
-            PlayerSpawnPointScript[] playerSpawnPointScripts = FindObjectsByType<PlayerSpawnPointScript>(FindObjectsSortMode.InstanceID);
-            int pspIndex = 0;
+        /// <summary>
+        /// Keeps the local temp VR rig visible immediately while the addressable world scene loads.
+        /// Avoids snapping to world origin when <see cref="spawnPosition"/> is unset (common under large terrains).
+        /// </summary>
+        private void PositionTempVRPlayerInstantly()
+        {
+            Vector3 spawnPos;
+            Quaternion spawnRot;
 
-            Debug.Log($"[SpawnManager] Found {playerSpawnPointScripts.Length} spawn points");
+            // Prefer configured spawnPosition; otherwise keep the temp rig where it already is
+            // (do not yank to 0,0,0 while the world / spawn points are still loading).
+            if (spawnPosition.sqrMagnitude > 0.0001f)
+            {
+                spawnPos = spawnPosition;
+                spawnRot = Quaternion.identity;
+            }
+            else
+            {
+                spawnPos = ConnectVRObject.transform.position;
+                spawnRot = ConnectVRObject.transform.rotation;
+            }
 
-            Vector3 spawnPos = spawnPosition;
-            Quaternion spawnRot = Quaternion.identity;
+            ConnectVRObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
+            ShowLocalTempVRPlayer(true);
+            Debug.Log($"[SpawnManager] Temp VR player positioned instantly at {spawnPos}");
+        }
 
+        /// <summary>
+        /// Spawns the networked multiplayer player only after Fusion has finished loading the addressable world scene,
+        /// so spawn points from that scene are present before we resolve a spawn position.
+        /// </summary>
+        private void TrySpawnNetworkPlayerWhenReady(PlayerRef player)
+        {
+            if (localVRPlayer != null)
+            {
+                Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+                return;
+            }
+
+            if (_addressableSceneReady)
+            {
+                Debug.Log("[SpawnManager] Addressable scene ready — spawning networked VR player.");
+                SpawnNetworkPlayerAtWorldSpawn(player);
+                return;
+            }
+
+            Debug.Log("[SpawnManager] Addressable scene not ready yet — deferring networked VR player spawn.");
+            _hasPendingNetworkSpawn = true;
+            _pendingNetworkSpawnPlayer = player;
+
+            if (_spawnWhenReadyCoroutine == null)
+                _spawnWhenReadyCoroutine = StartCoroutine(WaitForAddressableSceneThenSpawn(player));
+        }
+
+        private IEnumerator WaitForAddressableSceneThenSpawn(PlayerRef player)
+        {
+            const float timeout = 60f;
+            float elapsed = 0f;
+
+            while (!_addressableSceneReady && elapsed < timeout)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            _spawnWhenReadyCoroutine = null;
+
+            if (!_hasPendingNetworkSpawn || _pendingNetworkSpawnPlayer != player)
+                yield break;
+
+            if (!_addressableSceneReady)
+            {
+                Debug.LogWarning("[SpawnManager] Timed out waiting for addressable scene load — spawning networked player with fallback position.");
+                ConsumePendingNetworkSpawn(force: true);
+                yield break;
+            }
+
+            ConsumePendingNetworkSpawn();
+        }
+
+        private void ConsumePendingNetworkSpawn(bool force = false)
+        {
+            if (!_hasPendingNetworkSpawn)
+                return;
+
+            if (!_addressableSceneReady && !force)
+                return;
+
+            var player = _pendingNetworkSpawnPlayer;
+            _hasPendingNetworkSpawn = false;
+
+            if (_spawnWhenReadyCoroutine != null)
+            {
+                StopCoroutine(_spawnWhenReadyCoroutine);
+                _spawnWhenReadyCoroutine = null;
+            }
+
+            if (localVRPlayer != null)
+                return;
+
+            Debug.Log(force
+                ? "[SpawnManager] Forcing deferred networked VR player spawn (scene not marked ready)."
+                : "[SpawnManager] Addressable scene loaded — spawning deferred networked VR player.");
+            SpawnNetworkPlayerAtWorldSpawn(player);
+        }
+
+        private PlayerSpawnPointScript[] GetSpawnPointsInWorldScene()
+        {
+            if (SceneLoader.Instance != null &&
+                SceneLoader.Instance.TryResolveWorldScene(out Scene worldScene) &&
+                worldScene.isLoaded)
+            {
+                var spawnPoints = CollectSpawnPointsInScene(worldScene);
+                Debug.Log($"[SpawnManager] Found {spawnPoints.Length} spawn point(s) in world scene \"{worldScene.name}\".");
+                if (spawnPoints.Length > 0)
+                    return spawnPoints;
+            }
+
+            var fromLoadedWorlds = CollectSpawnPointsFromLoadedWorldScenes();
+            if (fromLoadedWorlds.Length > 0)
+            {
+                Debug.LogWarning($"[SpawnManager] World scene key not resolved — found {fromLoadedWorlds.Length} spawn point(s) in loaded world scene(s).");
+                return fromLoadedWorlds;
+            }
+
+            Debug.LogWarning("[SpawnManager] World scene not resolved after addressable load — using global spawn point search.");
+            return FindObjectsByType<PlayerSpawnPointScript>(FindObjectsInactive.Include, FindObjectsSortMode.InstanceID);
+        }
+
+        private static PlayerSpawnPointScript[] CollectSpawnPointsInScene(Scene scene)
+        {
+            var spawnPoints = new List<PlayerSpawnPointScript>();
+            if (!scene.IsValid() || !scene.isLoaded)
+                return spawnPoints.ToArray();
+
+            foreach (var root in scene.GetRootGameObjects())
+                spawnPoints.AddRange(root.GetComponentsInChildren<PlayerSpawnPointScript>(true));
+
+            return spawnPoints.ToArray();
+        }
+
+        private static PlayerSpawnPointScript[] CollectSpawnPointsFromLoadedWorldScenes()
+        {
+            var spawnPoints = new List<PlayerSpawnPointScript>();
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (!scene.IsValid() || !scene.isLoaded)
+                    continue;
+                if (scene.name == "addressableScene" || scene.name == "DontDestroyOnLoad")
+                    continue;
+
+                spawnPoints.AddRange(CollectSpawnPointsInScene(scene));
+            }
+
+            return spawnPoints.ToArray();
+        }
+
+        /// <summary>
+        /// Prefers PlayerSpawnPointScript poses, then a non-zero inspector spawnPosition, then a safe
+        /// elevated fallback so large terrains do not bury the player at world origin under the mesh.
+        /// </summary>
+        private void ResolveSpawnPose(out Vector3 spawnPos, out Quaternion spawnRot)
+        {
+            PlayerSpawnPointScript[] playerSpawnPointScripts = GetSpawnPointsInWorldScene();
             if (playerSpawnPointScripts.Length > 0)
             {
-                // Use a random spawn point or find an available one
-                pspIndex = UnityEngine.Random.Range(0, playerSpawnPointScripts.Length);
+                int pspIndex = UnityEngine.Random.Range(0, playerSpawnPointScripts.Length);
                 PlayerSpawnPointScript pps = playerSpawnPointScripts[pspIndex];
                 spawnPos = pps.transform.position;
                 spawnRot = pps.transform.rotation;
                 Debug.Log($"[SpawnManager] Using spawn point {pspIndex} at position {spawnPos}");
+                return;
             }
-            else
+
+            if (spawnPosition.sqrMagnitude > 0.0001f)
             {
-                Debug.Log($"[SpawnManager] No spawn points found, using default position: {spawnPosition}");
+                spawnPos = spawnPosition;
+                spawnRot = Quaternion.identity;
+                Debug.Log($"[SpawnManager] No spawn points found, using configured spawnPosition: {spawnPos}");
+                return;
             }
 
-            // Position the temp VR object at spawn location
-            ConnectVRObject.transform.position = spawnPos;
-            ConnectVRObject.transform.rotation = spawnRot;
+            if (TryGetWorldSceneSafeFallback(out spawnPos, out spawnRot))
+            {
+                Debug.LogWarning($"[SpawnManager] No spawn points / spawnPosition — using world-scene safe fallback at {spawnPos}");
+                return;
+            }
 
-            // Spawn the VR player
+            spawnPos = new Vector3(0f, 2f, 0f);
+            spawnRot = Quaternion.identity;
+            Debug.LogWarning($"[SpawnManager] No spawn points found — using elevated origin fallback {spawnPos} (set PlayerSpawnPointScript or RoomManager.spawnPosition).");
+        }
+
+        private static bool TryGetWorldSceneSafeFallback(out Vector3 spawnPos, out Quaternion spawnRot)
+        {
+            spawnPos = default;
+            spawnRot = Quaternion.identity;
+
+            Scene worldScene = default;
+            bool resolved = SceneLoader.Instance != null &&
+                            SceneLoader.Instance.TryResolveWorldScene(out worldScene) &&
+                            worldScene.isLoaded;
+
+            if (!resolved)
+            {
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    if (!scene.IsValid() || !scene.isLoaded)
+                        continue;
+                    if (scene.name == "addressableScene" || scene.name == "DontDestroyOnLoad")
+                        continue;
+                    worldScene = scene;
+                    resolved = true;
+                    break;
+                }
+            }
+
+            if (!resolved || !worldScene.IsValid())
+                return false;
+
+            var roots = worldScene.GetRootGameObjects();
+            if (roots == null || roots.Length == 0)
+                return false;
+
+            Vector3 anchor = roots[0].transform.position;
+            Vector3 rayOrigin = anchor + Vector3.up * 500f;
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 2000f))
+            {
+                spawnPos = hit.point + Vector3.up * 0.1f;
+                return true;
+            }
+
+            spawnPos = anchor + Vector3.up * 2f;
+            return true;
+        }
+
+        private void SpawnNetworkPlayerAtWorldSpawn(PlayerRef player)
+        {
+            if (localVRPlayer != null)
+            {
+                Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+                return;
+            }
+
+            ResolveSpawnPose(out Vector3 spawnPos, out Quaternion spawnRot);
             SpawnVRPlayer(player, spawnPos, spawnRot);
         }
 
@@ -365,11 +678,11 @@ namespace VertexFormCore
         {
             Debug.Log($"[SpawnManager] SpawnVRPlayer called for player: {player}");
 
-
             GameObject prefabToSpawn = genericVRPlayerPrefab;
 
             if (prefabToSpawn == null)
             {
+                Debug.LogError("[SpawnManager] genericVRPlayerPrefab is not assigned — cannot spawn.");
                 return;
             }
 
@@ -380,35 +693,26 @@ namespace VertexFormCore
                 return;
             }
 
-
             ShowLocalTempVRPlayer(false);
 
             NetworkObject vrpNetworkObject = _runner.Spawn(prefabToSpawn, spawnPos, spawnRot, player);
-            Debug.Log("vrpNetworkObject.transform.position: " + vrpNetworkObject.transform.position);
-            Debug.Log("vrpNetworkObject.transform.rotation: " + vrpNetworkObject.transform.rotation);
             Debug.Log($"[SpawnManager] Runner.Spawn returned: {(vrpNetworkObject != null ? vrpNetworkObject.name : "NULL")}");
 
             if (vrpNetworkObject != null)
             {
+                Debug.Log("vrpNetworkObject.transform.position: " + vrpNetworkObject.transform.position);
+                Debug.Log("vrpNetworkObject.transform.rotation: " + vrpNetworkObject.transform.rotation);
+
                 // Track the spawned player
                 spawnedPlayers[player] = vrpNetworkObject;
-
-                // Store player name from networked property if available
-                PlayerNetworkSetup playerSetup = vrpNetworkObject.GetComponent<PlayerNetworkSetup>();
 
                 if (vrpNetworkObject.HasInputAuthority)
                 {
                     localVRPlayer = vrpNetworkObject.gameObject;
 
-                    SceneLoader.Instance.ActivateScene();
+                    if (SceneLoader.Instance != null)
+                        SceneLoader.Instance.ActivateScene();
                     Debug.Log($"[SpawnManager] VR Player spawned successfully! GameObject: {localVRPlayer.name}");
-
-                    if (CesiumSceneHandler.Instance)
-                    {
-                        CesiumSceneHandler.Instance.refreshTilesAction?.Invoke();
-                        Debug.Log("[SpawnManager] Cesium tiles refresh invoked");
-                    }
-
                     // Manually join voice lobby now that local player is spawned (with a small delay)
                     StartCoroutine(JoinVoiceLobbyDelayed(1f));
                 }
@@ -419,7 +723,9 @@ namespace VertexFormCore
             }
             else
             {
-                Debug.LogError("[SpawnManager] Failed to spawn VR Player - Runner.Spawn returned null");
+                Debug.LogError("[SpawnManager] Failed to spawn VR Player - Runner.Spawn returned null. Restoring temp VR player.");
+                ConnectVRObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
+                ShowLocalTempVRPlayer(true);
             }
         }
 
@@ -624,10 +930,46 @@ namespace VertexFormCore
         }
         public void LeaveRoom()
         {
-            if (_runner != null && _runner.IsClient)
+            if (_runner != null && IsRunnerBusy)
             {
                 _runner.Shutdown();
             }
+        }
+
+        /// <summary>Waits until the runner is fully shut down (safe before a new StartGame).</summary>
+        public IEnumerator WaitForRunnerIdle(float timeoutSeconds = 20f)
+        {
+            float elapsed = 0f;
+            while (IsRunnerBusy && elapsed < timeoutSeconds)
+            {
+                elapsed += 0.25f;
+                yield return new WaitForSeconds(0.25f);
+            }
+
+            if (IsRunnerBusy)
+                Debug.LogWarning($"[RoomManager] Timed out after {timeoutSeconds}s waiting for runner to become idle.");
+        }
+
+        private async Task EnsureRunnerShutDownAsync()
+        {
+            if (_runner == null || !IsRunnerBusy)
+                return;
+
+            Debug.Log($"[RoomManager] Shutting down runner (state={_runner.State}, IsRunning={_runner.IsRunning}) before connect.");
+            _runner.Shutdown();
+
+            const float timeoutSeconds = 15f;
+            float elapsed = 0f;
+            while (elapsed < timeoutSeconds)
+            {
+                if (_runner == null || !IsRunnerBusy)
+                    return;
+
+                await Task.Delay(250);
+                elapsed += 0.25f;
+            }
+
+            Debug.LogWarning("[RoomManager] Timed out waiting for runner shutdown before connect.");
         }
 
         public void Log(string message)
@@ -833,6 +1175,7 @@ namespace VertexFormCore
         {
             Log($"Runner shutdown: {shutdownReason}");
             _pendingVoiceJoin = false;
+            ResetAddressableSceneSpawnState();
 
             // Avoid scene fallback on user-initiated / normal shutdown.
             if (shutdownReason != ShutdownReason.Ok)
@@ -844,6 +1187,18 @@ namespace VertexFormCore
             {
                 _runner = null;
             }
+        }
+
+        private NetworkRunner FindIdleRunnerOnObject()
+        {
+            var runners = GetComponents<NetworkRunner>();
+            foreach (var runner in runners)
+            {
+                if (!runner.IsRunning && runner.State == NetworkRunner.States.Shutdown)
+                    return runner;
+            }
+
+            return runners.Length > 0 ? runners[0] : null;
         }
 
         private void HandleUnexpectedDisconnect(string reason)
@@ -892,13 +1247,21 @@ namespace VertexFormCore
         public void OnSceneLoadDone(NetworkRunner runner)
         {
             Debug.Log($"[RoomManager] OnSceneLoadDone - Fusion finished loading scene(s)");
+            _addressableSceneReady = true;
             TryConsumePendingVoiceJoin("OnSceneLoadDone");
 
-            // Notify SceneLoader that the addressable scene is fully loaded by Fusion
-            if (SceneLoader.Instance != null && !string.IsNullOrEmpty(mapName))
-            {
-                SceneLoader.Instance.OnFusionSceneLoaded(mapName);
-            }
+            // Register the world scene key with SceneLoader BEFORE spawning so
+            // TryResolveWorldScene / PlayerSpawnPointScript lookup can succeed.
+            string sceneKeyForLoader = !string.IsNullOrEmpty(mapName)
+                ? mapName
+                : _pendingPostLoadSceneKey;
+
+            if (SceneLoader.Instance != null && !string.IsNullOrEmpty(sceneKeyForLoader))
+                SceneLoader.Instance.OnFusionSceneLoaded(sceneKeyForLoader);
+
+            ConsumePendingNetworkSpawn();
+
+            FusionScenesLoaded?.Invoke(mapName);
         }
 
         public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)

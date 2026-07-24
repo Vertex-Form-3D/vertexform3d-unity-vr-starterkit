@@ -23,11 +23,13 @@ public class PhotonFusionConfigEditor : EditorWindow
     [MenuItem("Window/Photon Fusion Config Manager")]
     public static void ShowWindow()
     {
-        GetWindow<PhotonFusionConfigEditor>("Photon Fusion Config Manager");
+        var window = GetWindow<PhotonFusionConfigEditor>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Photon Fusion Config");
     }
 
     private void OnEnable()
     {
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Photon Fusion Config");
         filePath = Path.Combine(Application.persistentDataPath, "PhotonFusionConfig.json");
         LoadAllData();
     }
@@ -36,9 +38,8 @@ public class PhotonFusionConfigEditor : EditorWindow
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
-        GUILayout.Space(10);
-        GUILayout.Label("Photon Fusion & Voice Configuration", EditorStyles.largeLabel);
-        EditorGUILayout.Space(5);
+        VertexFormEditorHeader.DrawPanelTitle("Photon Fusion Config");
+        VertexFormEditorHeader.BeginPanelBody();
 
         EditorGUILayout.HelpBox(
             "Manage your Photon Fusion, Voice, and Ready Player Me configuration in one place.\n" +
@@ -119,6 +120,7 @@ public class PhotonFusionConfigEditor : EditorWindow
             EditorGUILayout.HelpBox("✓ PhotonAppSettings.asset found and ready.", MessageType.Info);
         }
 
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
     }
 

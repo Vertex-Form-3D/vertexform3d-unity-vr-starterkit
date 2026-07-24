@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Platforms
   m_EditorClassIdentifier: Assembly-CSharp::Platforms
   platformChoice: 2
-  webGpuBrowserKind: 1
+  webGpuBrowserKind: 0
   platformGuides:
   - title: "Android \xB7 VR"
     subtitle: Meta Quest
@@ -29,15 +29,15 @@ MonoBehaviour:
     - "Go to <b>Edit \u2192 Build Profiles</b> and set <b>Windows</b> as the active
       platform."
     note: 
-  - title: WebGL / WebGPU
-    subtitle: Browser
+  - title: Web
+    subtitle: Browser (WebGL / WebGPU)
     steps:
-    - Select <b>WebGPU</b> from the <b>Platform</b> dropdown for WebGL / WebGPU builds.
+    - Select <b>Web</b> from the <b>Platform</b> dropdown for WebGL / WebGPU builds.
     - "Go to <b>Edit \u2192 Build Profiles</b> and set <b>WebGL/WebGPU</b> as the
       active platform."
     - The VertexForm template calls Unity with <b>WebXRBrowser</b>, <b>DesktopBrowser</b>,
       or <b>MobileBrowser</b> so runtime matches Quest shell vs PC vs Android Chrome.
-    note: 'Native targets keep VR or Desktop or WebGPU '
+    note: 'Native targets keep VR or Desktop or Web '
   - title: Testing VR on Desktop via Quest Link
     subtitle: "XR Plug-in Management \xB7 Windows tab"
     steps:

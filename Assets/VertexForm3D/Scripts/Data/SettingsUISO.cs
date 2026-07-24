@@ -12,6 +12,7 @@ public enum PhotonCcuAllocation
 }
 
 [CreateAssetMenu(fileName = "SettingsUI", menuName = "Scriptable Objects/SettingsUI")]
+[Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
 public class SettingsUISO : ScriptableObject
 {
     public string anonymousUserNamePrefix = "Mystery Guest_";
@@ -19,6 +20,10 @@ public class SettingsUISO : ScriptableObject
 
     [Tooltip("Session lobby uses a second NetworkRunner (one CCU) so the world list can show live player counts. Game-sessions-only avoids that runner to free a CCU for more concurrent players.")]
     public PhotonCcuAllocation photonCcuAllocation = PhotonCcuAllocation.SessionLobbyAndPlayerCounts;
+
+    [Tooltip("Minutes of no input before IdleQuitDetector quits the app or returns to the home scene.")]
+    [Min(1)]
+    public int idleTimeoutMinutes = 10;
     [HideInInspector]
     public string addressableCatalogFilePath = "";
     [HideInInspector]

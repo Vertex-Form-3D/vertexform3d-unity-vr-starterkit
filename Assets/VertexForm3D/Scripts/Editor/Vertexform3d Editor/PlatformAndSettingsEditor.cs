@@ -7,6 +7,7 @@ public class PlatformAndSettingsEditor : Editor
 {
     /// <summary>Below this inspector width, first two guides stack vertically so text stays readable.</summary>
     private const float MinWidthSideBySide = 420f;
+    private const string WindowPanelName = "Platforms";
 
     private static GUIStyle s_RichWordWrap;
 
@@ -20,8 +21,17 @@ public class PlatformAndSettingsEditor : Editor
         }
     }
 
+    private void OnEnable()
+    {
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+    }
+
     public override void OnInspectorGUI()
     {
+        VertexFormEditorHeader.BrandHostWindow(target, WindowPanelName);
+        VertexFormEditorHeader.DrawPanelTitle(WindowPanelName);
+        VertexFormEditorHeader.BeginPanelBody();
+
         serializedObject.Update();
 
         using (new EditorGUI.DisabledScope(true))
@@ -32,14 +42,14 @@ public class PlatformAndSettingsEditor : Editor
 
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.PropertyField(platformChoiceProp);
-        if (platformChoiceProp.enumValueIndex == (int)platform.WebGPU)
+        if (platformChoiceProp.enumValueIndex == (int)platform.Web)
         {
             EditorGUILayout.PropertyField(
                 webGpuBrowserKindProp,
                 new GUIContent(
-                    "WebGPU Browser Kind (for testing)",
-                    "When platform is WebGPU, set from WebGL index.html (SendMessage). In Editor, use this for testing."));
-            EditorGUILayout.HelpBox("WebGPU browser kind is normally set at runtime from WebGL index.html (SendMessage). Use the field above to test a kind in the Editor.", MessageType.None);
+                    "Web Browser Kind (for testing)",
+                    "When platform is Web, set from WebGL index.html (SendMessage). In Editor, use this for testing."));
+            EditorGUILayout.HelpBox("Web browser kind is normally set at runtime from WebGL index.html (SendMessage). Use the field above to test a kind in the Editor.", MessageType.None);
         }
         bool platformSettingsChanged = EditorGUI.EndChangeCheck();
 
@@ -52,6 +62,7 @@ public class PlatformAndSettingsEditor : Editor
         {
             EditorGUILayout.HelpBox("No platform guides configured. Right-click the asset and select Reset to populate defaults.", MessageType.Info);
             serializedObject.ApplyModifiedProperties();
+            VertexFormEditorHeader.EndPanelBody();
             return;
         }
 
@@ -59,7 +70,7 @@ public class PlatformAndSettingsEditor : Editor
         EditorGUILayout.Space(4);
 
         float viewW = EditorGUIUtility.currentViewWidth;
-        float usableW = Mathf.Max(100f, viewW - 20f);
+        float usableW = Mathf.Max(100f, VertexFormEditorHeader.PanelBodyWidth(viewW) - 20f);
         int helpBoxPadH = EditorStyles.helpBox.padding.left + EditorStyles.helpBox.padding.right;
 
         if (guides.Count >= 2)
@@ -117,10 +128,12 @@ public class PlatformAndSettingsEditor : Editor
         {
             var editedPlatforms = (Platforms)target;
             bool shouldUseMobileControls =
-                editedPlatforms.platformChoice == platform.WebGPU &&
+                editedPlatforms.platformChoice == platform.Web &&
                 editedPlatforms.webGpuBrowserKind == WebGpuBrowserKind.MobileBrowser;
             DesktopMobileControlSettings.SetUseMobileControls(shouldUseMobileControls);
         }
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 
     /// <param name="innerContentWidth">Width inside the help box for one row (after horizontal padding).</param>

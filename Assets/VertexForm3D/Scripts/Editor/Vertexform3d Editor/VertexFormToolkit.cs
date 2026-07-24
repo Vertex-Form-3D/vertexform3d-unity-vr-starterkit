@@ -10,7 +10,6 @@ namespace VertexFormCore.Editor
         // Window state
         private Vector2 scrollPosition;
         private Vector2 favoritesScrollPosition;
-        private Texture2D banner;
         private int selectedTab = 0;
         private string searchFilter = "";
 
@@ -136,8 +135,7 @@ namespace VertexFormCore.Editor
 
         private void OnEnable()
         {
-            banner = Resources.Load<Texture2D>("VF3DBannerEditor");
-
+            VertexFormEditorHeader.ApplyWindowTitle(this, "Creator Toolkit");
             InitializeTabGroups();
 
             // Set up toolbar button style for two-line tabs
@@ -148,15 +146,6 @@ namespace VertexFormCore.Editor
                 toolbarButtonStyle.alignment = TextAnchor.MiddleCenter;
                 toolbarButtonStyle.fixedHeight = tabHeight * 1.5f;
             }*/
-        }
-
-        private void OnFocus()
-        {
-            // Refresh banner if needed
-            if (banner == null)
-            {
-                banner = Resources.Load<Texture2D>("VF3DBannerEditor");
-            }
         }
 
         private void InitializeTabGroups()
@@ -189,29 +178,14 @@ namespace VertexFormCore.Editor
 
         private void OnGUI()
         {
-            // First, draw the banner using layout
-            GUILayout.Space(5);
-            if (banner != null)
-            {
-                float bannerWidth = Mathf.Min(banner.width, position.width - 100);
-                float bannerHeight = ((bannerWidth / banner.width) * banner.height) / 1.2f;
-                GUILayout.Label(banner, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight), GUILayout.ExpandWidth(true));
-            }
-            else
-            {
-                EditorGUILayout.HelpBox("Banner image not found. Make sure 'VF3DBannerEditor' is inside the Resources folder.", MessageType.Warning);
-            }
-
-            GUIStyle boldStyle = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold, fontSize = 25 };
-            GUILayout.Label("CREATOR TOOLKIT", boldStyle);
-            // Add space after banner
-            GUILayout.Space(10);
+            VertexFormEditorHeader.DrawPanelTitle("Creator Toolkit");
+            VertexFormEditorHeader.BeginPanelBody();
 
             // Reserve space for tabs using GUILayout
-            Rect tabAreaRect = GUILayoutUtility.GetRect(position.width, tabHeight * 1.5f);
+            Rect tabAreaRect = GUILayoutUtility.GetRect(VertexFormEditorHeader.PanelBodyWidth(position.width), tabHeight * 1.5f);
 
             // Calculate available width for tabs
-            float availableWidth = position.width - 10;
+            float availableWidth = tabAreaRect.width - 10;
             float tabWidth = availableWidth / tabGroups.Count;
 
             // Calculate dynamic font size based on tab width
@@ -373,6 +347,8 @@ namespace VertexFormCore.Editor
 
                 GUILayout.EndScrollView();
             }
+
+            VertexFormEditorHeader.EndPanelBody();
         }
 
         private void DrawSubTabs()
@@ -400,7 +376,7 @@ namespace VertexFormCore.Editor
             }
 
             // Calculate available width for subtabs (same as main tabs)
-            float availableWidth = position.width - 10;
+            float availableWidth = VertexFormEditorHeader.PanelBodyWidth(position.width) - 10;
             float subTabWidth = availableWidth / subCategories.Count;
 
             // Calculate dynamic font size based on tab width (same logic as main tabs)
@@ -419,7 +395,7 @@ namespace VertexFormCore.Editor
             EditorGUILayout.LabelField("Sub-Categories:", subtitleStyle);
 
             // Reserve space for subtabs using GUILayout (similar to main tabs)
-            Rect subTabAreaRect = GUILayoutUtility.GetRect(position.width - 20, subTabHeight * 1.5f);
+            Rect subTabAreaRect = GUILayoutUtility.GetRect(availableWidth - 10, subTabHeight * 1.5f);
 
             // Create base subtab style mirroring the main tab base style
             GUIStyle baseSubTabStyle = new GUIStyle(EditorStyles.toolbarButton);
@@ -625,7 +601,7 @@ namespace VertexFormCore.Editor
 
             // Calculate total required width and available width
             float totalRequiredWidth = tabWidths.Values.Sum();
-            float availableWidth = position.width - 10;
+            float availableWidth = VertexFormEditorHeader.PanelBodyWidth(position.width) - 10;
             bool tabsNeedOverlap = totalRequiredWidth > availableWidth;
 
             // Use a horizontal layout for the tabs
@@ -705,7 +681,7 @@ namespace VertexFormCore.Editor
             }
 
             // Calculate how many tiles can fit in a row based on window width
-            float availableWidth = position.width - 20; // Subtract for margins
+            float availableWidth = VertexFormEditorHeader.PanelBodyWidth(position.width) - 20; // Subtract for margins
             int tilesPerRow = Mathf.Max(1, Mathf.FloorToInt(availableWidth / (tileWidth + spacing)));
             int rowCount = Mathf.CeilToInt((float)itemCount / tilesPerRow);
 

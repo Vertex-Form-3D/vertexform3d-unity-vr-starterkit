@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "Project Data SO", menuName = "ScriptableObjects/Project Data System", order = 1)]
+[Icon("Assets/VertexForm3D/UI/vertexform-Logo.png")]
 public class ProjectDataScriptableObject : ScriptableObject
 {
     public ProjectData projectData;
@@ -13,12 +14,12 @@ public enum platform
 {
     VR,
     Desktop,
-    /// <summary>WebGL / WebGPU player: use <see cref="WebGpuBrowserKind"/> on <see cref="Platforms"/> for Android vs desktop vs VR shell browser.</summary>
-    WebGPU
+    /// <summary>Web (WebGL / WebGPU) player: use <see cref="WebGpuBrowserKind"/> on <see cref="Platforms"/> for Android vs desktop vs VR shell browser.</summary>
+    Web
 }
 
 /// <summary>
-/// When <see cref="platform.WebGPU"/> is selected, the host page (e.g. WebGL index.html) reports which browser context loaded the build.
+/// When <see cref="platform.Web"/> is selected, the host page (e.g. WebGL index.html) reports which browser context loaded the build.
 /// </summary>
 public enum WebGpuBrowserKind
 {

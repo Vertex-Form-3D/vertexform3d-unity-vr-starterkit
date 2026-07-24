@@ -9,7 +9,6 @@ using System.Diagnostics;
 
 public class AddressablesBuildEditor : EditorWindow
 {
-    private Texture2D bannerTexture;
     private string addressableCatalogFilePath = "";
     private string catalogFileName = "VertexForm3DAddressablesCatalog";
     private bool useOnlyLocalBundles = true;
@@ -18,14 +17,15 @@ public class AddressablesBuildEditor : EditorWindow
 
     public static void ShowWindow()
     {
-        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>("VertexForm3D Addressables");
+        AddressablesBuildEditor window = GetWindow<AddressablesBuildEditor>();
+        VertexFormEditorHeader.ApplyWindowTitle(window, "Addressables Management");
         window.minSize = new Vector2(500, 600);
         window.Show();
     }
 
     private void OnEnable()
     {
-        bannerTexture = Resources.Load<Texture2D>("VF3DBannerEditor");
+        VertexFormEditorHeader.ApplyWindowTitle(this, "Addressables Management");
         ProjectDataScriptableObject pso = Resources.Load<ProjectDataScriptableObject>("Project Data SO");
         if (pso != null)
         {
@@ -46,31 +46,13 @@ public class AddressablesBuildEditor : EditorWindow
     {
         scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
 
+        VertexFormEditorHeader.DrawPanelTitle("Addressables Management");
+        VertexFormEditorHeader.BeginPanelBody();
+
         // Styles
-        GUIStyle titleStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 20, alignment = TextAnchor.MiddleCenter, margin = new RectOffset(0, 0, 10, 10) };
         GUIStyle sectionStyle = new GUIStyle(EditorStyles.boldLabel) { fontSize = 14, margin = new RectOffset(10, 10, 5, 5) };
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 12, padding = new RectOffset(10, 10, 5, 5), margin = new RectOffset(10, 10, 5, 5) };
 
-        // Banner
-        if (bannerTexture != null)
-        {
-            float bannerWidth = Mathf.Min(bannerTexture.width * 0.8f, position.width - 20);
-            float bannerHeight = (bannerWidth / bannerTexture.width) * bannerTexture.height;
-            bannerWidth /= 1.2f;
-            bannerHeight /= 1.2f;
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            GUILayout.Label(bannerTexture, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight));
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-        else
-        {
-            EditorGUILayout.HelpBox("Banner image not found. Place 'VF3DBannerEditor' in the Resources folder.", MessageType.Warning);
-        }
-
-        // Title
-        GUILayout.Label("Addressables Management", titleStyle);
         EditorGUILayout.HelpBox("This window manages the Addressables system for your project, allowing you to configure, build, and manage local and remote asset bundles.", MessageType.Info, true);
 
         // Build Button
@@ -195,6 +177,7 @@ public class AddressablesBuildEditor : EditorWindow
         // EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(10);
+        VertexFormEditorHeader.EndPanelBody();
         EditorGUILayout.EndScrollView();
     }
 

@@ -6,19 +6,12 @@ using Fusion;
 public class PlayerTag : MonoBehaviour
 {
     [SerializeField] Transform _cameraTransform;
-    private NetworkObject _networkObject;
-
-    void Start()
+    void Awake()
     {
-        _networkObject = GetComponentInParent<NetworkObject>();
-
-        // // Disable the name tag for the local player
-        // if (_networkObject != null && _networkObject.HasInputAuthority)
-        // {
-        //     gameObject.SetActive(false);
-        //     return;
-        // }
-
+        if (_cameraTransform == null)
+        {
+            _cameraTransform = Camera.main.transform;
+        }
     }
 
     void LateUpdate()

@@ -312,13 +312,16 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
     {
         var window = CreateInstance<VertexForm3DUpdatePromptWindow>();
         window.bodyText = body ?? string.Empty;
-        window.titleContent = new GUIContent("Vertex Form 3D SDK Update Available");
+        VertexFormEditorHeader.ApplyWindowTitle(window, "SDK Update Available");
         window.minSize = new Vector2(460, 320);
         window.ShowUtility();
     }
 
     private void OnGUI()
     {
+        VertexFormEditorHeader.DrawPanelTitle("SDK Update Available");
+        VertexFormEditorHeader.BeginPanelBody();
+
         if (richTextWrappedLabel == null)
         {
             richTextWrappedLabel = new GUIStyle(EditorStyles.wordWrappedLabel)
@@ -355,6 +358,8 @@ public class VertexForm3DUpdatePromptWindow : EditorWindow
             Close();
         }
         EditorGUILayout.EndHorizontal();
+
+        VertexFormEditorHeader.EndPanelBody();
     }
 }
 
@@ -369,6 +374,9 @@ public class VersionPackageInfo
     public string version;
     public string url;
     public string releaseNotes;
+    // Asset paths (relative to project root, e.g. "Assets/VertexForm3D/...") that were removed
+    // in this version. The Package Updater deletes these from user projects after importing.
+    public List<string> deletedAssets = new List<string>();
 }
 
 public static class VersionJsonParser

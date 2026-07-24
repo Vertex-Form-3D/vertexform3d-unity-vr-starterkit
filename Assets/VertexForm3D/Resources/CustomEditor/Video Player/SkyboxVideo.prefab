@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6753317443564049857}
   - component: {fileID: 257198612133595524}
   - component: {fileID: 8142733626870134123}
+  - component: {fileID: 9182733626870134124}
   m_Layer: 0
   m_Name: SkyboxVideo
   m_TagString: Untagged
@@ -41,7 +42,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7793496873033337265}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 9c8b7a094de26f94f941df096f632442, type: 3}
+  m_VideoClip: {fileID: 0}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -51,7 +52,7 @@ VideoPlayer:
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 2
   m_AspectRatio: 2
-  m_DataSource: 0
+  m_DataSource: 1
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 2
@@ -59,7 +60,7 @@ VideoPlayer:
   - {fileID: 0}
   m_DirectAudioVolumes:
   - 1
-  m_Url: https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4
+  m_Url: 
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1
@@ -99,3 +100,16 @@ MonoBehaviour:
   totalTimeText: {fileID: 0}
   rawImage: {fileID: 0}
   targetRenderer: {fileID: 0}
+--- !u!114 &9182733626870134124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7793496873033337265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f57b2f083f895db4698dc1c43284d4d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fileName: LoginBackgroundVideo.mp4

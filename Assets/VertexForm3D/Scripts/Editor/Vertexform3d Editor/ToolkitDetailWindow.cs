@@ -13,7 +13,8 @@ namespace VertexFormCore.Editor
 
         public static void Open(ToolkitItem item, EditorWindow parentWindow, FavoritesTab favoritesTab)
         {
-            ToolkitDetailWindow window = GetWindow<ToolkitDetailWindow>("Toolkit Item Details");
+            ToolkitDetailWindow window = GetWindow<ToolkitDetailWindow>();
+            VertexFormEditorHeader.ApplyWindowTitle(window, "Toolkit Item Details");
             window.item = item;
             window.parentWindow = parentWindow;
             window.favoritesTab = favoritesTab;
@@ -22,22 +23,17 @@ namespace VertexFormCore.Editor
             window.Show();
         }
 
+        private void OnEnable()
+        {
+            VertexFormEditorHeader.ApplyWindowTitle(this, "Toolkit Item Details");
+        }
+
         private void OnGUI()
         {
             if (item == null)
             {
                 Close();
                 return;
-            }
-
-            // Draw Banner
-            GUILayout.Space(5);
-            Texture2D banner = Resources.Load<Texture2D>("VF3DBannerEditor");
-            if (banner != null)
-            {
-                float bannerWidth = Mathf.Min(banner.width, position.width - 10);
-                float bannerHeight = (bannerWidth / banner.width) * banner.height;
-                GUILayout.Label(banner, GUILayout.Width(bannerWidth), GUILayout.Height(bannerHeight), GUILayout.ExpandWidth(true));
             }
 
             // Back Button

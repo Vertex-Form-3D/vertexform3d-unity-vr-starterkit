@@ -51,7 +51,7 @@ internal sealed class PlatformAutoSetBuildPreprocessor : IPreprocessBuildWithRep
                 desired = platform.Desktop;
                 return true;
             case BuildTarget.WebGL:
-                desired = platform.WebGPU;
+                desired = platform.Web;
                 return true;
             default:
                 desired = default;

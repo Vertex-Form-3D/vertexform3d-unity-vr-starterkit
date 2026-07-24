@@ -19,48 +19,62 @@ public class GridScrollViewPager : MonoBehaviour
     private int totalPages = 1;
     private int itemsPerPage;
     private float pageWidth;
+    bool _initialized;
 
     void Start()
     {
-        // Initialize buttons
-        prevButton.onClick.AddListener(GoToPreviousPage);
-        nextButton.onClick.AddListener(GoToNextPage);
-
-        // Calculate items per page (3 columns, assuming 2 rows for example)
-        itemsPerPage = 3 * 2; // 3 columns x 2 rows = 6 items per page
-
-        // Get all items in grid
-        foreach (Transform child in gridLayout.transform)
-        {
-            items.Add(child.GetComponent<RectTransform>());
-        }
-
-        // Calculate total pages
-        totalPages = Mathf.CeilToInt((float)items.Count / itemsPerPage);
-
-        // Calculate page width (normalized scroll position)
-        pageWidth = totalPages > 1 ? 1f / (totalPages - 1) : 1f;
-
-        // Initialize UI
+        EnsureInitialized();
         UpdatePageUI();
         UpdateButtonStates();
         UpdatePageButtons();
-
-        // Ensure initial scroll position
         ScrollToPage();
+    }
+
+    void EnsureInitialized()
+    {
+        if (_initialized)
+            return;
+
+        _initialized = true;
+
+        if (prevButton != null)
+            prevButton.onClick.AddListener(GoToPreviousPage);
+        if (nextButton != null)
+            nextButton.onClick.AddListener(GoToNextPage);
+
+        itemsPerPage = 3 * 2; // 3 columns x 2 rows
+
+        if (items.Count == 0 && gridLayout != null)
+        {
+            foreach (Transform child in gridLayout.transform)
+            {
+                var rect = child.GetComponent<RectTransform>();
+                if (rect != null)
+                    items.Add(rect);
+            }
+        }
+
+        totalPages = Mathf.Max(1, Mathf.CeilToInt((float)items.Count / itemsPerPage));
+        pageWidth = totalPages > 1 ? 1f / (totalPages - 1) : 1f;
     }
 
     void UpdatePageUI()
     {
-        // Update page text (e.g., "Page 1/3")
+        if (pageText == null)
+            return;
+
         pageText.text = $"{currentPage}/{totalPages}";
 
-        // Show only items for the current page
+        if (itemsPerPage <= 0 || items.Count == 0)
+            return;
+
         int startIndex = (currentPage - 1) * itemsPerPage;
         int endIndex = Mathf.Min(startIndex + itemsPerPage - 1, items.Count - 1);
 
         for (int i = 0; i < items.Count; i++)
         {
+            if (items[i] == null)
+                continue;
             bool isVisible = i >= startIndex && i <= endIndex;
             items[i].gameObject.SetActive(isVisible);
         }
@@ -68,9 +82,10 @@ public class GridScrollViewPager : MonoBehaviour
 
     void UpdateButtonStates()
     {
-        // Enable/disable buttons based on current page
-        prevButton.interactable = currentPage > 1;
-        nextButton.interactable = currentPage < totalPages;
+        if (prevButton != null)
+            prevButton.interactable = currentPage > 1;
+        if (nextButton != null)
+            nextButton.interactable = currentPage < totalPages;
 
         // Highlight current page button
         for (int i = 0; i < pageButtons.Count; i++)
@@ -132,20 +147,15 @@ public class GridScrollViewPager : MonoBehaviour
 
     void ScrollToPage()
     {
-        if (totalPages <= 1)
+        if (scrollRect != null)
         {
-            scrollRect.horizontalNormalizedPosition = 0f;
-        }
-        else
-        {
-            // Calculate normalized position for the current page
-            float normalizedPosition = (float)(currentPage - 1) / (totalPages - 1);
-
-            // Ensure position stays within bounds [0,1]
-            normalizedPosition = Mathf.Clamp01(normalizedPosition);
-
-            // Set scroll position
-            scrollRect.horizontalNormalizedPosition = normalizedPosition;
+            if (totalPages <= 1)
+                scrollRect.horizontalNormalizedPosition = 0f;
+            else
+            {
+                float normalizedPosition = (float)(currentPage - 1) / (totalPages - 1);
+                scrollRect.horizontalNormalizedPosition = Mathf.Clamp01(normalizedPosition);
+            }
         }
 
         // Update UI
@@ -153,18 +163,16 @@ public class GridScrollViewPager : MonoBehaviour
         UpdateButtonStates();
     }
 
-    // Add item to the grid
     public void AddItem(GameObject itemPrefab)
     {
-        // Instantiate the prefab as a child of the grid
+        EnsureInitialized();
+
         RectTransform newItemRect = itemPrefab.GetComponent<RectTransform>();
         items.Add(newItemRect);
 
-        // Recalculate total pages
-        totalPages = Mathf.CeilToInt((float)items.Count / itemsPerPage);
+        totalPages = Mathf.Max(1, Mathf.CeilToInt((float)items.Count / itemsPerPage));
         pageWidth = totalPages > 1 ? 1f / (totalPages - 1) : 1f;
 
-        // Adjust current page if necessary
         if (currentPage > totalPages)
         {
             currentPage = totalPages;
@@ -172,7 +180,6 @@ public class GridScrollViewPager : MonoBehaviour
         }
         else
         {
-            // Update UI to reflect new item visibility
             UpdatePageUI();
             UpdateButtonStates();
             UpdatePageButtons();
@@ -182,24 +189,33 @@ public class GridScrollViewPager : MonoBehaviour
     // Clear all items from the grid
     public void ClearAllItems()
     {
-        // Destroy all item GameObjects
-        foreach (RectTransform item in items)
+        EnsureInitialized();
+        if (gridLayout != null)
         {
-            Destroy(item.gameObject);
+            for (int i = gridLayout.transform.childCount - 1; i >= 0; i--)
+            {
+                var child = gridLayout.transform.GetChild(i);
+                if (child != null)
+                    Destroy(child.gameObject);
+            }
+        }
+        else
+        {
+            foreach (RectTransform item in items)
+            {
+                if (item != null)
+                    Destroy(item.gameObject);
+            }
         }
 
-        // Clear the items list
         items.Clear();
-
-        // Reset pagination
         currentPage = 1;
         totalPages = 1;
         pageWidth = 1f;
 
-        // Reset scroll position to start
-        scrollRect.horizontalNormalizedPosition = 0f;
+        if (scrollRect != null)
+            scrollRect.horizontalNormalizedPosition = 0f;
 
-        // Update UI
         UpdatePageUI();
         UpdateButtonStates();
         UpdatePageButtons();

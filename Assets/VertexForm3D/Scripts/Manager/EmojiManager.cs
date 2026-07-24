@@ -3,6 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VertexFormCore;
 
 public class EmojiManager : NetworkBehaviour
 {
@@ -98,6 +99,23 @@ public class EmojiManager : NetworkBehaviour
     public void ShowEmojiRPCcall(int index)
     {
         RPC_ShowEmoji(index);
+        // Selecting an emoji should close the picker and unlock desktop/web movement.
+        // Otherwise isUiInputLocked stays true until mute/unmute refreshes the lock.
+        CloseEmojiPanelAfterSelection();
+    }
+
+    private void CloseEmojiPanelAfterSelection()
+    {
+        var playerSetup = GetComponentInParent<PlayerNetworkSetup>();
+        if (playerSetup != null && playerSetup.playerUIManager != null)
+        {
+            playerSetup.playerUIManager.CloseEmojiPanels();
+            return;
+        }
+
+        // Watch / alternate emoji parents may not sit under PlayerNetworkSetup
+        var uiManager = FindFirstObjectByType<PlayerUIManager>();
+        uiManager?.CloseEmojiPanels();
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.All)]

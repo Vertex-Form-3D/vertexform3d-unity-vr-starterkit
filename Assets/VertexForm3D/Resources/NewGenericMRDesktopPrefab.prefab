@@ -5243,8 +5243,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -480, y: -480}
+  m_AnchoredPosition: {x: 0, y: -40}
+  m_SizeDelta: {x: -480, y: -400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3713118853519950869
 CanvasRenderer:
@@ -5893,7 +5893,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3086d26bd59e2504e808fa33982423e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GoHome_Button_Desktop: {fileID: 7506063009277157243}
+  GoHome_Button_Desktop: {fileID: 0}
   GoHome_Button_VR: {fileID: 2258197974591701909}
   menuUI: {fileID: 6749145972697224887}
   desktopMenuUI: {fileID: 3086539277996247641}
@@ -7453,11 +7453,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ed0896c80d32a6499ddf577486a65c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuScript
---- !u!1 &7506063009277157243 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7814646950247819071, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
-  m_PrefabInstance: {fileID: 313518553489111108}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8787879017271770734 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9055901097585133098, guid: ce2f02da4d4bbec4f81e00f1847014fa, type: 3}
@@ -8616,7 +8611,6 @@ MonoBehaviour:
   - {fileID: 8810450212586191635}
   - {fileID: 5306750102549658663}
   - {fileID: 637672615484435798}
-  customAvatarScriptable: {fileID: 11400000, guid: fe763b2aa638cf447a5fc5aa1f031e14, type: 2}
   avatarHolder: {fileID: 8755936494659395246}
   bodyTransform: {fileID: 2322404650523738561}
   headTransform: {fileID: 4008043411697153107}
@@ -8849,6 +8843,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec4cd82e501596745b85685cc215bdec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  arCameraManager: {fileID: 0}
+  cameraBackground: {fileID: 0}
+  ARsession: {fileID: 0}
+  arPlaneManager: {fileID: 0}
   cameraData: {fileID: 5767715217220676053}
   IsPassthroughOn: 0
 --- !u!114 &6239063487715385760
@@ -11543,6 +11541,7 @@ MonoBehaviour:
   leftSectionTitleText: {fileID: 0}
   logoImage: {fileID: 0}
   backgroundImage: {fileID: 0}
+  menuManager: {fileID: 0}
 --- !u!1001 &5943283323636230036
 PrefabInstance:
   m_ObjectHideFlags: 0

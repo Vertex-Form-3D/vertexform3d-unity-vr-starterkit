@@ -58,8 +58,17 @@ namespace VertexFormCore
 #endif
 
         Coroutine loadSceneCoroutine;
+
+        /// <summary>
+        /// Optional callback invoked once the base "addressableScene" is ready when a caller loads the
+        /// base scene only (no world map). Lets feature-specific code (e.g. Street View in WorldExpo)
+        /// decide how to connect without the generic loader knowing about it.
+        /// </summary>
+        private Action pendingBaseSceneConnect;
+
         public void LoadScnene(string SceneName)
         {
+            pendingBaseSceneConnect = null;
             sceneIsLoaded = false;
             if (loadSceneCoroutine == null)
             {
@@ -67,28 +76,51 @@ namespace VertexFormCore
             }
         }
 
+        /// <summary>
+        /// Same base flow as <see cref="LoadScnene"/> (leave session → load the base "addressableScene"),
+        /// but instead of connecting to a world room it invokes <paramref name="onBaseSceneReady"/> so the
+        /// caller can connect however it needs (e.g. a base-only Fusion session that loads additive content
+        /// afterwards). Keeps this generic loader decoupled from any specific feature.
+        /// </summary>
+        public void LoadBaseSceneThenConnect(Action onBaseSceneReady)
+        {
+            if (onBaseSceneReady == null)
+            {
+                Debug.LogError("[SceneLoader] LoadBaseSceneThenConnect called without a connect callback.");
+                return;
+            }
+
+            pendingBaseSceneConnect = onBaseSceneReady;
+            sceneIsLoaded = false;
+
+            if (loadSceneCoroutine != null)
+            {
+                StopCoroutine(loadSceneCoroutine);
+                loadSceneCoroutine = null;
+            }
+
+            loadSceneCoroutine = StartCoroutine(WaitToLeaveThenLoadBaseScene());
+        }
+
+        IEnumerator WaitToLeaveThenLoadBaseScene()
+        {
+            yield return WaitToLeveThenLoadScene(null);
+        }
+
         public IEnumerator WaitToLeveThenLoadScene(string SceneName)
         {
-            // Check if we have a Fusion runner and if it's in a session
-            bool isInSession = RoomManager.Instance != null &&
-                              RoomManager.Instance.Runner != null &&
-                              RoomManager.Instance.Runner.IsClient;
-
-            if (isInSession)
+            RoomManager room = RoomManager.Instance;
+            if (room != null && room.IsRunnerBusy)
             {
-                // Leave the current Fusion session
-                RoomManager.Instance.LeaveRoom();
+                room.LeaveRoom();
+                yield return room.WaitForRunnerIdle();
             }
 
-            // Wait for Fusion runner to shut down
-            while (RoomManager.Instance != null &&
-                   RoomManager.Instance.Runner != null &&
-                   RoomManager.Instance.Runner.IsClient)
-            {
-                yield return new WaitForSeconds(1f);
-            }
-
-            Debug.Log($"[SceneLoader] Preparing to load addressable scene via Fusion: {SceneName}");
+            bool baseSceneOnly = pendingBaseSceneConnect != null;
+            string loadLabel = baseSceneOnly
+                ? "addressableScene (base only)"
+                : SceneName;
+            Debug.Log($"[SceneLoader] Preparing to load addressable scene via Fusion: {loadLabel}");
             completePerchantage = 0;
 
             // Load the base scene
@@ -140,6 +172,17 @@ namespace VertexFormCore
         public void OnSceneLoaded(string sceneName)
         {
             currentScene = sceneName;
+
+            if (pendingBaseSceneConnect != null)
+            {
+                Action connect = pendingBaseSceneConnect;
+                pendingBaseSceneConnect = null;
+
+                Debug.Log("[SceneLoader] Base scene ready. Invoking pending base-session connect.");
+                connect();
+                return;
+            }
+
             Debug.Log($"[SceneLoader] Base scene ready. Connecting to Fusion room: {sceneName}");
 
             // Connect to Fusion room
@@ -274,7 +317,7 @@ namespace VertexFormCore
             Debug.Log($"[SceneLoader] Active scene set to \"{worldScene.name}\" (path: {worldScene.path}).");
         }
 
-        bool TryResolveWorldScene(out Scene scene)
+        public bool TryResolveWorldScene(out Scene scene)
         {
             scene = default;
             if (string.IsNullOrEmpty(currentScene))

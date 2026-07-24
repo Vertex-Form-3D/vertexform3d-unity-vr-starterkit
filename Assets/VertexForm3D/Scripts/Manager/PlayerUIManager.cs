@@ -160,7 +160,7 @@ namespace VertexFormCore
 
         /// <summary>
         /// World-space VR menu/settings/emoji path when the asset is VR <b>or</b> immersive XR is running
-        /// (WebGL WebXR may use <see cref="platform.WebGPU"/> with a flat browser kind until a session starts).
+        /// (WebGL WebXR may use <see cref="platform.Web"/> with a flat browser kind until a session starts).
         /// </summary>
         private bool UseHeadMountedMenuPath()
         {
@@ -562,6 +562,28 @@ namespace VertexFormCore
 
             UpdateInputLockFromOpenPanels();
         }
+
+        /// <summary>
+        /// Closes emoji panels and refreshes movement lock. Call after selecting an emoji,
+        /// or when a panel is deactivated via prefab SetActive (which skips ManageEmojiPanel).
+        /// </summary>
+        public void CloseEmojiPanels()
+        {
+            if (emojiPanelDesktop != null && emojiPanelDesktop.activeSelf)
+                emojiPanelDesktop.SetActive(false);
+            if (emojiPanelVR != null && emojiPanelVR.activeSelf)
+                emojiPanelVR.SetActive(false);
+            UpdateInputLockFromOpenPanels();
+        }
+
+        /// <summary>
+        /// Re-evaluates open blocking panels and updates XR rig input lock.
+        /// Safe to call after external SetActive close buttons.
+        /// </summary>
+        public void RefreshInputLockFromOpenPanels()
+        {
+            UpdateInputLockFromOpenPanels();
+        }
         public void InitializeAllSettings()
         {
             isStanding = ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on;
@@ -636,11 +658,6 @@ namespace VertexFormCore
 
         private void Update()
         {
-#if UNITY_EDITOR
-            if (Input.GetKeyDown(KeyCode.N)) HandleMenuUI();
-            if (Input.GetKeyDown(KeyCode.M)) HandleSettingUI();
-#endif
-
             PollXrMenuAndSettingsButtons();
         }
 
@@ -649,7 +666,7 @@ namespace VertexFormCore
         {
             if (isStanding) Sit();
             else Stand();
-            CloseSettingsUIIfOpen();
+            //  CloseSettingsUIIfOpen();
         }
 
         public void OnTapVoiceToggle()
@@ -657,14 +674,13 @@ namespace VertexFormCore
             if (isVoiceEnabled) MuteVoice();
             else UnmuteVoice();
             onVoiceModeChanged?.Invoke(isVoiceEnabled);
-            CloseSettingsUIIfOpen();
         }
 
         public void OnTapGrabToggle()
         {
             isNearGrab = !isNearGrab;
             ApplyGrabMode();
-            CloseSettingsUIIfOpen();
+            //  CloseSettingsUIIfOpen();
         }
 
         public void OnTapFlyToggle()
@@ -676,14 +692,14 @@ namespace VertexFormCore
             }
             isFlying = !isFlying;
             ApplyFlyMode();
-            CloseSettingsUIIfOpen();
+            //CloseSettingsUIIfOpen();
         }
 
         public void OnTapMegaphoneToggle()
         {
             isMegaphone = !isMegaphone;
             ApplyMegaphoneMode();
-            CloseSettingsUIIfOpen();
+            //CloseSettingsUIIfOpen();
         }
 
         // ==================== APPLY FUNCTIONS ====================
@@ -892,6 +908,16 @@ namespace VertexFormCore
                 return;
 
             xrRigController.SetUiInputLocked(IsAnyBlockingPanelOpen());
+        }
+
+        private void LateUpdate()
+        {
+            // Prefab close buttons often call GameObject.SetActive(false) directly and skip
+            // ManageEmojiPanel, leaving movement locked until mute/unmute refreshes the lock.
+            if (xrRigController == null || !xrRigController.IsUiInputLocked)
+                return;
+            if (!IsAnyBlockingPanelOpen())
+                xrRigController.SetUiInputLocked(false);
         }
 
         void MoveCanvasToCamera(GameObject UIObject)

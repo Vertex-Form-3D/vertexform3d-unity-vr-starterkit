@@ -462,6 +462,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoginSceneComponent
       objectReference: {fileID: 0}
+    - target: {fileID: 5961095268600148924, guid: 17702390d522bd6429139623b344358f, type: 3}
+      propertyPath: settingsUI
+      value: 
+      objectReference: {fileID: 11400000, guid: b6b622b3d63bf1f418a3a55c62048567, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
