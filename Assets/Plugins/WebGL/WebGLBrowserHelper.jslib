@@ -57,16 +57,22 @@ mergeInto(LibraryManager.library, {
         }, 300);
     },
 
-    VF3D_CreateBlobUrlFromBuffer: function (bufferPtr, length, mimePtr) {
-        var bytes = HEAPU8.subarray(bufferPtr, bufferPtr + length);
-        var mime = UTF8ToString(mimePtr);
-        var blob = new Blob([bytes], { type: mime });
-        var url = URL.createObjectURL(blob);
-        var urlLength = lengthBytesUTF8(url) + 1;
-        var urlBuffer = _malloc(urlLength);
-        stringToUTF8(url, urlBuffer, urlLength);
-        return urlBuffer;
-    },
+ VF3D_CreateBlobUrlFromBuffer: function (bufferPtr, length, mimePtr) {
+    var sharedBytes = HEAPU8.subarray(bufferPtr, bufferPtr + length);
+
+    var bytes = new Uint8Array(length);
+    bytes.set(sharedBytes);
+
+    var mime = UTF8ToString(mimePtr);
+    var blob = new Blob([bytes], { type: mime });
+    var url = URL.createObjectURL(blob);
+
+    var urlLength = lengthBytesUTF8(url) + 1;
+    var urlBuffer = _malloc(urlLength);
+    stringToUTF8(url, urlBuffer, urlLength);
+
+    return urlBuffer;
+},
 
     VF3D_RevokeBlobUrl: function (urlPtr) {
         URL.revokeObjectURL(UTF8ToString(urlPtr));

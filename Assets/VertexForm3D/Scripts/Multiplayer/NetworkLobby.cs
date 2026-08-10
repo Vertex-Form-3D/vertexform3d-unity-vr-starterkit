@@ -175,6 +175,27 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
         await JoinLobby(_runner);
     }
 
+    public async Task ShutdownLobbyRunner()
+    {
+        if (_runner == null)
+            return;
+
+        Debug.Log("[NetworkLobby] Shutting down lobby runner before entering game session...");
+
+        NetworkRunner runnerToDestroy = _runner;
+        _runner = null;
+
+        if (runnerToDestroy.IsRunning ||
+            runnerToDestroy.State == NetworkRunner.States.Starting)
+        {
+            await runnerToDestroy.Shutdown();
+        }
+
+        Destroy(runnerToDestroy);
+
+        Debug.Log("[NetworkLobby] Lobby runner shut down and destroyed.");
+    }
+
     // ======================== UNUSED METHODS ========================
 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)

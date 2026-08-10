@@ -258,6 +258,11 @@ namespace VertexFormCore
             int generation = ++_connectGeneration;
             Debug.Log($"[RoomManager] ConnectToFusionSession session={sessionName}, world={(string.IsNullOrEmpty(mapName) ? "(base only)" : mapName)}, visible={isVisible}");
 
+            // Shut down the lobby runner before starting the actual game-session runner.
+            if (NetworkLobby.Instance != null)
+            {
+                await NetworkLobby.Instance.ShutdownLobbyRunner();
+            }
             await EnsureRunnerShutDownAsync();
             if (generation != _connectGeneration)
             {
@@ -265,13 +270,12 @@ namespace VertexFormCore
                 return;
             }
 
-            // Reuse an existing shutdown runner on this object before adding another component.
-            if (_runner == null)
-                _runner = FindIdleRunnerOnObject();
-
+            
+            // Fusion NetworkRunner instances are single-use.
+            // Always create a fresh runner for a new game session.
             if (_runner == null)
             {
-                Debug.Log("[RoomManager] NetworkRunner is null, creating one...");
+                Debug.Log("[RoomManager] Creating fresh NetworkRunner...");
                 _runner = gameObject.AddComponent<NetworkRunner>();
 
                 // Add our custom scene manager instead of the default one
@@ -345,8 +349,8 @@ namespace VertexFormCore
                 GameMode = GameMode.Shared,
                 CustomPhotonAppSettings = appSettings,
                 SessionName = sessionName,
-                Scene = sceneInfo,
-                SceneManager = _runner.GetComponent<CustomNetworkSceneManager>(),
+               Scene = sceneInfo,
+               SceneManager = _runner.GetComponent<CustomNetworkSceneManager>(),
                 CustomLobbyName = "default_lobby",
                 IsVisible = isVisible,
                 IsOpen = isOpen,
@@ -1186,20 +1190,11 @@ namespace VertexFormCore
             if (_runner == runner)
             {
                 _runner = null;
+                Destroy(runner);
             }
         }
 
-        private NetworkRunner FindIdleRunnerOnObject()
-        {
-            var runners = GetComponents<NetworkRunner>();
-            foreach (var runner in runners)
-            {
-                if (!runner.IsRunning && runner.State == NetworkRunner.States.Shutdown)
-                    return runner;
-            }
-
-            return runners.Length > 0 ? runners[0] : null;
-        }
+       
 
         private void HandleUnexpectedDisconnect(string reason)
         {
