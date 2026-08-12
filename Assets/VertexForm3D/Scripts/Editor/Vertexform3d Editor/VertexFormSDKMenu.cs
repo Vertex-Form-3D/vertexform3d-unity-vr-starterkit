@@ -63,10 +63,18 @@ namespace VertexFormCore.Editor
         [MenuItem("Vertex Form/SettingsUI", false, 3)]
         public static void OpenSettingsUI()
         {
-            string[] guids = AssetDatabase.FindAssets("t:SettingsUI");
+            string[] guids = AssetDatabase.FindAssets("t:SettingsUISO");
             if (guids.Length == 0)
             {
                 string path = "Assets/VertexForm3D/ScriptableObjects/SettingsUI.asset";
+                SettingsUISO existing = AssetDatabase.LoadAssetAtPath<SettingsUISO>(path);
+                if (existing != null)
+                {
+                    VertexFormEditorHeader.OpenBrandedPropertyEditor(existing, "Settings");
+                    Debug.Log("Opened SettingsUI: " + path);
+                    return;
+                }
+
                 var config = ScriptableObject.CreateInstance<SettingsUISO>();
                 AssetDatabase.CreateAsset(config, path);
                 AssetDatabase.SaveAssets();
