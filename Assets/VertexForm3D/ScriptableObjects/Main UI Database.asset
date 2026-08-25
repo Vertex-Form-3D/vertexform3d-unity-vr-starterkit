@@ -42,13 +42,125 @@ MonoBehaviour:
     worldCategories:
     - categoryName: Hubs
       showInPlacesNav: 1
-      environments: []
-    - categoryName: Geospatial
-      showInPlacesNav: 0
-      environments: []
+      environments:
+      - worldName: Campfire
+        worldKey: Campfire
+        worldImagePath: 
+        worldDescription: A nighttime forest environment with tall pine trees, a
+          central campfire, and a few tents. Logs are placed around the fire for
+          seating. Ambient sound include fire crackling. The area is calm and designed
+          for quiet exploration or relaxation.
+        sceneProvider: 0
+        worldImage: {fileID: 21300000, guid: aacbc7c8f94f6a74092d14246ad4a8e5, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
+      - worldName: Ocean Villa
+        worldKey: Ocean Villa
+        worldImagePath: 
+        worldDescription: 'A modern oceanfront villa with glass walls, open to the
+          sea breeze. The environment includes palm trees, wooden floors, an infinity
+          pool, and minimalist indoor spaces. '
+        sceneProvider: 0
+        worldImage: {fileID: 21300000, guid: be96b4c00f375bf478889b601850b20c, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
+      - worldName: Games
+        worldKey: Games
+        worldImagePath: 
+        worldDescription: A futuristic gaming environment with soft ambient lighting
+          and smooth metallic surfaces. Floating UI panels respond to hand gestures.
+          Users can interact with objects and levers to learn core XR mechanics.
+          Teleportation zones are marked by pulsing lights. Dynamic lighting and
+          a subtle background hum enhance the immersive, tech-focused environment.
+        sceneProvider: 0
+        worldImage: {fileID: 21300000, guid: ba956be2dc747c84cb5aa20a77ea3a87, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
     - categoryName: Other
-      showInPlacesNav: 0
-      environments: []
+      showInPlacesNav: 1
+      environments:
+      - worldName: Dark Space
+        worldKey: Dark Space
+        worldImagePath: 
+        worldDescription: A geodome structure sits on a floating platform in deep
+          space, illuminated by a soft spotlight. Its honeycomb design glows in amber
+          and magenta tones. Cherry blossom trees bloom nearby, with petals suspended
+          in still air. The surrounding environment is dark and minimal, creating
+          a surreal, tranquil atmosphere. This scene is designed as a quiet, dreamlike
+          sanctuary.
+        sceneProvider: 1
+        worldImage: {fileID: 21300000, guid: 9c9cb025d886ca24e9b0af1416589e5a, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
+      - worldName: Bright Space
+        worldKey: Bright Space
+        worldImagePath: 
+        worldDescription: An open, futuristic environment with a mirrored ground
+          and a large, flowing glass structure. Steel frames form a crystal-like
+          lattice, and sunlight filters through, creating moving shadows. The space
+          is minimal and uncluttered, with no walls, emphasizing clean lines and
+          openness. Designed to feel peaceful and otherworldly, this environment
+          showcases a balance of light, form, and architectural elegance.
+        sceneProvider: 0
+        worldImage: {fileID: 21300000, guid: c6ad4fd66735ec7419f4f0a41284a0c0, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
+      - worldName: Materials Examples
+        worldKey: Materials Examples
+        worldImagePath: 
+        worldDescription: "A clean, open space built to showcase surface materials.
+          Spheres and cubes are arranged in rows, each displaying different textures
+          and shaders \u2014 including metallic, matte, glass, and emissive types.
+          Neutral floors and walls prevent color distortion, while directional lighting
+          and reflection probes enhance realism. Users can walk or fly around to
+          inspect materials from any angle. This environment functions as a visual
+          catalog for material testing and presentation."
+        sceneProvider: 0
+        worldImage: {fileID: 21300000, guid: 1f7c26e3fa3c9234aac14ed5ca91b9da, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
+      - worldName: Mixed Reality
+        worldKey: Mixed Reality
+        worldImagePath: 
+        worldDescription: "A clean, open space built to showcase surface materials.
+          Spheres and cubes are arranged in rows, each displaying different textures
+          and shaders \u2014 including metallic, matte, glass, and emissive types.
+          Neutral floors and walls prevent color distortion, while directional lighting
+          and reflection probes enhance realism. Users can walk or fly around to
+          inspect materials from any angle. This environment functions as a visual
+          catalog for material testing and presentation."
+        sceneProvider: 0
+        worldImage: {fileID: 21300000, guid: 70b38ab1fd2e8e844b5d4da8356e172f, type: 3}
+        flyMode: 0
+        Desktop: 1
+        VR: 1
+        WebGPU: 1
+        WebXR: 1
+        Mobile: 1
   - panelType: 2
     enabled: 1
     tabLabel: Guide

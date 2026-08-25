@@ -8,22 +8,32 @@ public class PlayerTag : MonoBehaviour
     [SerializeField] Transform _cameraTransform;
     void Awake()
     {
-        if (_cameraTransform == null)
-        {
-            _cameraTransform = Camera.main.transform;
-        }
+        TryResolveCamera();
     }
 
     void LateUpdate()
     {
+        if (_cameraTransform == null)
+            TryResolveCamera();
+
+        if (_cameraTransform == null)
+            return;
+
+        // Face the camera while keeping the text upright
+        transform.LookAt(_cameraTransform);
+        transform.rotation = Quaternion.LookRotation(
+            transform.position - _cameraTransform.position,
+            Vector3.up
+        );
+    }
+
+    void TryResolveCamera()
+    {
         if (_cameraTransform != null)
-        {
-            // Face the camera while keeping the text upright
-            transform.LookAt(_cameraTransform);
-            transform.rotation = Quaternion.LookRotation(
-                transform.position - _cameraTransform.position,
-                Vector3.up
-            );
-        }
+            return;
+
+        var main = Camera.main;
+        if (main != null)
+            _cameraTransform = main.transform;
     }
 }
