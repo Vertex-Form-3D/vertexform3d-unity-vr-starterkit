@@ -57,7 +57,7 @@ public static class ScenePlatformSupport
             return true;
 
         var pl = pm.platforms;
-        if (pl.platformChoice == platform.Web && !world.WebGPU) return false;
+        if (pl.platformChoice == platform.Web && !world.Web) return false;
         if (pl.platformChoice == platform.VR && !world.VR) return false;
         if (pl.platformChoice == platform.Desktop && !world.Desktop) return false;
         if (pl.webGpuBrowserKind == WebGpuBrowserKind.WebXRBrowser && !world.WebXR) return false;
