@@ -1038,7 +1038,7 @@ public class MenuManager : MonoBehaviour
         var supported = new List<string>();
         if (wd.Desktop) supported.Add("Desktop");
         if (wd.VR) supported.Add("VR");
-        if (wd.WebGPU) supported.Add("Web");
+        if (wd.Web) supported.Add("Web");
         if (wd.WebXR) supported.Add("WebXR");
         if (wd.Mobile) supported.Add("WebXR/Mobile");
         string supportedList = supported.Count > 0 ? string.Join(", ", supported) : "None";
