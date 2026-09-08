@@ -86,5 +86,12 @@ namespace Fusion {
     protected virtual void DestroySceneObject(NetworkRunner runner, NetworkSceneObjectId sceneObjectId, NetworkObject instance) {
       Destroy(instance.gameObject);
     }
+    
+    void INetworkObjectProvider.Shutdown(NetworkRunner runner) {
+      var prefabs = runner.Prefabs;
+      if (prefabs?.Options.UnloadUnusedPrefabsOnShutdown == true) {
+        prefabs.UnloadUnreferenced(includeIncompleteLoads: true);
+      }
+    }
   }
 }

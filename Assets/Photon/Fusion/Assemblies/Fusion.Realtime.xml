@@ -2814,7 +2814,7 @@
             </remarks>
         </member>
         <member name="F:Fusion.Photon.Realtime.ActorProperties.PlayerName">
-            <summary>(255) Name of a player/actor.</summary>
+            <summary>(255) NickName of a player/actor.</summary>
         </member>
         <member name="F:Fusion.Photon.Realtime.ActorProperties.IsInactive">
             <summary>(254) Tells you if the player is currently in this game (getting events live).</summary>
@@ -3796,7 +3796,7 @@
             </summary>
         </member>
         <member name="P:Fusion.Photon.Realtime.Player.IsInactive">
-            <summary>If this player is active in the room (and getting events which are currently being sent).</summary>
+            <summary>If this player in the room is currently inactive (not being connected and not getting "live" events).</summary>
             <remarks>
             Inactive players keep their spot in a room but otherwise behave as if offline (no matter what their actual connection status is).
             The room needs a PlayerTTL != 0. If a player is inactive for longer than PlayerTTL, the server will remove this player from the room.
@@ -3945,7 +3945,7 @@
              </returns>
         </member>
         <member name="M:Fusion.Photon.Realtime.Player.UpdateNickNameOnJoined">
-            <summary>If there is a nickname in the room props, but it's not the current (local) one, update the room when joining/joined.</summary>
+            <summary>Updates the server, if the NickName in the custom properties (coming from the server) is not correct.</summary>
         </member>
         <member name="M:Fusion.Photon.Realtime.Player.SetPlayerNameProperty">
             <summary>Uses OpSetPropertiesOfActor to sync this player's NickName (server is being updated with this.NickName).</summary>
@@ -4547,6 +4547,12 @@
             Photon client to log information and statistics from.
             </summary>
         </member>
+        <member name="F:Fusion.Photon.Realtime.SupportLogger.LogStatsInterval">
+            <summary>Seconds between logging network stats.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SupportLogger.TrackValuesInterval">
+            <summary>Seconds between internally tracking network stats.</summary>
+        </member>
         <member name="M:Fusion.Photon.Realtime.SupportLogger.LogStats">
             <summary>
             Debug logs vital traffic statistics about the attached Photon Client.
@@ -4573,11 +4579,74 @@
              DontDestroyOnLoad.
              </remarks>
         </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.Version">
+            <summary>Version of the SystemConnectionSummary type.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.UsedProtocol">
+            <summary>Which protocol is used. Refer to ConnectionProtocol.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.AppQuits">
+            <summary>True if the Unity app is closing / shut down.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.AppPause">
+            <summary>True if the Unity app is paused.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.AppPauseRecent">
+            <summary>True if the Unity app was paused recently (past 5 sec).</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.AppOutOfFocus">
+            <summary>True if the Unity app is out of focus / minimized.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.AppOutOfFocusRecent">
+            <summary>True if the Unity app was out of focus / minimized recently (past 5 sec).</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.NetworkReachable">
+            <summary>True if the Unity engine tells us the network is reachable.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.ErrorCodeFits">
+            <summary>True if the Socket-level error code fits into the usual byte "budget".</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.ErrorCodeWinSock">
+            <summary>True if the Socket-level error code is WinSock based.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SocketErrorCode">
+            <summary>Socket-level error code (if any is available).</summary>
+        </member>
         <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.Version">
             <summary>28 and up. 4 bits.</summary>
         </member>
         <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.UsedProtocol">
             <summary>25 and up. 3 bits.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.EmptyBit">
+            <summary>Position of an empty bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.AppQuits">
+            <summary>App Quits was called bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.AppPause">
+            <summary>App Pause was called bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.AppPauseRecent">
+            <summary>App Quits was called recently bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.AppOutOfFocus">
+            <summary>App not in focus bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.AppOutOfFocusRecent">
+            <summary>App not in focus recently bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.NetworkReachable">
+            <summary>Unity signals network is reachable bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.ErrorCodeFits">
+            <summary>ErrorCode is small enough to fit bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.SCSBitPos.ErrorCodeWinSock">
+            <summary>Error code is of WinSock type bit.</summary>
+        </member>
+        <member name="F:Fusion.Photon.Realtime.SystemConnectionSummary.UdpSocketErrors">
+            <summary>Brief error description per Windows socket error code.</summary>
         </member>
         <member name="M:Fusion.Photon.Realtime.SystemConnectionSummary.#ctor(Fusion.Photon.Realtime.LoadBalancingClient)">
              <summary>
@@ -4606,6 +4675,17 @@
             A readable debug log string of the context for network problems.
             </summary>
             <returns>SystemConnectionSummary as readable string.</returns>
+        </member>
+        <member name="M:Fusion.Photon.Realtime.SystemConnectionSummary.GetErrorCode(System.Int32)">
+            <summary>Extracts the recorded error code from a SystemConnectionSummary binary representation.</summary>
+            <param name="summary">Pass the value of SystemConnectionSummary.ToInt().</param>
+            <returns>Error code from a SCS summary (int) or -1 if the version can't be read.</returns>
+        </member>
+        <member name="M:Fusion.Photon.Realtime.SystemConnectionSummary.GetBit(System.Int32@,System.Int32)">
+            <summary>Gets a specific bit out of the value at the given position.</summary>
+        </member>
+        <member name="M:Fusion.Photon.Realtime.SystemConnectionSummary.GetBits(System.Int32@,System.Int32,System.Byte)">
+            <summary>Gets bitvals out of the value at the given position.</summary>
         </member>
         <member name="M:Fusion.Photon.Realtime.SystemConnectionSummary.SetBit(System.Int32@,System.Boolean,System.Int32)">
             <summary>Applies bitval to bitpos (no matter value's initial bit value).</summary>

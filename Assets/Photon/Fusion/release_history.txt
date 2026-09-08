@@ -1,3 +1,81 @@
+# 2.0.13
+
+## Preview
+
+### Build 2312 (Aug 21, 2026)
+
+**What's New**
+
+- NetworkRunner now exposes BatchRequestStateAuthority and BatchReleaseStateAuthority, allowing for request or release of state authority for up to 16 NetworkObjects in a single all-or-nothing call instead of one call per object
+- `RpcInvokeData.Method`
+- `NetworkRunner.DebugRpcEvent` - a global event raised whenever there's a local or an incoming RPC call
+
+**Changes**
+
+- Cache completed Task<bool> in Fusion's polling services
+- Fusion Intro now programmatically switches between new and legacy input systems
+- Caching HitboxManager reference
+- HitboxManager will auto-destroy if lag compensation is not enabled on NetworkProjectConfig
+- Backport 2.1 ClientTimeProvider
+- Photon Realtime SDK to 4.1.8.21
+- Improved support for Fast Enter Play Mode (Disable Domain Reload)
+
+**Bug Fixes**
+
+- Fixed: TaskManager.Delay precision loss on long-running WebGL builds
+- Fixed: Unity 6.5 compile issues
+
+# 2.0.12
+
+## Stable
+
+### Build 1861 (Mar 19, 2026)
+
+**What's New**
+
+- One time callbacks are now not only invoked on NetworkBehaviours implementing interfaces but also classes deriving from NetworkObjects. Supported callbacks on NetworkObject are:  ISimulationEnter, ISimulationExit, ILocalPrefabCreated, IRemotePrefabCreated, IAfterSpawned, IInputAuthorityGained, IInputAuthorityLost, IStateAuthorityChanged, IInterestEnter, IInterestExit
+- Interest callbacks are now also triggered by changes in state and input authority
+- NetworkRunner.GetMasterClient
+
+**Changes**
+
+- Photon Realtime SDK to 4.1.8.17
+- Applied `readonly` to most getters
+
+**Bug Fixes**
+
+Writing and reading NetworkIDs directly instead of encoding to avoid problems on long running sessions with high player count.  
+Plugin write/read encoded for players on 2.0.10 or below
+- Fixed: Enabling a NetworkTransform at a later point after the initial spawn will no longer reset its transform to (0,0,0)
+- Fixed: Improved error handling in `FusionCoroutine`
+- Fixed: Zero tolerance host migration data parsing. Aborts with a clean message on the first error in any host migration data
+- Fixed: Inconsistent `NetworkId` between clients in long-running sessions
+- Fixed: An issue where long-running sessions could have inconsistent NetworkIDs between clients."  
+This reverts commit 1c84d3a165af9ded26611121341f3e00e8443a91
+- Fixed: [Shared mode] Fix for occasional `AssertException: data.Status == NetworkObjectConnectionDataStatus.DestroyUnconfirmed`
+- Fixed: An issue with the change detector for inherited classes with private properties in the parent class
+
+# 2.0.11
+
+## Stable
+
+### Build 1743 (Feb 09, 2026)
+
+**Bug Fixes**
+
+Fixed: Implement unused UnloadUnusedPrefabsOnShutdown function (backport from 2.1)
+Fixed: Inconsistent `NetworkId` between clients in long-running sessions
+
+# 2.0.10
+
+## Stable
+
+### Build 1688 (Jan 27, 2026)
+
+**Bug Fixes**
+
+- Fixed: ConnectionToken null on Single Player Mode
+
 # 2.0.9
 
 ## Stable

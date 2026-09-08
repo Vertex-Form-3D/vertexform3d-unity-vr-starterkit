@@ -1,3 +1,11 @@
+// --------------------------------------------------------------------------------------------------------------------
+// <summary>
+//   Provided originally by Unity to cover WebSocket support in WebGL and the Editor. Modified by Exit Games GmbH.
+// </summary>
+// <author>developer@exitgames.com</author>
+// --------------------------------------------------------------------------------------------------------------------
+
+
 #if UNITY_WEBGL || WEBSOCKET || WEBSOCKET_PROXYCONFIG
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -5,13 +13,6 @@
 #else
 #define PHOTON_WEBSOCKET_CS
 #endif
-
-// --------------------------------------------------------------------------------------------------------------------
-// <summary>
-//   Provided originally by Unity to cover WebSocket support in WebGL and the Editor. Modified by Exit Games GmbH.
-// </summary>
-// <author>developer@exitgames.com</author>
-// --------------------------------------------------------------------------------------------------------------------
 
 
 namespace ExitGames.Client.Photon
@@ -98,26 +99,26 @@ namespace ExitGames.Client.Photon
         {
             this.m_Socket = new WebSocketSharp.WebSocket(this.Url.ToString(), new string[] {this.protocols});
             this.m_Socket.Log.Output = (ld, f) =>
-                                       {
-                                           var s = string.Format("WebSocketSharp: {0}", ld.Message);
-                                           switch (ld.Level)
-                                           {
-                                               case LogLevel.Trace:
-                                               case LogLevel.Debug:
-                                                   this.DebugReturn(DebugLevel.ALL, s);
-                                                   break;
-                                               case LogLevel.Info:
-                                                   this.DebugReturn(DebugLevel.INFO, s);
-                                                   break;
-                                               case LogLevel.Warn:
-                                                   this.DebugReturn(DebugLevel.WARNING, s);
-                                                   break;
-                                               case LogLevel.Error:
-                                               case LogLevel.Fatal:
-                                                   this.DebugReturn(DebugLevel.ERROR, s);
-                                                   break;
-                                           }
-                                       };
+                                  {
+                                      var s = string.Format("WebSocketSharp: {0}", ld.Message);
+                                      switch (ld.Level)
+                                      {
+                                          case WebSocketSharp.LogLevel.Trace:
+                                          case WebSocketSharp.LogLevel.Debug:
+                                              DebugReturn(DebugLevel.ALL, s);
+                                              break;
+                                          case WebSocketSharp.LogLevel.Info:
+                                              DebugReturn(DebugLevel.INFO, s);
+                                              break;
+                                          case WebSocketSharp.LogLevel.Warn:
+                                              DebugReturn(DebugLevel.WARNING, s);
+                                              break;
+                                          case WebSocketSharp.LogLevel.Error:
+                                          case WebSocketSharp.LogLevel.Fatal:
+                                              DebugReturn(DebugLevel.ERROR, s);
+                                              break;
+                                      }
+                                  };
 
             this.m_Socket.OnOpen += (sender, e) =>
                                     {
@@ -130,7 +131,7 @@ namespace ExitGames.Client.Photon
                                        };
             this.m_Socket.OnError += (sender, e) =>
                                      {
-                                         this.Connected = false;
+                                         //this.Connected = false;      // websocket-sharp calls this for non-fatal errors, too
                                          this.Error = e.Message + (e.Exception == null ? "" : " / " + e.Exception);
                                          this.errorCallback(0, e.Message);
                                      };

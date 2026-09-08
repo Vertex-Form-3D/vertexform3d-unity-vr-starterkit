@@ -62,6 +62,18 @@
             Stores a Task Factory ready made to be used with Unity
             </summary>
         </member>
+        <member name="F:Fusion.Async.TaskManager.True">
+            <summary>
+            Cached completed Task with result true. Reuse this in tight polling loops instead of calling
+            Task.FromResult(true), which allocates a new Task on every call.
+            </summary>
+        </member>
+        <member name="F:Fusion.Async.TaskManager.False">
+            <summary>
+            Cached completed Task with result false. Reuse this in tight polling loops instead of calling
+            Task.FromResult(false), which allocates a new Task on every call.
+            </summary>
+        </member>
         <member name="M:Fusion.Async.TaskManager.Setup">
             <summary>
             Setup a new TaskFactory tailored to work with Unity
@@ -362,6 +374,11 @@
             Callback for world snapshot size profiling.
             </summary>
         </member>
+        <member name="F:Fusion.EngineProfiler.ScannedObjectCallback">
+            <summary>
+            Callback for simulation offset deviation profiling.
+            </summary>
+        </member>
         <member name="F:Fusion.EngineProfiler.InputSizeCallback">
             <summary>
             Callback for input size profiling.
@@ -380,6 +397,11 @@
         <member name="F:Fusion.EngineProfiler.RpcOutCallback">
             <summary>
             Callback for RPC out profiling.
+            </summary>
+        </member>
+        <member name="F:Fusion.EngineProfiler.RpcResentCallback">
+            <summary>
+            Callback for RPC re-sent profiling.
             </summary>
         </member>
         <member name="F:Fusion.EngineProfiler.StateRecvDeltaCallback">
@@ -471,6 +493,12 @@
             </summary>
             <param name="value">The world snapshot size value.</param>
         </member>
+        <member name="M:Fusion.EngineProfiler.ScannedObject(Fusion.EngineProfiler.ObjectScanInfo)">
+            <summary>
+            Invokes the object size callback with the specified value.
+            </summary>
+            <param name="info">The object info</param>
+        </member>
         <member name="M:Fusion.EngineProfiler.InputSize(System.Int32)">
             <summary>
             Invokes the input size callback with the specified value.
@@ -494,6 +522,12 @@
             Invokes the RPC out callback with the specified value.
             </summary>
             <param name="value">The RPC out value.</param>
+        </member>
+        <member name="M:Fusion.EngineProfiler.RpcResent(System.Int32)">
+            <summary>
+            Invokes the RPC re-sent callback with the specified value.
+            </summary>
+            <param name="value">The RPC re-sent value.</param>
         </member>
         <member name="M:Fusion.EngineProfiler.StateRecvDelta(System.Single)">
             <summary>
@@ -661,17 +695,6 @@
             Represents a Protocol Message
             
             Used to tag the Messages in <see cref="T:Fusion.Protocol.ICommunicator"/>.
-            </summary>
-        </member>
-        <member name="T:Fusion.Common.ExceptionConstants">
-            <summary>
-            Hold Exception Key used to attach extra data to exception within the SDK
-            </summary>
-        </member>
-        <member name="F:Fusion.Common.ExceptionConstants.TrackerId">
-            <summary>
-            Used to associate a unique ID to an Exception
-            It must contain a long value
             </summary>
         </member>
         <member name="T:Fusion.ArrayLengthAttribute">
@@ -1163,8 +1186,16 @@
             Specifies that the integer array field should be drawn as a layer matrix in the inspector.
             </summary>
         </member>
-        <member name="M:Fusion.LayerMatrixAttribute.#ctor">
-            <summary />
+        <member name="P:Fusion.LayerMatrixAttribute.LayerNamesField">
+            <summary>
+            The name of the sibling string array field containing layer names.
+            </summary>
+        </member>
+        <member name="M:Fusion.LayerMatrixAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance with a reference to a sibling string array field to use as layer names.
+            </summary>
+            <param name="layerNamesField"></param>
         </member>
         <member name="T:Fusion.MaxStringByteCountAttribute">
             <summary>
@@ -1366,6 +1397,42 @@
             Height of the space.
             </summary>
         </member>
+        <member name="T:Fusion.StructExplicitAttribute">
+            <summary>
+            Marks a struct for automatic generation of fixed layout constants and [StructLayout(LayoutKind.Explicit, Size = ...)]. 
+            Fields must have [FieldOffset].
+            </summary>
+            <param name="Size"><seealso cref="F:System.Runtime.InteropServices.StructLayoutAttribute.Size"/></param>
+        </member>
+        <member name="M:Fusion.StructExplicitAttribute.#ctor(System.Int32)">
+            <summary>
+            Marks a struct for automatic generation of fixed layout constants and [StructLayout(LayoutKind.Explicit, Size = ...)]. 
+            Fields must have [FieldOffset].
+            </summary>
+            <param name="Size"><seealso cref="F:System.Runtime.InteropServices.StructLayoutAttribute.Size"/></param>
+        </member>
+        <member name="P:Fusion.StructExplicitAttribute.Size">
+            <summary> <seealso cref="F:System.Runtime.InteropServices.StructLayoutAttribute.Size"/> </summary>
+        </member>
+        <member name="P:Fusion.StructExplicitAttribute.Pack">
+            <summary> <seealso cref="F:System.Runtime.InteropServices.StructLayoutAttribute.Pack"/> </summary>
+        </member>
+        <member name="P:Fusion.StructExplicitAttribute.AllowOversizing">
+            <summary>If true, allows for the struct to be larger than its contents.</summary>
+        </member>
+        <member name="P:Fusion.StructExplicitAttribute.EmitWordOffsets">
+            <summary>If true, emits word offsets for each field not marked with <seealso cref="T:Fusion.FieldNotWordAlignedAttribute"/>.</summary>
+        </member>
+        <member name="P:Fusion.StructExplicitAttribute.WordCountName">
+            <summary>Custom name for the WORD_COUNT constant. Default is "WORD_COUNT".</summary>
+        </member>
+        <member name="T:Fusion.FieldNotWordAlignedAttribute">
+            <summary>
+            Marks a field as not word-aligned. Fields with this attribute will be skipped
+            when generating word-based constants (WORD_OF_*, WORD_COUNT_OF_*) and byte-based
+            field constants (BYTE_OF_*, BYTE_COUNT_OF_*).
+            </summary>
+        </member>
         <member name="T:Fusion.ToggleLeftAttribute">
             <summary>
             Specifies that the bool field should be drawn as the toggle on the left side of the label.
@@ -1476,6 +1543,17 @@
         <member name="T:Fusion.PropertyAttribute">
             <summary>
             A replacement for UnityEngine.PropertyAttribute.
+            </summary>
+        </member>
+        <member name="P:Fusion.PropertyAttribute.applyToCollection">
+            <summary/>
+        </member>
+        <member name="M:Fusion.PropertyAttribute.#ctor(System.Boolean)">
+            <summary/>
+        </member>
+        <member name="T:Fusion.UnityNavMeshAreaAttribute">
+            <summary>
+            Specifies that the string field represents a path to a Unity resource.
             </summary>
         </member>
         <member name="T:Fusion.UnityResourcePathAttribute">
@@ -1773,6 +1851,19 @@
             are loaded is driven by usages of <see cref="T:Fusion.FusionGlobalScriptableObjectSourceAttribute"/> attributes. 
             </summary>
         </member>
+        <member name="F:Fusion.FusionGlobalScriptableObject._typesFailedToLoad">
+            <summary>
+            Types that failed to load. Used to limit attempts until a reimport happens. Also, there's a nasty bug
+            at least in some Unity versions (verified on 2021), where if there's a type of the same name in multiple assemblies,
+            AssetDatabase.GetMainAssetPath may return the wrong one.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject.ClearTypesFailedToLoad">
+            <summary>
+            Use to clear internal list marking specific type as unable to load. Types might be unable to load during bootstrap, so cleaning the list
+            in some static initializer is a good way to ensure things can recover.
+            </summary>
+        </member>
         <member name="T:Fusion.FusionGlobalScriptableObject`1">
             <inheritdoc cref="T:Fusion.FusionGlobalScriptableObject`1"/>
         </member>
@@ -1816,6 +1907,12 @@
             <param name="global"></param>
             <returns></returns>
         </member>
+        <member name="M:Fusion.FusionGlobalScriptableObject`1.GetGlobalAsyncInternal">
+            <summary>
+            Loads or returns the current global instance asynchronously. Returns <see langword="null"/> if loading an instance failed.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Fusion.FusionGlobalScriptableObject`1.UnloadGlobalInternal">
             <summary>
             Unloads the global instance if it is loaded.
@@ -1857,6 +1954,8 @@
             [assembly: Fusion.FusionGlobalScriptableObjectResource(typeof(Fusion.FusionGlobalScriptableObject), Order = 2000, AllowFallback = true)]
             </code>
             </summary>
+            <seealso cref="!:FusionGlobalScriptableObjectAddressAttribute"/>
+            <seealso cref="!:FusionGlobalScriptableObjectResourceAttribute"/>
         </member>
         <member name="M:Fusion.FusionGlobalScriptableObjectSourceAttribute.#ctor(System.Type)">
             <param name="objectType">Type or the base type of <see cref="T:Fusion.FusionGlobalScriptableObject"/> that this loader supports.</param>
@@ -1886,6 +1985,13 @@
             Attempt to load the object of the specified type. Return <see langword="default"/> if the object cannot be loaded.
             </summary>
             <param name="type">The requested type</param>
+        </member>
+        <member name="M:Fusion.FusionGlobalScriptableObjectSourceAttribute.LoadAsync(System.Type)">
+            <summary>
+            
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
         </member>
         <member name="T:Fusion.FusionGlobalScriptableObjectUnloadDelegate">
             <summary>
@@ -1922,10 +2028,131 @@
             Base class for all Fusion MonoBehaviours.
             </summary>
         </member>
+        <member name="T:Fusion.FusionPlayerLoopSystemAddMode">
+            <summary>
+            Enum representing the possible modes for adding a system to the Unity Player Loop System.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionPlayerLoopSystemAddMode.FirstChild">
+            <summary>Add the system as the first child of the parent system.</summary>
+        </member>
+        <member name="F:Fusion.FusionPlayerLoopSystemAddMode.LastChild">
+            <summary>Add the system as the last child of the parent system.</summary>
+        </member>
+        <member name="F:Fusion.FusionPlayerLoopSystemAddMode.Before">
+            <summary>Add the system before the parent system in the player loop.</summary>
+        </member>
+        <member name="F:Fusion.FusionPlayerLoopSystemAddMode.After">
+            <summary>Add the system after the parent system in the player loop.</summary>
+        </member>
+        <member name="T:Fusion.FusionPlayerLoopSystemHandle">
+            <summary>
+            Represents a system that has been added to the PlayerLoopSystem.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionPlayerLoopSystemHandle.Type">
+            <summary>
+            The type of the system.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionPlayerLoopSystemHandle.#ctor(System.Type)">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlayerLoopSystemHandle.Dispose">
+            <summary/>
+        </member>
+        <member name="T:Fusion.FusionPlayerLoopSystemUtils">
+            <summary>
+            Utility class for manipulating Unity Player Loop System.
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionPlayerLoopSystemUtils.AddToPlayerLoop(System.Type,Fusion.FusionPlayerLoopSystemAddMode,System.Type,UnityEngine.LowLevel.PlayerLoopSystem.UpdateFunction)">
+            <summary>
+            Adds a new loop system in relation to <paramref name="referenceSystemType"/>
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionPlayerLoopSystemUtils.AddToPlayerLoop(UnityEngine.LowLevel.PlayerLoopSystem@,System.Type,Fusion.FusionPlayerLoopSystemAddMode,System.Type,UnityEngine.LowLevel.PlayerLoopSystem.UpdateFunction)">
+            <summary>
+            Adds a new loop system in relation to <paramref name="referenceSystemType"/>
+            </summary>
+        </member>
+        <member name="M:Fusion.FusionPlayerLoopSystemUtils.RemoveFromPlayerLoop(System.Type)">
+            <summary>
+            Removes a player loop system of given type.
+            </summary>
+            <returns>True if adding was successful</returns>
+        </member>
+        <member name="M:Fusion.FusionPlayerLoopSystemUtils.RemoveFromPlayerLoop(UnityEngine.LowLevel.PlayerLoopSystem@,System.Type)">
+            <summary>
+            Removes a player loop system of given type.
+            </summary>
+            <returns>True if adding was successful</returns>
+        </member>
         <member name="T:Fusion.FusionScriptableObject">
             <summary>
             Base class for all Fusion scriptable objects.
             </summary>
+        </member>
+        <member name="T:Fusion.FusionScriptingBackend">
+            <summary>
+            Backend types.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionScriptingBackend.DotNet">
+            <summary>
+            Run by dotnet.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionScriptingBackend.Mono">
+            <summary>
+            Run by Mono.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionScriptingBackend.IL2CPP">
+            <summary>
+            Run by IL2CPP.
+            </summary>
+        </member>
+        <member name="T:Fusion.MarkPlatformAsIL2CPPIfEnableIL2CPPDefinedAttribute">
+            <summary>
+            Place this attribute on Unity side; it will be only included in assembly if the ENABLE_IL2CPP define is there.
+            </summary>
+        </member>
+        <member name="T:Fusion.MarkPlatformAsWebIfUnityWebGlDefinedAttribute">
+            <summary>
+            Place this attribute on Unity side; it will be only included in assembly if the ENABLE_IL2CPP define is there.
+            </summary>
+        </member>
+        <member name="T:Fusion.FusionPlatform">
+            <summary>
+            Current platform information. 
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionPlatform.CurrentBackend">
+            <summary>
+            Current backend.
+            </summary>
+        </member>
+        <member name="F:Fusion.FusionPlatform.IsWebGL">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlatform.GetLoadedAssemblies">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlatform.GetAnyAssemblyAttribute``1(System.Collections.Generic.IReadOnlyList{System.Reflection.Assembly})">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlatform.GetAssemblyAttributes``1(System.Collections.Generic.IReadOnlyList{System.Reflection.Assembly})">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlatform.GetAnyLoadedAssemblyAttribute``1">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlatform.GetLoadedAssemblyAttributes``1">
+            <summary/>
+        </member>
+        <member name="M:Fusion.FusionPlatform.GetLoadedPath(System.Reflection.Assembly)">
+            <summary/>
         </member>
         <member name="T:Fusion.JsonUtils">
             <summary>
@@ -2280,6 +2507,27 @@
             <param name="destination">The destination pointer.</param>
             <param name="source">The source pointer.</param>
             <param name="size">The number of bytes to copy.</param>
+        </member>
+        <member name="M:Fusion.Native.CopyTo(System.Span{System.Int32},System.Span{System.Int32})">
+            <summary>
+            Copy from s to d, with CopyTo semantics: d must be the same size or bigger than s.
+            If s is smaller than d the excess part of d is not written to.
+            </summary>
+            <param name="d">The Destination</param>
+            <param name="s">The Source</param>
+        </member>
+        <member name="M:Fusion.Native.CopyTo(System.Span{System.Byte},System.Span{System.Byte})">
+            <inheritdoc cref="M:Fusion.Native.CopyTo(System.Span{System.Int32},System.Span{System.Int32})"/>
+        </member>
+        <member name="M:Fusion.Native.CopyToExact(System.Span{System.Int32},System.Span{System.Int32})">
+            <summary>
+            Copy from s to d, like CopyTo but s and d must be the same size.
+            </summary>
+            <param name="d">The Destination</param>
+            <param name="s">The Source</param>
+        </member>
+        <member name="M:Fusion.Native.CopyToExact(System.Span{System.Byte},System.Span{System.Byte})">
+            <inheritdoc cref="M:Fusion.Native.CopyToExact(System.Span{System.Int32},System.Span{System.Int32})"/>
         </member>
         <member name="M:Fusion.Native.MemClear(System.Void*,System.Int32)">
             <summary>
@@ -2824,6 +3072,33 @@
             <returns>The next prime number greater than the specified unsigned value.</returns>
             <exception cref="T:System.InvalidOperationException">Thrown when there is no larger prime number in the table.</exception>
         </member>
+        <member name="T:Fusion.Common.StringUtils">
+            <summary>
+            String Utility
+            </summary>
+        </member>
+        <member name="M:Fusion.Common.StringUtils.ToSafeId(System.String)">
+            <summary>
+            Converts a string into a safe identifier by removing diacritics, replacing whitespace
+            with underscores, and stripping any characters that are not alphanumeric or underscores.
+            </summary>
+            <param name="input">The input string to convert into a safe identifier.</param>
+            <returns>
+            A sanitized string suitable for use as an identifier, containing only ASCII letters,
+            digits, and underscores. Returns <see cref="F:System.String.Empty"/> if <paramref name="input"/>
+            is <c>null</c>, empty, or consists solely of whitespace.
+            </returns>
+            <remarks>
+            The conversion performs the following steps:
+            <list type="number">
+              <item><description>Normalizes the string to Unicode Form D (canonical decomposition).</description></item>
+              <item><description>Removes all non-spacing marks (e.g., accents and diacritics).</description></item>
+              <item><description>Trims surrounding whitespace and replaces internal whitespace runs with a single underscore.</description></item>
+              <item><description>Removes any remaining characters that are not letters (a–z, A–Z), digits (0–9), or underscores.</description></item>
+            </list>
+            For example, <c>"Café Münchën 42!"</c> becomes <c>"Cafe_Munchen_42"</c>.
+            </remarks>
+        </member>
         <member name="T:Fusion.Timer">
             <summary>
             Represents a high-resolution timer.
@@ -2877,82 +3152,112 @@
         </member>
         <member name="T:Fusion.RuntimeUnityFlagsSetup">
             <summary>
-            Contains methods to setup runtime flags for Unity.
+            Contains methods to setup runtime _flags for Unity.
             </summary>
         </member>
-        <member name="F:Fusion.RuntimeUnityFlagsSetup.flagsBuildFlags">
+        <member name="F:Fusion.RuntimeUnityFlagsSetup._flagsBuildFlags">
             <summary>
             Flags for BuildFlags
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_WEBGL">
             <summary>
-            Checks if the UNITY_WEBGL flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the UNITY_WEBGL flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_XBOXONE">
             <summary>
-            Checks if the UNITY_XBOXONE flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the UNITY_XBOXONE flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_GAMECORE">
             <summary>
-            Checks if the UNITY_GAMECORE flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the UNITY_GAMECORE flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_EDITOR">
             <summary>
-            Checks if the UNITY_EDITOR flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the UNITY_EDITOR flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_SWITCH">
             <summary>
-            Checks if the UNITY_SWITCH flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the UNITY_SWITCH flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_2019_4_OR_NEWER">
             <summary>
-            Checks if the UNITY_2019_4_OR_NEWER flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the UNITY_2019_4_OR_NEWER flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
-        <member name="F:Fusion.RuntimeUnityFlagsSetup.flagsBuildTypes">
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_6000_0_OR_NEWER">
+            <summary>
+            Checks if the UNITY_6000_0_OR_NEWER flag is set and updates the _flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_64">
+            <summary>
+            Checks if the UNITY_64 flag is set and updates the _flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_FUSION">
+            <summary>
+            Checks if the UNITY_FUSION flag is set and updates the _flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_UNITY_WSA">
+            <summary>
+            Checks if the UNITY_WSA flag is set and updates the _flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="F:Fusion.RuntimeUnityFlagsSetup._flagsBuildTypes">
             <summary>
             Flags for BuildTypes
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_ENABLE_MONO">
             <summary>
-            Checks if the ENABLE_MONO flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the ENABLE_MONO flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_ENABLE_IL2CPP">
             <summary>
-            Checks if the ENABLE_IL2CPP flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the ENABLE_IL2CPP flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
-        <member name="F:Fusion.RuntimeUnityFlagsSetup.flagsDotNetVersion">
+        <member name="F:Fusion.RuntimeUnityFlagsSetup._flagsDotNetVersion">
             <summary>
             Flags for DotNetVersion
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NET_4_6">
             <summary>
-            Checks if the NET_4_6 flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the NET_4_6 flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NETFX_CORE">
             <summary>
-            Checks if the NETFX_CORE flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the NETFX_CORE flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NET_STANDARD_2_0">
             <summary>
-            Checks if the NET_STANDARD_2_0 flag is set and updates the flagsDotNetVersion accordingly.
+            Checks if the NET_STANDARD_2_0 flag is set and updates the _flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NET_STANDARD_2_1">
+            <summary>
+            Checks if the NET_STANDARD_2_1 flag is set and updates the _flagsDotNetVersion accordingly.
+            </summary>
+        </member>
+        <member name="M:Fusion.RuntimeUnityFlagsSetup.Check_NET_LEGACY">
+            <summary>
+            Checks if the NET_LEGACY flag is set and updates the _flagsDotNetVersion accordingly.
             </summary>
         </member>
         <member name="M:Fusion.RuntimeUnityFlagsSetup.Reset">
             <summary>
-            Resets all runtime flags to their default values.
+            Resets all runtime _flags to their default values.
             </summary>
         </member>
         <member name="T:Fusion.Unsafe">
@@ -3122,6 +3427,66 @@
             Gets the assembly version as a string.
             </summary>
             <returns>The assembly version as a string.</returns>
+        </member>
+        <member name="T:Unity.IL2CPP.CompilerServices.Option">
+            <summary>
+            The code generation options available for IL to C++ conversion.
+            Enable or disabled these with caution.
+            </summary>
+        </member>
+        <member name="F:Unity.IL2CPP.CompilerServices.Option.NullChecks">
+             <summary>
+             Enable or disable code generation for null checks.
+            
+             Global null check support is enabled by default when il2cpp.exe
+             is launched from the Unity editor.
+            
+             Disabling this will prevent NullReferenceException exceptions from
+             being thrown in generated code. In *most* cases, code that dereferences
+             a null pointer will crash then. Sometimes the point where the crash
+             happens is later than the location where the null reference check would
+             have been emitted though.
+             </summary>
+        </member>
+        <member name="F:Unity.IL2CPP.CompilerServices.Option.ArrayBoundsChecks">
+             <summary>
+             Enable or disable code generation for array bounds checks.
+            
+             Global array bounds check support is enabled by default when il2cpp.exe
+             is launched from the Unity editor.
+            
+             Disabling this will prevent IndexOutOfRangeException exceptions from
+             being thrown in generated code. This will allow reading and writing to
+             memory outside of the bounds of an array without any runtime checks.
+             Disable this check with extreme caution.
+             </summary>
+        </member>
+        <member name="F:Unity.IL2CPP.CompilerServices.Option.DivideByZeroChecks">
+             <summary>
+             Enable or disable code generation for divide by zero checks.
+            
+             Global divide by zero check support is disabled by default when il2cpp.exe
+             is launched from the Unity editor.
+            
+             Enabling this will cause DivideByZeroException exceptions to be
+             thrown in generated code. Most code doesn't need to handle this
+             exception, so it is probably safe to leave it disabled.
+             </summary>
+        </member>
+        <member name="T:Unity.IL2CPP.CompilerServices.Il2CppSetOptionAttribute">
+             <summary>
+             Use this attribute on an assembly, struct, class, method, or property to inform the IL2CPP code conversion utility to override the
+             global setting for one of a few different runtime checks.
+            
+             Example:
+            
+                 [Il2CppSetOption(Option.NullChecks, false)]
+                 public static string MethodWithNullChecksDisabled()
+                 {
+                     var tmp = new Object();
+                     return tmp.ToString();
+                 }
+             </summary>
         </member>
     </members>
 </doc>

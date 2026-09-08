@@ -240,9 +240,6 @@
         <member name="F:ExitGames.Client.Photon.EnetChannel.highestReceivedAck">
             <summary>To store the highest acknowledged sequence number (and get some impression what the server already received and stored).</summary>
         </member>
-        <member name="F:ExitGames.Client.Photon.EnetChannel.reliableCommandsInFlight">
-            <summary>Count of reliable commands sent and not yet acknowledged.</summary>
-        </member>
         <member name="F:ExitGames.Client.Photon.EnetChannel.lowestUnacknowledgedSequenceNumber">
             <summary>The lowest sequence number sent but not acknowledged yet. This defines the sequence delta "window" for sending subsequent reliable commands.</summary>
         </member>
@@ -250,9 +247,6 @@
             <summary>Checks and queues incoming reliable unsequenced commands ("send" or "fragment"), if they haven't been received yet.</summary>
             <param name="command">The command to check and queue.</param>
             <returns>True if the command is new and got queued (or could be executed/dispatched).</returns>
-        </member>
-        <member name="F:ExitGames.Client.Photon.EnetPeer.QUICK_RESEND_QUEUELIMIT">
-            <summary>Quick Resends are suspended if the sent queue is this size or larger.</summary>
         </member>
         <member name="F:ExitGames.Client.Photon.EnetPeer.sentReliableCommands">
             <summary>One list for all channels keeps sent commands (for re-sending).</summary>
@@ -299,7 +293,7 @@
             gathers commands from all (out)queues until udp-packet is full and sends it!
             </summary>
         </member>
-        <member name="F:ExitGames.Client.Photon.EnetPeer.channelsToUpdateLowestSent">
+        <member name="F:ExitGames.Client.Photon.EnetPeer.lowestSentSequenceNumber">
             <summary>Used to store temporary values in UpdateSendWindow().</summary>
         </member>
         <member name="M:ExitGames.Client.Photon.EnetPeer.EnqueuePhotonMessage(ExitGames.Client.Photon.StreamBuffer,ExitGames.Client.Photon.SendOptions)">
@@ -571,26 +565,25 @@
             <returns>The Deserialized object</returns>
         </member>
         <member name="T:ExitGames.Client.Photon.ITrafficRecorder">
-            <summary>
-            Interface for (UDP) traffic capturing.
-            </summary>
-        </member>
-        <member name="P:ExitGames.Client.Photon.ITrafficRecorder.Enabled">
-            <summary>Indicates if the PhotonPeer should call Record or not.</summary>
+            <summary>Interface for (UDP) traffic capturing.</summary>
         </member>
         <member name="M:ExitGames.Client.Photon.ITrafficRecorder.Record(System.Byte[],System.Int32,System.Boolean,System.Int16,ExitGames.Client.Photon.IPhotonSocket)">
-            <summary>Implement to record network traffic. Called by PhotonPeer for each UDP message sent and received.</summary>
-            <remarks>
-            The buffer will not contain Ethernet Header, IP, UDP level data. Only the payload received by the client.
+             <summary>Called by PhotonPeer for each UDP datagram sent and received (from different threads).</summary>
+             <remarks>
+             The data contains the payload of a datagram. This array can be overwritten anytime after the Record call.
+             The byte[] may be larger than the actual data, so check dataLength.
             
-            It is advised to not use NetworkSimulation when recording traffic.
-            The recording is done on the timing of actual receive- and send-calls and internal simulation would offset the timing.
-            </remarks>
-            <param name="inBuffer">Buffer to be sent or received. Check length value for actual content length.</param>
-            <param name="length">Length of the network data.</param>
-            <param name="incoming">Indicates incoming (true) or outgoing (false) traffic.</param>
-            <param name="peerId">The local peerId for the connection. Defaults to 0xFFFF until assigned by the Server.</param>
-            <param name="connection">The currently used IPhotonSocket of this Peer. Enables you to track the connection endpoint.</param>
+             Assign a ITrafficRecorder instance to: PhotonPeer.TrafficRecorder.
+             Useful base implementations can be provided by the Photon team. Mail us: hello@photonengine.com.
+            
+             It is advised to not use NetworkSimulation when recording traffic.
+             The recording is done on the timing of actual receive- and send-calls and internal simulation would offset the timing.
+             </remarks>
+             <param name="data">Buffer to be sent or received. Check dataLength value for actual content length.</param>
+             <param name="dataLength">Length of the network data.</param>
+             <param name="incoming">Indicates incoming (true) or outgoing (false) data.</param>
+             <param name="peerId">Local peerId for the connection. Defaults to 0xFFFF until assigned by the Server. Helps identify the connection.</param>
+             <param name="connection">PhotonSocket of this Peer. Provides access to remote IP (connection.ServerIpAddress).</param>
         </member>
         <member name="T:ExitGames.Client.Photon.NCommand">
             <summary> Internal class for "commands" - the package in which operations are sent.</summary>
@@ -1354,14 +1347,17 @@
             </summary>
         </member>
         <member name="P:ExitGames.Client.Photon.PhotonPeer.QuickResendAttempts">
-            <summary>
-            Up to 4 resend attempts for a reliable command can be done in quick succession (after RTT+4*Variance).
-            </summary>
-            <remarks>
-            By default 0. Any later resend attempt will then double the time before the next resend.
-            Max value = 4;
-            Make sure to adjust SentCountAllowance to a slightly higher value, as more repeats will get done.
-            </remarks>
+             <summary>
+             Up to 4 resend attempts for a reliable command can be done with minimal ack-wait timing (after RTT+4*Variance).
+             </summary>
+             <remarks>
+             If a command needs to be resent multiple times, the wait time for ACKs gets increased.
+             Any resend within the QuickResendAttempts will use the initial timing for resending (RTT+4*Variance).
+            
+             Default: 2. Range: 1 to 4.
+            
+             Make sure to adjust SentCountAllowance to a slightly higher value, as more repeats happen.
+             </remarks>
         </member>
         <member name="P:ExitGames.Client.Photon.PhotonPeer.PeerState">
             <summary>
@@ -1450,14 +1446,15 @@
         </member>
         <member name="F:ExitGames.Client.Photon.PhotonPeer.SentCountAllowance">
              <summary>
-             Number of send retries before a peer is considered lost/disconnected. Default: 7.
+             Maximum number of resends for any reliable command. If no ack arrives for this many attempts, the connection is timed out. Default: 15.
              </summary>
              <remarks>
              The initial timeout countdown of a command is calculated by the current roundTripTime + 4 * roundTripTimeVariance.
-             Please note that the timeout span until a command will be resent is not constant, but based on
-             the roundtrip time at the initial sending, which will be doubled with every failed retry.
             
-             DisconnectTimeout and SentCountAllowance are competing settings: either might trigger a disconnect on the
+             Please note that the timeout span until a command will be resent is not constant, but based on
+             the roundtrip time at the initial sending, which (after the QuickResends) will be doubled with every failed retry.
+            
+             DisconnectTimeout and SentCountAllowance are related settings: either might trigger a disconnect on the
              client first, depending on the values and Roundtrip Time.
              </remarks>
         </member>
@@ -1819,6 +1816,18 @@
              The default server logic will leave any joined game and trigger the respective event.
              </remarks>
         </member>
+        <member name="M:ExitGames.Client.Photon.PhotonPeer.DisconnectUnderSendLock">
+            <summary>
+            Runs peerBase.Disconnect() under the SendOutgoingLockObject. Meant to be enqueued via
+            EnqueueActionForDispatch so the disconnect happens on the dispatch thread instead of the
+            receive/send threads (see EnetPeer timeout-disconnect and IPhotonSocket.HandleException).
+            </summary>
+            <remarks>
+            Called from the dispatch thread, which already holds DispatchLockObject; this only adds the
+            send lock (the legal Dispatch > SendOutgoing nesting). peerBase.Disconnect() flushes a final
+            Disconnect command via SendOutgoingCommands, so it must run under the send lock.
+            </remarks>
+        </member>
         <member name="M:ExitGames.Client.Photon.PhotonPeer.StopThread">
             <summary>
             This method immediately closes a connection (pure client side) and ends related listening Threads.
@@ -1859,8 +1868,8 @@
             </summary>
             <param name="encryptionSecret">Secret used to cipher udp packets.</param>
             <param name="hmacSecret">Secret used for authentication of udp packets.</param>
-            <param name="randomizedSequenceNumbers">Sets if enet Sequence Numbers will be randomized or not. Preferably should be true.</param>
-            <param name="chainingModeGCM">Sets if the chaining mode should be CBC (false, default) or GCM (true). GCM mode is only available with a native encryption plugin.</param>
+            <param name="randomizedSequenceNumbers">Sets if enet Sequence Numbers will be randomized or not. Default: true.</param>
+            <param name="chainingModeGCM">Sets if the chaining mode should be CBC (false) or GCM (true, default). GCM mode is only available with a native encryption plugin.</param>
         </member>
         <member name="M:ExitGames.Client.Photon.PhotonPeer.InitPayloadEncryption(System.Byte[])">
             <summary>
@@ -2499,6 +2508,9 @@
         <member name="T:ExitGames.Client.Photon.SocketUdp">
             <summary>Encapsulates the network i/o functionality for the realtime library.</summary>
         </member>
+        <member name="M:ExitGames.Client.Photon.SocketUdp.CloseSocketSafely">
+            <summary>Closes and clears the current socket, swallowing any exception. Used to avoid leaking a socket that failed to connect.</summary>
+        </member>
         <member name="M:ExitGames.Client.Photon.SocketUdp.Send(System.Byte[],System.Int32)">
             <summary>used by PhotonPeer*</summary>
         </member>
@@ -2508,8 +2520,20 @@
         <member name="T:ExitGames.Client.Photon.SocketUdpAsync">
             <summary>Internal class to encapsulate the network i/o functionality for the realtime libary.</summary>
         </member>
+        <member name="M:ExitGames.Client.Photon.SocketUdpAsync.CloseSocketSafely">
+            <summary>Closes and clears the current socket, swallowing any exception. Used to avoid leaking a socket that failed to connect.</summary>
+        </member>
         <member name="M:ExitGames.Client.Photon.SocketUdpAsync.Send(System.Byte[],System.Int32)">
             <summary>used by PhotonPeer*</summary>
+        </member>
+        <member name="M:ExitGames.Client.Photon.SocketUdpAsync.ReceiveAsyncLoop">
+            <summary>
+            Issues receives in a loop so that synchronously-completing receives are drained iteratively instead of recursing on the stack.
+            When a receive goes pending, the loop returns and the Completed event resumes it on a thread-pool thread.
+            </summary>
+        </member>
+        <member name="M:ExitGames.Client.Photon.SocketUdpAsync.ProcessReceive(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>Handles one completed receive. Returns true if receiving should continue.</summary>
         </member>
         <member name="T:ExitGames.Client.Photon.SocketUdpBlocking">
             <summary>Encapsulates the network i/o functionality for the realtime library.</summary>

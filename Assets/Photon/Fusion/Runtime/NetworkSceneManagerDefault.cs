@@ -81,11 +81,14 @@ namespace Fusion {
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ClearStatics() {
-      _allOwnedScenes.Clear();
+      _allOwnedScenes            =  new Dictionary<Scene, NetworkSceneManagerDefault>(new FusionUnitySceneManagerUtils.SceneEqualityComparer());
+      SceneManager.sceneUnloaded -= OnSceneUnloaded;
+      SceneManager.sceneUnloaded += OnSceneUnloaded;
     }
-
-    static NetworkSceneManagerDefault() {
-      SceneManager.sceneUnloaded += (s) => _allOwnedScenes.Remove(s);
+    
+    private static void OnSceneUnloaded(Scene s)
+    {
+      _allOwnedScenes.Remove(s);
     }
 
     #region INetworkSceneManager
@@ -588,7 +591,7 @@ namespace Fusion {
         // create a root GO for all the gameObjects in the newly loaded scene
         var newSceneRoot = new GameObject($"[{scene.name}]").AddComponent<MultiPeerSceneRoot>();
         newSceneRoot.SceneRef    = sceneRef;
-        newSceneRoot.SceneHandle = scene.handle;
+        newSceneRoot.SceneHandle = scene.GetRawHandle();
         newSceneRoot.Scene       = scene;
         newSceneRoot.ScenePath   = scene.path;
 
@@ -677,7 +680,7 @@ namespace Fusion {
         
         // remove this one from the list
         var index = _runningCoroutines.IndexOf((ICoroutine)x);
-        Debug.Assert(index == 0, "Expected the completed coroutine to be the first in the list");
+        Debug.AssertFormat(index >= 0, "Expected the completed coroutine to be the first in the list, but was: {0}", index);
         _runningCoroutines.RemoveAt(index);
 
         // start the next one
@@ -824,7 +827,7 @@ namespace Fusion {
     protected sealed class MultiPeerSceneRoot : MonoBehaviour {
       public SceneRef SceneRef;
       public string   ScenePath;
-      public int      SceneHandle;
+      public ulong    SceneHandle;
       public Scene    Scene;
     }
 

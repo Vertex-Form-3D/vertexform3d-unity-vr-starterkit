@@ -20,8 +20,14 @@ namespace Fusion.Statistics {
 
     private FusionStatistics _fusionStatistics;
     
-    private static List<Transform> _worldAnchorCandidates = new List<Transform>();
+    private static List<Transform> _worldAnchorCandidates;
     private static event Action _onWorldAnchorCandidatesUpdate;
+    
+    // reset static fields to allow to disable domain reload
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticFields() {
+      _worldAnchorCandidates = new List<Transform>();
+    }
 
     internal static void SetWorldAnchorCandidate(Transform candidate, bool register) {
       if (register) {
@@ -98,6 +104,11 @@ namespace Fusion.Statistics {
       _onWorldAnchorCandidatesUpdate -= UpdateWorldAnchorButtons;
       _onWorldAnchorCandidatesUpdate += UpdateWorldAnchorButtons;
       UpdateWorldAnchorButtons();
+    }
+
+    private void OnDisable()
+    {
+      _onWorldAnchorCandidatesUpdate -= UpdateWorldAnchorButtons;
     }
 
     private void OnDestroy() {

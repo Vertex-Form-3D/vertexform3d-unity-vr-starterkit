@@ -672,6 +672,7 @@ namespace Fusion.CodeGen {
   using System;
   using System.Collections.Generic;
   using System.Linq;
+  using System.Reflection;
   using System.Runtime.CompilerServices;
   using Mono.Cecil;
   using Mono.Cecil.Cil;
@@ -1096,14 +1097,13 @@ namespace Fusion.CodeGen {
 
           // instructions for our branch
           var ins = new List<Instruction>();
-
+          
+          ctx.RpcInvokeInfoVariable = new VariableDefinition(asm.RpcInvokeInfo);
+          rpc.Body.Variables.Add(ctx.RpcInvokeInfoVariable);
+          ins.Add(Ldloca(ctx.RpcInvokeInfoVariable));
+          ins.Add(Initobj(ctx.RpcInvokeInfoVariable.VariableType));
+          
           if (returnsRpcInvokeInfo) {
-            // find local variable that's used for return(default);
-            ctx.RpcInvokeInfoVariable = new VariableDefinition(asm.RpcInvokeInfo);
-            rpc.Body.Variables.Add(ctx.RpcInvokeInfoVariable);
-            ins.Add(Ldloca(ctx.RpcInvokeInfoVariable));
-            ins.Add(Initobj(ctx.RpcInvokeInfoVariable.VariableType));
-
             // fix each ret
             var returns = il.Body.Instructions.Where(x => x.OpCode == OpCodes.Ret).ToList();
             foreach (var retInstruction in returns) {
@@ -1126,6 +1126,7 @@ namespace Fusion.CodeGen {
             ins.Add(Ldc_I4(0));
             ins.Add(Stfld(asm.NetworkedBehaviour.GetFieldOrThrow(nameof(NetworkBehaviour.InvokeRpc))));
           }
+          
           ins.Add(inv);
 
 
@@ -1136,17 +1137,11 @@ namespace Fusion.CodeGen {
             il.InsertBefore(prev, ins[i]);
             prev = ins[i];
           }
-
+          
           // jump target
           il.Append(jmp);
 
-          
-
-          var returnInstructions = returnsRpcInvokeInfo
-            ? new[] { Ldloc(ctx.RpcInvokeInfoVariable), Ret() }
-            : new[] { Ret() };
-
-          var ret = returnInstructions.First();
+          var retBegin = Nop();
 
           // check if runner's ok
           if (rpc.IsStatic) {
@@ -1176,7 +1171,7 @@ namespace Fusion.CodeGen {
 
             il.AppendMacro(ctx.SetRpcInvokeInfoStatus(invokeLocal, RpcLocalInvokeResult.NotInvokableDuringResim));
             il.AppendMacro(ctx.SetRpcInvokeInfoStatus(RpcSendCullResult.NotInvokableDuringResim));
-            il.Append(Br(ret));
+            il.Append(Br(retBegin));
 
             il.Append(checkDone);
           }
@@ -1214,7 +1209,7 @@ namespace Fusion.CodeGen {
 
               il.AppendMacro(ctx.SetRpcInvokeInfoStatus(invokeLocal, RpcLocalInvokeResult.TargetPlayerIsNotLocal));
               il.AppendMacro(ctx.SetRpcInvokeInfoStatus(RpcSendCullResult.TargetPlayerUnreachable));
-              il.Append(Br(ret));
+              il.Append(Br(retBegin));
 
               il.Append(done);
             }
@@ -1240,7 +1235,7 @@ namespace Fusion.CodeGen {
                 }
 
                 il.AppendMacro(ctx.SetRpcInvokeInfoStatus(RpcSendCullResult.TargetPlayerIsLocalButRpcIsNotInvokableLocally));
-                il.Append(Br(ret));
+                il.Append(Br(retBegin));
 
                 il.Append(checkDone);
               }
@@ -1268,7 +1263,7 @@ namespace Fusion.CodeGen {
             il.AppendMacro(ctx.SetRpcInvokeInfoStatus(invokeLocal, RpcLocalInvokeResult.InsufficientSourceAuthority));
             il.AppendMacro(ctx.SetRpcInvokeInfoStatus(RpcSendCullResult.InsufficientSourceAuthority));
 
-            il.Append(Br(ret));
+            il.Append(Br(retBegin));
 
             il.Append(checkDone);
 
@@ -1333,7 +1328,7 @@ namespace Fusion.CodeGen {
             il.Append(Ldloc(messageSizeVar));
             il.Append(Call(asm.NetworkBehaviourUtils.GetMethod(nameof(NetworkBehaviourUtils.NotifyRpcPayloadSizeExceeded))));
           }
-          il.Append(Br(ret));
+          il.Append(Br(retBegin));
           il.Append(sizeOk);
           
           // check if sending makes sense at all
@@ -1389,6 +1384,7 @@ namespace Fusion.CodeGen {
           il.Append(Stloc(ctx.OffsetVariable));
 
           // write parameters
+          List<ParameterDefinition> actualParameters = new();
           for (int i = 0; i < rpc.Parameters.Count; ++i) {
             var para = rpc.Parameters[i];
 
@@ -1403,6 +1399,7 @@ namespace Fusion.CodeGen {
             }
 
             using (ctx.ValueGetter(il => il.Append(Ldarg(para)))) {
+              actualParameters.Add(para);
               if (para.ParameterType.IsArray) {
                 //WeaveRpcArrayInput(asm, ctx, il, para);
                 EmitRpcWriteArray(il, ctx, para, para.ParameterType.GetElementTypeWithGenerics());
@@ -1421,8 +1418,6 @@ namespace Fusion.CodeGen {
           il.Append(Stind_I4());
 
           // send message
-
-          il.AppendMacro(ctx.LoadRunner());
 
           if (rpcTargetParameter != null) {
             il.Append(Ldloc(message));
@@ -1446,16 +1441,12 @@ namespace Fusion.CodeGen {
           }
 
           // send the rpc
+          il.Append(Ldloca(ctx.RpcInvokeInfoVariable));
+          il.AppendMacro(ctx.LoadRunner());
           il.Append(Ldloc(message));
+          il.Append(Call(asm.NetworkRunner.GetMethod(nameof(NetworkRunner.SendRpc), 1)));
+          il.Append(Stfld(asm.RpcInvokeInfo.GetFieldOrThrow(nameof(RpcInvokeInfo.SendResult))));
           
-          if (ctx.RpcInvokeInfoVariable != null) {
-            il.Append(Ldloca(ctx.RpcInvokeInfoVariable));
-            il.Append(Ldflda(asm.RpcInvokeInfo.GetFieldOrThrow(nameof(RpcInvokeInfo.SendResult))));
-            il.Append(Call(asm.NetworkRunner.GetMethod(nameof(NetworkRunner.SendRpc), 2)));
-          } else {
-            il.Append(Call(asm.NetworkRunner.GetMethod(nameof(NetworkRunner.SendRpc), 1)));
-          }
-
           il.AppendMacro(ctx.SetRpcInvokeInfoStatus(RpcSendCullResult.NotCulled));
 
           il.Append(afterSend);
@@ -1464,7 +1455,7 @@ namespace Fusion.CodeGen {
           if (invokeLocal) {
 
             if (targetedInvokeLocal != null) {
-              il.Append(Br(ret));
+              il.Append(Br(retBegin));
               il.Append(targetedInvokeLocal);
             }
 
@@ -1477,7 +1468,7 @@ namespace Fusion.CodeGen {
 
               il.AppendMacro(ctx.SetRpcInvokeInfoStatus(true, RpcLocalInvokeResult.InsufficientTargetAuthority));
 
-              il.Append(Br(ret));
+              il.Append(Br(retBegin));
 
               il.Append(checkDone);
             }
@@ -1490,19 +1481,53 @@ namespace Fusion.CodeGen {
                 il.AppendMacro(ctx.LoadRunner());
                 il.Append(Ldc_I4((int)channel));
                 il.Append(Ldc_I4((int)hostMode));
-                il.Append(Call(asm.RpcInfo.GetMethod(nameof(RpcInfo.FromLocal))));
+                il.Append(Call(asm.RpcInfo.GetMethod(nameof(RpcInfo.FromLocal), 3)));
                 il.Append(Starg_S(param));
               }
             }
 
             il.AppendMacro(ctx.SetRpcInvokeInfoStatus(true, RpcLocalInvokeResult.Invoked));
 
+            // 
+            
             // invoke
+            EmitDebugInvoke();
             il.Append(Br(inv));
           }
 
-          foreach (var instruction in returnInstructions) {
-            il.Append(instruction);
+          il.Append(retBegin);
+          
+          EmitDebugInvoke();
+          if (returnsRpcInvokeInfo) {
+            il.Append(Ldloc(ctx.RpcInvokeInfoVariable));  
+          }
+          il.Append(Ret());
+          
+          
+          void EmitDebugInvoke() {
+            var end = Nop();
+            // check if there's an invoker
+            il.Append(Ldsfld(asm.NetworkRunner.GetFieldOrThrow(nameof(NetworkRunner._debugRpcEvent))));
+            il.Append(Dup());
+
+            var ldRunnerOrBehaviour = Ldarg_0();
+            il.Append(Brtrue_S(ldRunnerOrBehaviour));
+          
+            il.Append(Pop());
+            il.Append(Br_S(end));
+            
+            il.Append(ldRunnerOrBehaviour);
+            
+            LdMethodSafe(rpc, il);
+
+            il.Append(Ldloc(ctx.RpcInvokeInfoVariable));
+            il.Append(Ldc_I4((int)hostMode));
+            il.Append(rpcTargetParameter != null ? Ldarg(rpcTargetParameter) : Call(asm.PlayerRef.GetGetterOrThrow(nameof(PlayerRef.Invalid))));
+            
+            il.Append(Call(asm.NetworkRunnerDebugRpcEvent.GetMethod(nameof(NetworkRunnerDebugRpcEvent.FromLocalCall), 5)));
+
+            il.Append(Callvirt(asm.NetworkRunnerDebugRpcEventDelegate.GetMethod("Invoke")));
+            il.Append(end);
           }
         }
 
@@ -1560,6 +1585,7 @@ namespace Fusion.CodeGen {
           il.Append(Ldc_I4(RpcHeader.SIZE));
           il.Append(Stloc(ctx.OffsetVariable));
 
+          List<VariableDefinition> actualParameters = new();
           for (int i = 0; i < parameters.Length; ++i) {
             var para = parameters[i];
 
@@ -1577,11 +1603,13 @@ namespace Fusion.CodeGen {
               il.AppendMacro(ctx.LoadRunner());
               il.Append(Ldarg_1());
               il.Append(Ldc_I4((int)hostMode));
-              il.Append(Call(asm.RpcInfo.GetMethod(nameof(RpcInfo.FromMessage))));
+              il.Append(Call(asm.RpcInfo.GetMethod(nameof(RpcInfo.FromMessage), 3)));
               il.Append(Stloc(para));
             } else if (para.VariableType.IsArray) {
+              actualParameters.Add(parameters[i]);
               EmitRpcReadArray(il, ctx, rpc.Parameters[i], para.VariableType.GetElementTypeWithGenerics(), para);
             } else {
+              actualParameters.Add(parameters[i]);
               using (ctx.TargetVariableAddr(para)) {
                 TypeRegistry.EmitRead(para.VariableType, il, ctx, rpc.Parameters[i]);
                 if (!ctx.TargetAddrUsed) {
@@ -1591,6 +1619,8 @@ namespace Fusion.CodeGen {
             }
           }
 
+          EmitDebugInvoke();
+          
           if (rpc.IsStatic) {
             il.Append(Ldc_I4(1));
             il.Append(Stsfld(asm.NetworkBehaviourUtils.GetFieldOrThrow(nameof(NetworkBehaviour.InvokeRpc))));
@@ -1614,12 +1644,47 @@ namespace Fusion.CodeGen {
             il.Append(Pop());
           }
           il.Append(Ret());
+          
+          void EmitDebugInvoke() {
+            var end = Nop();
+            // check if there's an invoker
+            il.Append(Ldsfld(asm.NetworkRunner.GetFieldOrThrow(nameof(NetworkRunner._debugRpcEvent))));
+            il.Append(Dup());
+
+            var ldRunnerOrBehaviour = Ldarg_0();
+            il.Append(Brtrue_S(ldRunnerOrBehaviour));
+          
+            il.Append(Pop());
+            il.Append(Br_S(end));
+            
+            il.Append(ldRunnerOrBehaviour);
+            
+            LdMethodSafe(rpc, il);
+            
+            il.Append(Ldarg_1());
+            il.Append(Ldc_I4((int)hostMode));
+ 
+            il.Append(Call(asm.NetworkRunnerDebugRpcEvent.GetMethod(nameof(NetworkRunnerDebugRpcEvent.FromRemoteCall),4)));
+
+            il.Append(Callvirt(asm.NetworkRunnerDebugRpcEventDelegate.GetMethod("Invoke")));
+            il.Append(end);
+          }
         }
       }
 
       {
         Log.Assert(_rpcCount.TryGetValue(type, out int count) == false || count == instanceRpcKeys);
         _rpcCount[type] = instanceRpcKeys;
+      }
+
+      void LdMethodSafe(MethodDefinition method, ILProcessor il) {
+        if (type.HasGenericParameters) {
+          // no way to resolve for now
+          il.Append(Ldnull());
+        } else {
+          il.Append(Ldtoken(method));
+          il.Append(Call(asm.MethodBase.GetMethod(nameof(MethodBase.GetMethodFromHandle), 1)));
+        }
       }
     }
 
@@ -3126,12 +3191,15 @@ namespace Fusion.CodeGen {
     public AssemblyDefinition CecilAssembly;
 
     ILWeaverImportedType _networkRunner;
+    ILWeaverImportedType _networkRunnerRpcSentEvent;
+    ILWeaverImportedType _networkRunnerRpcSentDelegate;
     ILWeaverImportedType _readWriteUtils;
     ILWeaverImportedType _nativeUtils;
     ILWeaverImportedType _rpcInfo;
     ILWeaverImportedType _rpcInvokeInfo;
     ILWeaverImportedType _rpcHeader;
     ILWeaverImportedType _networkBehaviourUtils;
+    ILWeaverImportedType _playerRef;
 
     ILWeaverImportedType _simulation;
     ILWeaverImportedType _networkedObject;
@@ -3147,6 +3215,7 @@ namespace Fusion.CodeGen {
     ILWeaverImportedType _void;
     ILWeaverImportedType _int;
     ILWeaverImportedType _float;
+    ILWeaverImportedType _methodBase;
 
     Dictionary<Type, TypeReference> _types = new Dictionary<Type, TypeReference>();
     
@@ -3170,6 +3239,8 @@ namespace Fusion.CodeGen {
     public ILWeaverImportedType ValueType => MakeImportedType<ValueType>(ref _valueType);
 
     public ILWeaverImportedType Float => MakeImportedType<float>(ref _float);
+    
+    public ILWeaverImportedType MethodBase => MakeImportedType<MethodBase>(ref _methodBase);
 
     public ILWeaverImportedType NetworkedObject => MakeImportedType<NetworkObject>(ref _networkedObject);
 
@@ -3186,6 +3257,9 @@ namespace Fusion.CodeGen {
     public ILWeaverImportedType NetworkedBehaviourId => MakeImportedType<NetworkBehaviourId>(ref _networkedBehaviourId);
 
     public ILWeaverImportedType NetworkRunner => MakeImportedType<NetworkRunner>(ref _networkRunner);
+    public ILWeaverImportedType NetworkRunnerDebugRpcEvent => MakeImportedType(ref _networkRunnerRpcSentEvent, typeof(NetworkRunnerDebugRpcEvent));
+    public ILWeaverImportedType NetworkRunnerDebugRpcEventDelegate => MakeImportedType<NetworkRunnerRpcEventDelegate>(ref _networkRunnerRpcSentDelegate);
+    
 
     public ILWeaverImportedType ReadWriteUtils => MakeImportedType(ref _readWriteUtils, typeof(ReadWriteUtilsForWeaver));
     
@@ -3198,6 +3272,8 @@ namespace Fusion.CodeGen {
     public ILWeaverImportedType RpcInfo => MakeImportedType<RpcInfo>(ref _rpcInfo);
 
     public ILWeaverImportedType RpcInvokeInfo => MakeImportedType<RpcInvokeInfo>(ref _rpcInvokeInfo);
+    
+    public ILWeaverImportedType PlayerRef => MakeImportedType<PlayerRef>(ref _playerRef);
 
     public TypeReference Import(TypeReference type) {
       return CecilAssembly.MainModule.ImportReference(type);
@@ -5416,6 +5492,7 @@ namespace Fusion.CodeGen {
 
 #if FUSION_WEAVER && FUSION_HAS_MONO_CECIL
 namespace Fusion.CodeGen {
+  using System;
   using System.Reflection;
   using Mono.Cecil;
   using Mono.Cecil.Cil;
@@ -5707,6 +5784,8 @@ namespace Fusion.CodeGen {
           throw new ILWeaverException($"Unknown primitive type {type.FullName}");
       }
     }
+    
+    public static Instruction Ldtoken(MethodReference method) => Instruction.Create(OpCodes.Ldtoken, method);
   }
 }
 #endif

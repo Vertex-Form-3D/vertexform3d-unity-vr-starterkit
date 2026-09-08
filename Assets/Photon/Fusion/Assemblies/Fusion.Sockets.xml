@@ -781,6 +781,13 @@
             <param name="buffer">A pointer to the block of bytes to store the read data.</param>
             <param name="length">The number of bytes to read.</param>
         </member>
+        <member name="M:Fusion.Sockets.NetBitBuffer.ReadBytesAligned(System.Int32[],System.Int32)">
+            <summary>
+            Reads a block of bytes from the buffer, ensuring byte alignment.
+            </summary>
+            <param name="buffer">A pointer to the block of bytes to store the read data.</param>
+            <param name="length">The number of bytes to read.</param>
+        </member>
         <member name="M:Fusion.Sockets.NetBitBuffer.WriteInt64VarLength(System.Int64,System.Int32)">
             <summary>
             Writes a 64-bit signed integer value with variable length to the buffer.
@@ -949,6 +956,12 @@
             </summary>
             <param name="value">The value to write.</param>
             <param name="bits">The number of bits to write.</param>
+        </member>
+        <member name="M:Fusion.Sockets.NetBitBuffer.CanReadUInt32VarLength">
+            <summary>
+            Reads a 32-bit unsigned integer value with variable length from the buffer.
+            </summary>
+            <returns>The 32-bit unsigned integer value read from the buffer.</returns>
         </member>
         <member name="T:Fusion.Sockets.NetBitBufferList">
             <summary>
@@ -2296,6 +2309,18 @@
             </returns>
             <exception cref="T:System.ArgumentException">Thrown when the calculated distance is outside the range of an integer.</exception>
         </member>
+        <member name="F:Fusion.Sockets.NetUnreliableHeader.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.NetUnreliableHeader.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Sockets.NetUnreliableHeader.BYTE_OF_PACKET_TYPE">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.NetUnreliableHeader.PacketType"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.NetUnreliableHeader.BYTE_COUNT_OF_PACKET_TYPE">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.NetUnreliableHeader.PacketType"/>.</summary>
+        </member>
         <member name="T:Fusion.Sockets.ReliableBuffer">
             <summary>
             Represents a buffer for reliable data transmission.
@@ -2375,11 +2400,6 @@
             Represents a reliable key structure used in the Fusion.Sockets namespace.
             </summary>
         </member>
-        <member name="F:Fusion.Sockets.ReliableKey.SIZE">
-            <summary>
-            The size of the ReliableKey structure in bytes.
-            </summary>
-        </member>
         <member name="F:Fusion.Sockets.ReliableKey.Data">
             <summary>
             Fixed byte array to store the key data.
@@ -2445,14 +2465,21 @@
             
             </summary>
         </member>
+        <member name="F:Fusion.Sockets.ReliableKey.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableKey.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableKey.BYTE_OF_DATA">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableKey.Data"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableKey.BYTE_COUNT_OF_DATA">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableKey.Data"/>.</summary>
+        </member>
         <member name="T:Fusion.Sockets.ReliableId">
             <summary>
             Represents a reliable identifier used in the Fusion.Sockets namespace.
-            </summary>
-        </member>
-        <member name="F:Fusion.Sockets.ReliableId.SIZE">
-            <summary>
-            The size of the ReliableId structure in bytes.
             </summary>
         </member>
         <member name="F:Fusion.Sockets.ReliableId.Sequence">
@@ -2500,14 +2527,63 @@
             Gets the combined source identifier.
             </summary>
         </member>
+        <member name="F:Fusion.Sockets.ReliableId.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_SEQUENCE">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.Sequence"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_SEQUENCE">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.Sequence"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_SLICE_LENGTH">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.SliceLength"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_SLICE_LENGTH">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.SliceLength"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_TOTAL_LENGTH">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.TotalLength"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_TOTAL_LENGTH">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.TotalLength"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_SOURCE">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.Source"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_SOURCE">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.Source"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_SOURCE_SEND">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.SourceSend"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_SOURCE_SEND">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.SourceSend"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_TARGET">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.Target"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_TARGET">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.Target"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF_KEY">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId.Key"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF_KEY">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId.Key"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_OF__PADDING">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableId._padding"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableId.BYTE_COUNT_OF__PADDING">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableId._padding"/>.</summary>
+        </member>
         <member name="T:Fusion.Sockets.ReliableHeader">
             <summary>
             Represents a reliable header structure used in the Fusion.Sockets namespace.
-            </summary>
-        </member>
-        <member name="F:Fusion.Sockets.ReliableHeader.SIZE">
-            <summary>
-            The size of the ReliableHeader structure in bytes.
             </summary>
         </member>
         <member name="F:Fusion.Sockets.ReliableHeader.Next">
@@ -2531,6 +2607,30 @@
             </summary>
             <param name="header">The ReliableHeader to get data from.</param>
             <returns>A pointer to the data associated with the specified ReliableHeader.</returns>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.BYTE_OF_NEXT">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableHeader.Next"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.BYTE_COUNT_OF_NEXT">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableHeader.Next"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.BYTE_OF_PREV">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableHeader.Prev"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.BYTE_COUNT_OF_PREV">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableHeader.Prev"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.BYTE_OF_ID">
+            <summary>Byte offset of <see cref="F:Fusion.Sockets.ReliableHeader.Id"/>.</summary>
+        </member>
+        <member name="F:Fusion.Sockets.ReliableHeader.BYTE_COUNT_OF_ID">
+            <summary>Byte size of <see cref="F:Fusion.Sockets.ReliableHeader.Id"/>.</summary>
         </member>
         <member name="T:Fusion.Sockets.ReliableList">
             <summary>

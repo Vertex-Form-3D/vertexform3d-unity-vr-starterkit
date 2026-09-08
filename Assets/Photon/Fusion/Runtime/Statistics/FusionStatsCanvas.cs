@@ -38,7 +38,13 @@ namespace Fusion.Statistics {
     private enum DragMode {None, DragCanvas, ResizeContent}
 
     private DragMode _dragMode;
-    private static int _statsCanvasActiveCount = 0;
+    private static int _statsCanvasActiveCount;
+    
+    // reset static fields to allow to disable domain reload
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticFields() {
+      _statsCanvasActiveCount = 0;
+    }
 
     internal void SetupStatsCanvas(FusionStatistics fusionStatistics, CanvasAnchor canvasAnchor, UnityAction closeButtonAction) {
       _anchor = canvasAnchor;

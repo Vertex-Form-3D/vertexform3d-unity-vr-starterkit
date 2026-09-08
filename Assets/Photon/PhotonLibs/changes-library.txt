@@ -3,6 +3,46 @@ Photon C# Client Library - Changelog
 www.photonengine.com  -  Join our Discord Server: https://dashboard.photonengine.com/account/profile
 
 
+Version 4.1.8.21 (1. July 2026)
+    Fixed: Timeout disconnect on the send thread was racing the dispatch thread for UDP. The disconnect call is deferred to the dispatch thread now.
+    Fixed: Potential threading issue with fragment sizing, when Datagram Encryption gets enabled. In reality, Datagram Encryption is turned on as the connection is established, so no fragments existed.
+    Changed: Updating of SendWindow per channel. This is now based on the sentReliableCommands list and fixes "send-window drift": a channel can be throttled forever (counter stuck high) or over-send.
+    Changed: NCommand.Release() will always free it's payload (if any). This fixes minor memory leaks. Individual FreePayload() calls could be removed mostly.
+    Fixed: Potential corruption issue for a datagram, when Datagram Encryption gets enabled mid-writing.
+    Updated: Reset() in the EnetPeer now sets the datagramEncryptedConnection value and clears the CommandQueue.
+    Changed: DispatchIncomingCommands() to lock the CommandQueue less and execute commands out of the lock.
+
+Version 4.1.8.20 (4. June 2026)
+    No notable changes.
+
+Version 4.1.8.19 (1. June 2026)
+    Updated: UDP and WebSocket error handling to ignore most temporary error codes.
+    Changed: PhotonClientWebSocket for Unity to make sure it works well in async code. This now controls the SynchronizationConext as needed.
+    Fixed: EnetPeer.CreateAndEnqueueCommand() now locks the channel if a range of fragments needs to be sent. This should prevent other commands from being written to the channel concurrently (which in turn would mess with the sequence numbering), fixing a problem where the first fragment's sequence number was not matching the "first fragment" value.
+    Changed: PhotonPeer.EstablishEncryption() now passes the enqueueLock object for locking. This is the correct lock-object, as opposed to the sendOutgoingLockObject (which is for send calls done by the game logic/realtime).
+    Added: Check for payload size when initializing an NCommand from a byte-buffer coming from the network.
+    Changed: SocketUdp and SocketUdpAsync will use a ThreadPool WorkerItem for DNS resolution and connecting.
+    Changed: SocketUdpAsync to avoid allocations and use the SocketAsyncEventArgs.
+
+Version 4.1.8.18 (30. March 2026 - rev8338)
+    Removed: ITrafficRecorder.Enabled property. As long as a Traffic Recorder is assigned to the Peer, it will call Record().
+    Fixed: ReadInt64() in Protocol18Read.cs. It was fetching 4 bytes instead of expected 8.
+
+Version 4.1.8.17 (10. November 2025 - rev8151)
+    Updated: Error handling and logging in PhotonPeer.InitDatagramEncryption(). It now disconnects the client with a respective status callback (in case there is no Datagram Encryption implementation, etc.).
+    Changed: Replaced a NullReferenceException in InitDatagramEncryption() with a more suitable disconnect via StatusCode.EncryptionFailedToEstablish.
+    Changed: PhotonPeer.InitDatagramEncryption() defaults to using RandomizeSequenceNumbers and GCM Chaining Mode. As we only support datagramEncryption with GCM anymore, this is a good choice.
+    Added: Resent count to PhotonPeer.VitalStatsToString().
+    Changed: The command.roundTripTimeout is now limited to not grow longer than InitialResendTimeMax * 2. This makes sure sent commands get repeated some more times.
+    Changed: SentCountAllowance now defaults to 15.
+    Changed: QuickResendAttempts to 2 (beyond the initial resend timeout, two more attempts to resend a command quickly).
+    Removed: Internal EnetPeer.QUICK_RESEND_QUEUELIMIT. Quick Resends are now limited by PhotonPeer.SendWindowSize. If sneding is over the SendWindowSize, Quick Resends are not as useful anymore.
+    Internal: DispatchIncomingCommands() locks on the channel for reliable sequenced.
+    Changed: Error handling for WSAENOBUFS "No buffer space available" and WSAEMSGSIZE "Message too long." to just skip over these. These should be temporary and anything reliable would be re-sent. These will no longer end a connection but log on INFO level.
+    Changed: QueueSentCommand() to properly check QuickResendAttempts. As the first resend has "quick" timing, QuickResendAttempts now has a minimum value of 1.
+    Changed: QuickResendAttempts are now in the range of 1 - 4 and default to 2.
+    Updated: Reference for QuickResendAttempts and SentCountAllowance.
+
 Version 4.1.8.16 (31. July 2025 - rev8016)
     Added: SupportClass overload for CalculateCrc() with offset.
     Changed: CalculateCrc() without offset is now obsolete.

@@ -20,7 +20,7 @@ namespace Fusion {
   /// <typeparam name="T"></typeparam>
   [Serializable]
   public partial class NetworkAssetSourceAddressable<T> where T : UnityEngine.Object {
-    
+
     /// <see cref="RuntimeKey"/>
     [Obsolete("Use RuntimeKey instead")]
     public AssetReference Address {
@@ -38,17 +38,17 @@ namespace Fusion {
         }
       }
     }
-    
+
     /// <summary>
     /// Addressables runtime key. Can be used in any form Addressables supports, such as asset name, label, or address.
     /// </summary>
     [UnityAddressablesRuntimeKey]
     public string RuntimeKey;
-    
+
     [NonSerialized]
     private int _acquireCount;
 
-    [NonSerialized] 
+    [NonSerialized]
     private AsyncOperationHandle _op;
 
     /// <inheritdoc cref="NetworkAssetSourceResource{T}.Acquire"/>
@@ -84,15 +84,15 @@ namespace Fusion {
           throw;
         }
       }
-      
+
       if (_op.OperationException != null) {
         throw new InvalidOperationException($"Failed to load asset: {RuntimeKey}", _op.OperationException);
       }
-      
+
       Assert.Check(_op.Result != null, "_op.Result != null");
       return ValidateResult(_op.Result);
     }
-    
+
     private void LoadInternal(bool synchronous) {
       Assert.Check(!_op.IsValid());
 
@@ -103,7 +103,7 @@ namespace Fusion {
       if (_op.Status == AsyncOperationStatus.Failed) {
         throw new Exception($"Failed to load asset: {RuntimeKey}", _op.OperationException);
       }
-      
+
       if (synchronous) {
         _op.WaitForCompletion();
       }
@@ -113,7 +113,7 @@ namespace Fusion {
       if (_op.IsValid()) {
         var op = _op;
         _op = default;
-        Addressables.Release(op);  
+        Addressables.Release(op);
       }
     }
 
@@ -125,7 +125,7 @@ namespace Fusion {
         if (result is GameObject gameObject == false) {
           throw new InvalidOperationException($"Failed to load asset: {RuntimeKey}; asset is not a GameObject, but a {result.GetType()}");
         }
-        
+
         var component = ((GameObject)result).GetComponent<T>();
         if (!component) {
           throw new InvalidOperationException($"Failed to load asset: {RuntimeKey}; asset does not contain component {typeof(T)}");
@@ -137,13 +137,13 @@ namespace Fusion {
       if (result is T asset) {
         return asset;
       }
-      
+
       throw new InvalidOperationException($"Failed to load asset: {RuntimeKey}; asset is not of type {typeof(T)}, but {result.GetType()}");
     }
-    
+
     /// <inheritdoc cref="NetworkAssetSourceResource{T}.Description"/>
     public string Description => "RuntimeKey: " + RuntimeKey;
-    
+
 #if UNITY_EDITOR
     /// <inheritdoc cref="NetworkAssetSourceResource{T}.EditorInstance"/>
     public T EditorInstance => (T)FusionAddressablesUtils.LoadEditorInstance(RuntimeKey);
@@ -170,7 +170,7 @@ namespace Fusion {
   /// <typeparam name="T"></typeparam>
   [Serializable]
   public partial class NetworkAssetSourceResource<T> where T : UnityEngine.Object {
-    
+
     /// <summary>
     /// Resource path. Note that this is a Unity resource path, not a file path.
     /// </summary>
@@ -184,7 +184,7 @@ namespace Fusion {
     [NonSerialized]
     private object _state;
     [NonSerialized]
-    private int    _acquireCount;
+    private int _acquireCount;
 
     /// <summary>
     /// Loads the asset. In synchronous mode, the asset is loaded immediately. In asynchronous mode, the asset is loaded in the background.
@@ -220,7 +220,7 @@ namespace Fusion {
           // hasn't started
           return false;
         }
-        
+
         if (_state is ResourceRequest asyncOp && !asyncOp.isDone) {
           // still loading, wait
           return false;
@@ -245,9 +245,9 @@ namespace Fusion {
           LoadInternal(synchronous: true);
         }
       }
-      
+
       if (_state == null) {
-        throw new InvalidOperationException($"Failed to load asset {typeof(T)}: {ResourcePath}[{SubObjectName}]. Asset is null.");  
+        throw new InvalidOperationException($"Failed to load asset {typeof(T)}: {ResourcePath}[{SubObjectName}]. Asset is null.");
       }
 
       if (_state is T asset) {
@@ -274,7 +274,7 @@ namespace Fusion {
         _state = ExceptionDispatchInfo.Capture(ex);
       }
     }
-    
+
     private static T LoadNamedResource(string resoucePath, string subObjectName) {
       var assets = UnityResources.LoadAll<T>(resoucePath);
 
@@ -287,7 +287,7 @@ namespace Fusion {
 
       return null;
     }
-    
+
     private void LoadInternal(bool synchronous) {
       Assert.Check(_state == null);
       try {
@@ -316,12 +316,12 @@ namespace Fusion {
 
       _state = null;
     }
-    
+
     /// <summary>
     /// The description of the asset source. Used for debugging.
     /// </summary>
     public string Description => $"Resource: {ResourcePath}{(!string.IsNullOrEmpty(SubObjectName) ? $"[{SubObjectName}]" : "")}";
-    
+
 #if UNITY_EDITOR
     /// <summary>
     /// Returns the asset instance for Editor purposes. Does not call <see cref="Acquire"/>.
@@ -354,14 +354,14 @@ namespace Fusion {
     /// </summary>
     [FormerlySerializedAs("Prefab")]
     public T Object;
-    
+
     /// <see cref="Object"/>
-    [Obsolete("Use Asset instead")]
+    [Obsolete("Use Object instead")]
     public T Prefab {
       get => Object;
       set => Object = value;
     }
-    
+
     /// <summary>
     /// Returns <see langword="true"/>.
     /// </summary>
@@ -391,7 +391,7 @@ namespace Fusion {
 
       return Object;
     }
-    
+
     /// <inheritdoc cref="NetworkAssetSourceResource{T}.Description"/>
     public string Description {
       get {
@@ -407,7 +407,7 @@ namespace Fusion {
         }
       }
     }
-    
+
 #if UNITY_EDITOR
     /// <summary>
     /// Returns <seealso cref="Object"/>.
@@ -435,33 +435,33 @@ namespace Fusion {
   /// <typeparam name="T"></typeparam>
   [Serializable]
   public partial class NetworkAssetSourceStaticLazy<T> where T : UnityEngine.Object {
-    
+
     /// <summary>
     /// The asset reference. Can only point to an asset, runtime-created objects will not work.
     /// </summary>
-    [FormerlySerializedAs("Prefab")] 
+    [FormerlySerializedAs("Prefab")]
     public LazyLoadReference<T> Object;
-    
+
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.Prefab"/>
     [Obsolete("Use Object instead")]
     public LazyLoadReference<T> Prefab {
       get => Object;
       set => Object = value;
     }
-    
+
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.IsCompleted"/>
     public bool IsCompleted => true;
-    
+
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.Acquire"/>
     public void Acquire(bool synchronous) {
       // do nothing
     }
-    
+
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.Release"/>
     public void Release() {
       // do nothing
     }
-    
+
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.WaitForResult"/>
     public T WaitForResult() {
       if (Object.asset == null) {
@@ -470,7 +470,7 @@ namespace Fusion {
 
       return Object.asset;
     }
-    
+
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.Description"/>
     public string Description {
       get {
@@ -488,7 +488,7 @@ namespace Fusion {
         }
       }
     }
-    
+
 #if UNITY_EDITOR
     /// <inheritdoc cref="NetworkAssetSourceStatic{T}.EditorInstance"/>
     public T EditorInstance => Object.asset;
@@ -503,13 +503,14 @@ namespace Fusion {
 
 namespace Fusion {
   using System;
+  using System.Threading.Tasks;
   using UnityEngine.Scripting;
 #if (FUSION_ADDRESSABLES || FUSION_ENABLE_ADDRESSABLES) && !FUSION_DISABLE_ADDRESSABLES 
   using UnityEngine.AddressableAssets;
   using UnityEngine.ResourceManagement.AsyncOperations;
 #endif
   using static InternalLogStreams;
-  
+
   /// <summary>
   /// If applied at the assembly level, allows <see cref="FusionGlobalScriptableObject{T}"/> to be loaded with Addressables.
   /// </summary>
@@ -525,7 +526,7 @@ namespace Fusion {
     /// The address to load from.
     /// </summary>
     public string Address { get; }
-    
+
     /// <summary>
     /// Loads the asset from the <see cref="Address"/>. Uses WaitForCompletion internally, so platforms that do not support it need
     /// to preload the address prior to loading.
@@ -533,17 +534,42 @@ namespace Fusion {
     public override FusionGlobalScriptableObjectLoadResult Load(Type type) {
 #if (FUSION_ADDRESSABLES || FUSION_ENABLE_ADDRESSABLES) && !FUSION_DISABLE_ADDRESSABLES
       Assert.Check(!string.IsNullOrEmpty(Address));
-      
+
       var op = Addressables.LoadAssetAsync<FusionGlobalScriptableObject>(Address);
       var instance = op.WaitForCompletion();
       if (op.Status == AsyncOperationStatus.Succeeded) {
         Assert.Check(instance);
-        return new (instance, x => Addressables.Release(op));
+        return new(instance, x => Addressables.Release(op));
       }
-      
-      
+
+
       LogTrace?.Log($"Failed to load addressable at address {Address} for type {type.FullName}: {op.OperationException}");
       return default;
+#else
+      LogTrace?.Log($"Addressables are not enabled. Unable to load addressable for {type.FullName}");
+      return default;
+#endif
+    }
+
+    /// <summary>
+    /// Loads the asset from the <see cref="Address"/>.
+    /// </summary>
+    public override Task<FusionGlobalScriptableObjectLoadResult> LoadAsync(Type type) {
+#if (FUSION_ADDRESSABLES || FUSION_ENABLE_ADDRESSABLES) && !FUSION_DISABLE_ADDRESSABLES
+      Assert.Check(!string.IsNullOrEmpty(Address));
+
+      var tcs = new TaskCompletionSource<FusionGlobalScriptableObjectLoadResult>();
+
+      var op = Addressables.LoadAssetAsync<FusionGlobalScriptableObject>(Address);
+      op.Completed += _op => {
+        if (_op.Status == AsyncOperationStatus.Succeeded) {
+          tcs.SetResult(new(_op.Result, _ => Addressables.Release(_op)));
+        } else {
+          LogTrace?.Log($"Failed to load addressable at address {Address} for type {type.FullName}: {op.OperationException}");
+          tcs.SetException(_op.OperationException);
+        }
+      };
+      return tcs.Task;
 #else
       LogTrace?.Log($"Addressables are not enabled. Unable to load addressable for {type.FullName}");
       return default;
@@ -561,11 +587,12 @@ namespace Fusion {
   using System;
   using System.IO;
   using System.Reflection;
+  using System.Threading.Tasks;
   using UnityEngine;
   using UnityEngine.Scripting;
   using Object = UnityEngine.Object;
   using static InternalLogStreams;
-  
+
   /// <summary>
   /// If applied at the assembly level, allows <see cref="FusionGlobalScriptableObject{T}"/> to be loaded with Resources.
   /// There is a default registration for this attribute, which attempts to load the asset from Resources using path from
@@ -579,7 +606,7 @@ namespace Fusion {
     public FusionGlobalScriptableObjectResourceAttribute(Type objectType, string resourcePath = "") : base(objectType) {
       ResourcePath = resourcePath;
     }
-    
+
     /// <summary>
     /// Path in Resources.
     /// </summary>
@@ -588,33 +615,18 @@ namespace Fusion {
     /// If loaded in the editor, should the result be instantiated instead of returning the asset itself? The default is <see langword="true"/>. 
     /// </summary>
     public bool InstantiateIfLoadedInEditor { get; set; } = true;
-    
+
     /// <summary>
     /// Loads the asset from Resources synchronously.
     /// </summary>
     public override FusionGlobalScriptableObjectLoadResult Load(Type type) {
-      
+
       var attribute = type.GetCustomAttribute<FusionGlobalScriptableObjectAttribute>();
       Assert.Check(attribute != null);
 
-      string resourcePath;
-      if (string.IsNullOrEmpty(ResourcePath)) {
-        string defaultAssetPath = attribute.DefaultPath;
-        var indexOfResources = defaultAssetPath.LastIndexOf("/Resources/", StringComparison.OrdinalIgnoreCase);
-        if (indexOfResources < 0) {
-          LogTrace?.Log($"The default path {defaultAssetPath} does not contain a /Resources/ folder. Unable to load resource for {type.FullName}.");
-          return default;
-        }
-
-        // try to load from resources, maybe?
-        resourcePath = defaultAssetPath.Substring(indexOfResources + "/Resources/".Length);
-
-        // drop the extension
-        if (Path.HasExtension(resourcePath)) {
-          resourcePath = resourcePath.Substring(0, resourcePath.LastIndexOf('.'));
-        }
-      } else {
-        resourcePath = ResourcePath;
+      var resourcePath = GetResourcePath(type, attribute);
+      if (resourcePath == null) {
+        return default;
       }
 
       var instance = UnityEngine.Resources.Load(resourcePath, type);
@@ -623,13 +635,138 @@ namespace Fusion {
         return default;
       }
 
+      return HandleInstance(instance);
+    }
+
+    /// <summary>
+    /// Loads the asset from Resources asynchronously.
+    /// </summary>
+    public override System.Threading.Tasks.Task<FusionGlobalScriptableObjectLoadResult> LoadAsync(Type type) {
+      var attribute = type.GetCustomAttribute<FusionGlobalScriptableObjectAttribute>();
+      Assert.Check(attribute != null);
+
+      var tcs = new TaskCompletionSource<FusionGlobalScriptableObjectLoadResult>();
+
+      var resourcePath = GetResourcePath(type, attribute);
+      if (resourcePath == null) {
+        tcs.SetResult(default);
+      } else {
+        var request = UnityEngine.Resources.LoadAsync(resourcePath, type);
+        if (request == null) {
+          LogTrace?.Log($"Unable to load resource at path {resourcePath} for type {type.FullName}");
+          tcs.SetResult(default);
+        } else {
+          request.completed += op => {
+            var instance = ((ResourceRequest)op).asset;
+            if (instance) {
+              tcs.SetResult(HandleInstance(instance));
+            } else {
+              LogTrace?.Log($"Unable to load resource at path {resourcePath} for type {type.FullName}");
+              tcs.SetResult(default);
+            }
+          };
+        }
+      }
+
+      return tcs.Task;
+    }
+
+    string GetResourcePath(Type type, FusionGlobalScriptableObjectAttribute attribute) {
+      if (string.IsNullOrEmpty(ResourcePath)) {
+        string defaultAssetPath = attribute.DefaultPath;
+        var indexOfResources = defaultAssetPath.LastIndexOf("/Resources/", StringComparison.OrdinalIgnoreCase);
+        if (indexOfResources < 0) {
+          LogTrace?.Log($"The default path {defaultAssetPath} does not contain a /Resources/ folder. Unable to load resource for {type.FullName}.");
+          return null;
+        }
+
+        // try to load from resources, maybe?
+        var resourcePath = defaultAssetPath.Substring(indexOfResources + "/Resources/".Length);
+
+        // drop the extension
+        if (Path.HasExtension(resourcePath)) {
+          return resourcePath.Substring(0, resourcePath.LastIndexOf('.'));
+        } else {
+          return resourcePath;
+        }
+      } else {
+        return ResourcePath;
+      }
+    }
+
+    FusionGlobalScriptableObjectLoadResult HandleInstance(Object instance) {
       if (InstantiateIfLoadedInEditor && Application.isEditor) {
         var clone = Object.Instantiate(instance);
         return new((FusionGlobalScriptableObject)clone, x => Object.Destroy(clone));
       } else {
-        return new((FusionGlobalScriptableObject)instance, x => UnityEngine.Resources.UnloadAsset(instance));  
+        return new((FusionGlobalScriptableObject)instance, x => UnityEngine.Resources.UnloadAsset(instance));
       }
     }
+  }
+}
+
+#endregion
+
+
+
+#endregion
+
+
+#region Assets/Photon/Fusion/Runtime/FusionBackwardCompatibility.Common.cs
+
+// merged BackwardCompatibility
+
+#region Object.cs
+
+namespace Fusion {
+  static class ObjectExtensions {
+#if UNITY_6000_3_OR_NEWER
+    public static UnityEngine.EntityId GetObjectId(this UnityEngine.Object obj) {
+      return obj.GetEntityId();
+    }
+#else
+    public static int GetObjectId(this UnityEngine.Object obj) {
+      return obj.GetInstanceID();
+    }
+#endif
+  }
+  
+#if !UNITY_6000_3_OR_NEWER
+  static class EntityId {
+    public static int None => 0;
+  }
+#endif
+}
+
+#endregion
+
+
+#region Physics.cs
+
+namespace Fusion {
+#if !UNITY_2022_3_OR_NEWER
+  /// <summary>
+  /// Shim for SimulationMode, which Unity added in 2022. Note Update is missing as that is not supported in 2021
+  /// </summary>
+  public enum SimulationMode {
+    FixedUpdate,
+    Script,
+  }
+#endif
+
+  /// <summary>
+  /// Shim for simulationMode, which Unity added in 2022.
+  /// </summary>
+  public static class PhysicsExtensions {
+#if !UNITY_2022_3_OR_NEWER
+    /// <summary>
+    /// Shim for simulationMode, which Unity added in 2022.
+    /// </summary>
+    public static SimulationMode simulationMode {
+      get => UnityEngine.Physics.autoSimulation ? SimulationMode.FixedUpdate : SimulationMode.Script;
+      set => UnityEngine.Physics.autoSimulation = (value == SimulationMode.FixedUpdate);
+    }
+#endif
   }
 }
 
@@ -649,25 +786,22 @@ namespace Fusion {
 
 #region Assets/Photon/Fusion/Runtime/FusionCoroutine.cs
 
-﻿
-namespace Fusion {
+﻿namespace Fusion {
   using UnityEngine;
   using System;
   using System.Collections;
+  using System.Collections.Generic;
   using System.Runtime.ExceptionServices;
 
-  public sealed class FusionCoroutine : ICoroutine, IDisposable  {
+  public sealed class FusionCoroutine : ICoroutine, IDisposable {
     private readonly IEnumerator             _inner;
     private          Action<IAsyncOperation> _completed;
-    private          float                   _progress;
-    private          Action                  _activateAsync;
 
     public FusionCoroutine(IEnumerator inner) {
       _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
-      
-    public event Action<IAsyncOperation> Completed
-    {
+
+    public event Action<IAsyncOperation> Completed {
       add {
         _completed += value;
         if (IsDone) {
@@ -677,34 +811,52 @@ namespace Fusion {
       remove => _completed -= value;
     }
 
-    public bool                  IsDone { get; private set; }
-    public ExceptionDispatchInfo Error  { get; private set; }
+    public bool                  IsDone   { get; private set; }
+    public float                 Progress { get; private set; }
+    public ExceptionDispatchInfo Error    { get; private set; }
 
     bool IEnumerator.MoveNext() {
       try {
         if (_inner.MoveNext()) {
           return true;
-        } else {
-          IsDone = true;
-          _completed?.Invoke(this);
-          return false;
         }
+        Progress = 1f;
+        IsDone = true;
       } catch (Exception e) {
         IsDone = true;
-        Error  = ExceptionDispatchInfo.Capture(e);
-        _completed?.Invoke(this);
-        return false;
+        Error = ExceptionDispatchInfo.Capture(e);
       }
+
+      var completed = _completed;
+      if (completed != null) {
+        List<Exception> errors = null;
+        foreach (var del in completed.GetInvocationList()) {
+          var action = (Action<IAsyncOperation>)del;
+          try {
+            action(this);
+          } catch (Exception ex) {
+            errors ??= new List<Exception>();
+            errors.Add(ex);
+          }
+        }
+        if (errors != null) {
+          throw new AggregateException($"Error during {nameof(Completed)}", errors.ToArray());
+        }
+      }
+
+      return false;
     }
 
     void IEnumerator.Reset() {
       _inner.Reset();
-      IsDone = false;
-      Error  = null;
+      IsDone    = false;
+      Progress  = 0f;
+      Error     = null;
+      _completed = null;
     }
 
     object IEnumerator.Current => _inner.Current;
-      
+
     public void Dispose() {
       if (_inner is IDisposable disposable) {
         disposable.Dispose();
@@ -712,6 +864,92 @@ namespace Fusion {
     }
   }
 }
+
+#endregion
+
+
+#region Assets/Photon/Fusion/Runtime/FusionLogConstants.cs
+
+﻿
+
+namespace Fusion {
+  static class FusionLogConstants {
+
+    public const LogLevel DefinedLogLevel =
+#if FUSION_LOGLEVEL_DEBUG || FUSION_LOGLEVEL_TRACE
+      LogLevel.Debug;
+#elif FUSION_LOGLEVEL_INFO
+      LogLevel.Info;
+#elif FUSION_LOGLEVEL_WARN
+      LogLevel.Warn;
+#elif FUSION_LOGLEVEL_ERROR
+      LogLevel.Error;
+#elif FUSION_LOGLEVEL_NONE
+      LogLevel.None;
+#elif UNITY_EDITOR
+      LogLevel.Error;
+#elif DEBUG
+      LogLevel.Debug;
+#else
+      LogLevel.Error;
+#endif
+
+    public const TraceChannels DefinedTraceChannels = 0
+#if FUSION_TRACE_GLOBAL
+      | TraceChannels.Global
+#endif
+#if FUSION_TRACE_STUN
+      | TraceChannels.Stun
+#endif
+#if FUSION_TRACE_OBJECT
+      | TraceChannels.Object
+#endif
+#if FUSION_TRACE_NETWORK
+      | TraceChannels.Network
+#endif
+#if FUSION_TRACE_PREFAB
+      | TraceChannels.Prefab
+#endif
+#if FUSION_TRACE_SCENEINFO
+      | TraceChannels.SceneInfo
+#endif
+#if FUSION_TRACE_SCENEMANAGER
+      | TraceChannels.SceneManager
+#endif
+#if FUSION_TRACE_SIMULATIONMESSAGE
+      | TraceChannels.SimulationMessage
+#endif
+#if FUSION_TRACE_HOSTMIGRATION
+      | TraceChannels.HostMigration
+#endif
+#if FUSION_TRACE_ENCRYPTION
+      | TraceChannels.Encryption
+#endif
+#if FUSION_TRACE_DUMMYTRAFFIC
+      | TraceChannels.DummyTraffic
+#endif
+#if FUSION_TRACE_REALTIME
+      | TraceChannels.Realtime
+#endif
+#if FUSION_TRACE_MEMORYTRACK
+      | TraceChannels.MemoryTrack
+#endif
+#if FUSION_TRACE_SNAPSHOTS
+      | TraceChannels.Snapshots
+#endif
+#if FUSION_TRACE_TIME
+      | TraceChannels.Time
+#endif
+#if FUSION_TRACE_AUTOMATEDRUN
+      | TraceChannels.AutomatedRun
+#endif
+#if FUSION_TRACE_PERFORMANCECOUNTERS
+      | TraceChannels.PerformanceCounters
+#endif
+      ;
+  }
+}
+
 
 #endregion
 
@@ -1074,31 +1312,36 @@ namespace Fusion {
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void RuntimeCheck() {
-      RuntimeUnityFlagsSetup.Check_ENABLE_IL2CPP();
-      RuntimeUnityFlagsSetup.Check_ENABLE_MONO();
-
-      RuntimeUnityFlagsSetup.Check_UNITY_EDITOR();
-      RuntimeUnityFlagsSetup.Check_UNITY_GAMECORE();
-      RuntimeUnityFlagsSetup.Check_UNITY_SWITCH();
+      // BuildFlags
       RuntimeUnityFlagsSetup.Check_UNITY_WEBGL();
       RuntimeUnityFlagsSetup.Check_UNITY_XBOXONE();
-
-      RuntimeUnityFlagsSetup.Check_NETFX_CORE();
-      RuntimeUnityFlagsSetup.Check_NET_4_6();
-      RuntimeUnityFlagsSetup.Check_NET_STANDARD_2_0();
-
+      RuntimeUnityFlagsSetup.Check_UNITY_GAMECORE();
+      RuntimeUnityFlagsSetup.Check_UNITY_EDITOR();
+      RuntimeUnityFlagsSetup.Check_UNITY_SWITCH();
       RuntimeUnityFlagsSetup.Check_UNITY_2019_4_OR_NEWER();
+      RuntimeUnityFlagsSetup.Check_UNITY_6000_0_OR_NEWER();
+      RuntimeUnityFlagsSetup.Check_UNITY_64();
+      RuntimeUnityFlagsSetup.Check_UNITY_FUSION();
+      RuntimeUnityFlagsSetup.Check_UNITY_WSA();
+      // BuildTypes
+      RuntimeUnityFlagsSetup.Check_ENABLE_MONO();
+      RuntimeUnityFlagsSetup.Check_ENABLE_IL2CPP();
+      // DotNetVersion
+      RuntimeUnityFlagsSetup.Check_NET_4_6();
+      RuntimeUnityFlagsSetup.Check_NETFX_CORE();
+      RuntimeUnityFlagsSetup.Check_NET_STANDARD_2_0();
+      RuntimeUnityFlagsSetup.Check_NET_STANDARD_2_1();
+      RuntimeUnityFlagsSetup.Check_NET_LEGACY();
     }
   }
 }
-
 
 #endregion
 
 
 #region Assets/Photon/Fusion/Runtime/FusionTraceChannelsExtensions.cs
 
-
+﻿
 
 namespace Fusion {
   static class TraceChannelsExtensions {
@@ -1148,6 +1391,12 @@ namespace Fusion {
 #if FUSION_TRACE_TIME
       traceChannels |= TraceChannels.Time;
 #endif
+#if FUSION_TRACE_AUTOMATEDRUN
+      traceChannels |= TraceChannels.AutomatedRun;
+#endif
+#if FUSION_TRACE_PERFORMANCECOUNTERS
+      traceChannels |= TraceChannels.PerformanceCounters;
+#endif
       return traceChannels;
     }
   }
@@ -1177,14 +1426,20 @@ namespace Fusion {
   /// handling and integer enquotement.
   /// </summary>
   public static class JsonUtilityExtensions {
-    
+
     /// <see cref="JsonUtilityExtensions.FromJsonWithTypeAnnotation"/>
     public delegate Type TypeResolverDelegate(string typeName);
     /// <see cref="JsonUtilityExtensions.ToJsonWithTypeAnnotation(object,Fusion.JsonUtilityExtensions.InstanceIDHandlerDelegate)"/>
     public delegate string TypeSerializerDelegate(Type type);
     /// <see cref="JsonUtilityExtensions.ToJsonWithTypeAnnotation(object,Fusion.JsonUtilityExtensions.InstanceIDHandlerDelegate)"/>
-    public delegate string InstanceIDHandlerDelegate(object context, int value);
-    
+    public delegate string InstanceIDHandlerDelegate(object context,
+#if UNITY_6000_3_OR_NEWER
+      EntityId value
+#else
+      int value
+#endif
+      );
+
     private const string TypePropertyName = "$type";
 
     /// <summary>
@@ -1244,8 +1499,8 @@ namespace Fusion {
         ToJsonInternal(obj, writer, integerEnquoteMinDigits, typeSerializer, instanceIDHandler);
       }
     }
-    
-    
+
+
     /// <summary>
     /// Converts JSON with type annotation to an instance of <typeparamref name="T"/>. If the JSON contains type annotations, they need to match
     /// the expected result type. If there are no type annotations, use <paramref name="typeResolver"/> to return the expected type.
@@ -1286,7 +1541,7 @@ namespace Fusion {
 
         // list
         ++i;
-        for (var expectComma = false;; expectComma = true) {
+        for (var expectComma = false; ; expectComma = true) {
           i = SkipWhiteOrThrow(i);
 
           if (json[i] == ']') {
@@ -1322,7 +1577,7 @@ namespace Fusion {
       }
     }
 
-    
+
     private static object FromJsonWithTypeAnnotationInternal(string json, TypeResolverDelegate typeResolver = null, IList targetList = null) {
       Assert.Check(json != null);
 
@@ -1332,7 +1587,7 @@ namespace Fusion {
 
         // list
         ++i;
-        for (var expectComma = false;; expectComma = true) {
+        for (var expectComma = false; ; expectComma = true) {
           i = SkipWhiteOrThrow(i);
 
           if (json[i] == ']') {
@@ -1373,7 +1628,7 @@ namespace Fusion {
       }
     }
 
-    private static void ToJsonInternal(object obj, TextWriter writer, 
+    private static void ToJsonInternal(object obj, TextWriter writer,
       int? integerEnquoteMinDigits = null,
       TypeSerializerDelegate typeResolver = null,
       InstanceIDHandlerDelegate instanceIDHandler = null) {
@@ -1384,7 +1639,7 @@ namespace Fusion {
       if (integerEnquoteMinDigits.HasValue) {
         json = EnquoteIntegers(json, integerEnquoteMinDigits.Value);
       }
-      
+
       var type = obj.GetType();
 
       writer.Write("{\"");
@@ -1401,29 +1656,35 @@ namespace Fusion {
         Assert.Check('{' == json[0]);
         Assert.Check('}' == json[^1]);
         writer.Write(',');
-        
+
         if (instanceIDHandler != null) {
           int i = 1;
-          
-          for (;;) {
+
+          for (; ; ) {
             const string prefix = "{\"instanceID\":";
-            
+
             var nextInstanceId = json.IndexOf(prefix, i, StringComparison.Ordinal);
             if (nextInstanceId < 0) {
               break;
             }
-            
+
             // parse the number that follows; may be negative
             var start = nextInstanceId + prefix.Length;
             var end = json.IndexOf('}', start);
-            var instanceId = int.Parse(json.AsSpan(start, end - start));
-            
+            var idSpan = json.AsSpan(start, end - start);
+#if UNITY_6000_4_OR_NEWER
+            var instanceId = EntityId.FromULong(ulong.Parse(idSpan));
+#elif UNITY_6000_3_OR_NEWER
+            var instanceId = (EntityId)int.Parse(idSpan);
+#else
+            var instanceId = int.Parse(idSpan);
+#endif
             // append that part
             writer.Write(json.AsSpan(i, nextInstanceId - i));
             writer.Write(instanceIDHandler(obj, instanceId));
             i = end + 1;
           }
-          
+
           writer.Write(json.AsSpan(i, json.Length - i));
         } else {
           writer.Write(json.AsSpan(1, json.Length - 1));
@@ -1437,7 +1698,7 @@ namespace Fusion {
         if (endIndex < 0) {
           throw new InvalidOperationException($"Unable to find end of object's end (starting at {i})");
         }
-        
+
         Assert.Check(endIndex > i);
         Assert.Check(json[endIndex] == '}');
 
@@ -1458,7 +1719,7 @@ namespace Fusion {
           Assert.Check(!string.IsNullOrEmpty(typeInfo?.__TypeName));
           type = Type.GetType(typeInfo.__TypeName, true);
         }
-        
+
         if (type.IsSubclassOf(typeof(ScriptableObject))) {
           var instance = ScriptableObject.CreateInstance(type);
           JsonUtility.FromJsonOverwrite(part, instance);
@@ -1477,14 +1738,14 @@ namespace Fusion {
 
       throw new InvalidOperationException($"Malformed at {i}: expected {{ or null");
     }
-    
+
     internal static int FindObjectEnd(string json, int start = 0) {
       return FindScopeEnd(json, start, '{', '}');
     }
-    
+
     private static int FindScopeEnd(string json, int start, char cstart = '{', char cend = '}') {
       var depth = 0;
-      
+
       if (json[start] != cstart) {
         return -1;
       }
@@ -1496,7 +1757,7 @@ namespace Fusion {
           // now skip until the first unescaped quote
           while (i < json.Length) {
             if (json[++i] == '"')
-              // are we escaped?
+            // are we escaped?
             {
               if (json[i - 1] != '\\') {
                 break;
@@ -1515,7 +1776,7 @@ namespace Fusion {
 
       return -1;
     }
-    
+
     [Serializable]
     private class TypeNameWrapper {
 #pragma warning disable CS0649 // Set by serialization
@@ -1639,74 +1900,16 @@ namespace Fusion {
 #region FusionLogInitializer.cs
 
 namespace Fusion {
-  using System;
   using UnityEngine;
-  
+
 #if UNITY_EDITOR
-  using UnityEditor;
-  using UnityEditor.Build;
 #endif
-  
+
   /// <summary>
   /// Initializes the logging system for Fusion. Use <see cref="InitializeUser"/> to completely override the log level and trace channels or
   /// to provide a custom logger. Use <see cref="InitializeUnityLoggerUser"/> to override default Unity logger settings.
   /// </summary>
   public static partial class FusionLogInitializer {
-#if UNITY_EDITOR
-    static LogLevel GetEditorLogLevel() {
-      var currentBuildTarget = EditorUserBuildSettings.activeBuildTarget;
-      var currentBuildTargetGroup = BuildPipeline.GetBuildTargetGroup(currentBuildTarget);
-      var currentNamedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(currentBuildTargetGroup);
-      var defines = PlayerSettings.GetScriptingDefineSymbols(currentNamedBuildTarget).Split(";");
-      
-      const string LogLevelNone  = "FUSION_LOGLEVEL_NONE";
-      const string LogLevelError = "FUSION_LOGLEVEL_ERROR";
-      const string LogLevelWarn  = "FUSION_LOGLEVEL_WARN";
-      const string LogLevelInfo  = "FUSION_LOGLEVEL_INFO";
-      const string LogLevelDebug = "FUSION_LOGLEVEL_DEBUG";
-      const string LogLevelTrace = "FUSION_LOGLEVEL_TRACE";
-      
-      (string, LogLevel)[] logLevelDefines = {
-        (LogLevelNone, LogLevel.None),
-        (LogLevelError, LogLevel.Error),
-        (LogLevelWarn, LogLevel.Warn),
-        (LogLevelInfo, LogLevel.Info),
-        (LogLevelDebug, LogLevel.Debug),
-      };
-      
-      string defaultLogLevelDefine = LogLevelInfo;
-      
-      if (Array.IndexOf(defines, LogLevelTrace) >= 0) {
-        FusionEditorLog.Warn($"{LogLevelTrace} is not supported in Fusion. Replacing with {LogLevelDebug}.");
-        ArrayUtility.Remove(ref defines, LogLevelTrace);
-        defaultLogLevelDefine = LogLevelDebug;
-      }
-      
-      LogLevel? foundLogLevel = null;
-      foreach (var (define, logLevel) in logLevelDefines) {
-        if (Array.IndexOf(defines, define) < 0) {
-          continue;
-        }
-
-        foundLogLevel = logLevel;
-        break;
-      }
-      
-      if (foundLogLevel == null) {
-        if (Application.isPlaying) {
-          FusionEditorLog.Log($"No log level define set for Fusion. Setting default: {defaultLogLevelDefine}");
-        }
-        
-        ArrayUtility.Add(ref defines, defaultLogLevelDefine);
-        PlayerSettings.SetScriptingDefineSymbols(currentNamedBuildTarget, string.Join(";", defines));
-        
-        return LogLevel.Info;
-      } else {
-        return foundLogLevel.Value;
-      }
-    }
-#endif
-    
     /// <summary>
     /// Initializes the logging system for Fusion. This method is called automatically when the assembly is loaded.
     /// </summary>
@@ -1720,28 +1923,11 @@ namespace Fusion {
       isDark = UnityEditor.EditorGUIUtility.isProSkin;
       FusionEditorLog.Initialize(isDark);
 #endif
-      
-      LogLevel logLevel =
-#if FUSION_LOGLEVEL_DEBUG || FUSION_LOGLEVEL_TRACE
-        LogLevel.Debug;
-#elif FUSION_LOGLEVEL_INFO
-        LogLevel.Info;
-#elif FUSION_LOGLEVEL_WARN
-        LogLevel.Warn;
-#elif FUSION_LOGLEVEL_ERROR
-        LogLevel.Error;
-#elif FUSION_LOGLEVEL_NONE
-        LogLevel.None;
-#elif UNITY_EDITOR
-        GetEditorLogLevel();
-#else
-        LogLevel.None;
-        FusionEditorLog.Warn($"No log level define set for Fusion, treating as FUSION_LOGLEVEL_NONE (disabled completely).");
-#endif
-      
-      TraceChannels traceChannels = default;
-      traceChannels = traceChannels.AddChannelsFromDefines();
+
+      LogLevel logLevel = FusionLogConstants.DefinedLogLevel;
+      TraceChannels traceChannels = FusionLogConstants.DefinedTraceChannels;
       InitializeUser(ref logLevel, ref traceChannels);
+      InitializePartial(logLevel, traceChannels);
 
       if (Log.IsInitialized) {
         return;
@@ -1751,8 +1937,9 @@ namespace Fusion {
       InitializeUnityLoggerUser(ref logger);
       Log.Initialize(logLevel, logger.CreateLogStream, traceChannels);
     }
-    
+
     static partial void InitializeUser(ref LogLevel logLevel, ref TraceChannels traceChannels);
+    static partial void InitializePartial(LogLevel logLevel, TraceChannels traceChannels);
   }
 }
 
@@ -1778,7 +1965,7 @@ namespace Fusion {
   using UnityEngine;
   using Debug = UnityEngine.Debug;
 #endif
-  
+
   // ReSharper disable once IdentifierTypo
   /// <summary>
   /// The current status of MPPM. If the package is not enabled, this will always be <see cref="FusionMppmStatus.Disabled"/>.
@@ -1797,7 +1984,7 @@ namespace Fusion {
     /// </summary>
     VirtualInstance
   }
-  
+
   /// <summary>
   /// Support for Multiplayer Play Mode (MPPM). It uses named pipes
   /// to communicate between the main Unity instance and virtual instances.
@@ -1807,12 +1994,12 @@ namespace Fusion {
 #endif
   // ReSharper disable once IdentifierTypo
   public partial class FusionMppm {
-    
+
     /// <summary>
     /// The current status of MPPM.
     /// </summary>
     public static readonly FusionMppmStatus Status = FusionMppmStatus.Disabled;
-    
+
     /// <summary>
     /// If <see cref="Status"/> is <see cref="FusionMppmStatus.MainInstance"/>, this static field can be used to send commands.
     /// </summary>
@@ -1833,7 +2020,7 @@ namespace Fusion {
 #endif
     }
 
-    
+
     /// <summary>
     /// Broadcasts a command to all virtual instances.
     /// </summary>
@@ -1850,104 +2037,117 @@ namespace Fusion {
     }
 
     private FusionMppm() {
-      
+
     }
-    
+
 #if FUSION_ENABLE_MPPM && UNITY_EDITOR
     private static readonly string s_mainInstancePath = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-    
+
     private const string PersistentCommandsFolderPath = "Temp/FusionMppm";
     private const string MpeChannelName = "FusionMppm";
-    
+
     private readonly int _mpeChannelId = ChannelService.ChannelNameToId(MpeChannelName);
     private readonly List<(int connectionId, string guid)> _acks = new List<(int, string)>();
     private readonly Regex _invalidFileCharactersRegex = new Regex(string.Format(@"([{0}]*\.+$)|([{0}]+)", Regex.Escape(new string(Path.GetInvalidFileNameChars()))));
-    
+
     static FusionMppm() {
-      
+
       var indexOfMppmPrefix = Application.dataPath.LastIndexOf("/Library/VP/mppm", StringComparison.OrdinalIgnoreCase);
       Status = indexOfMppmPrefix < 0 ? FusionMppmStatus.MainInstance : FusionMppmStatus.VirtualInstance;
-    
+
       // start MPE (this check is canonical)
       if (!ChannelService.IsRunning()) {
         ChannelService.Start();
       }
-      
+
       FusionEditorLog.TraceMppm($"Status: {Status}, MainInstancePath: {s_mainInstancePath}");
-      
+
       if (Status == FusionMppmStatus.MainInstance) {
-        
+
         MainEditor = new FusionMppm();
         // set up MPE channel
         var disconnect = ChannelService.GetOrCreateChannel(MpeChannelName, MainEditor.ReceiveAck);
         Debug.Assert(disconnect != null);
-        
+
         // ... but since new instances need to e.g. receive all the dependency hashes, set up a folder;
         // it needs to be cleared on every Unity start but survive between domain reloads
         string folderOwnedKey = $"Owns_{PersistentCommandsFolderPath}";
-        
+
         if (Directory.Exists(PersistentCommandsFolderPath) && !SessionState.GetBool(folderOwnedKey, false)) {
           FusionEditorLog.TraceMppm($"Deleting leftover files from {PersistentCommandsFolderPath}");
           foreach (var file in Directory.GetFiles(PersistentCommandsFolderPath)) {
             File.Delete(file);
           }
         }
-        
+
         if (!Directory.Exists(PersistentCommandsFolderPath)) {
           FusionEditorLog.TraceMppm($"Creating command folder {PersistentCommandsFolderPath}");
           Directory.CreateDirectory(PersistentCommandsFolderPath);
         }
         SessionState.SetBool(folderOwnedKey, true);
-        
+
       } else {
         // where is the main instance located?
         s_mainInstancePath = Application.dataPath.Substring(0, indexOfMppmPrefix);
-        
+
         // start the MPE client to await commands
         var client = ChannelClient.GetOrCreateClient(MpeChannelName);
         client.Start(true);
-        var disconnect = client.RegisterMessageHandler(data => {
+        // ReSharper disable once AsyncVoidLambda
+        var disconnect = client.RegisterMessageHandler(async (byte[] data) => {
           var json = System.Text.Encoding.UTF8.GetString(data);
           var message = JsonUtility.FromJson<CommandWrapper>(json);
-          
+
           FusionEditorLog.TraceMppm($"Received command {message.Data}");
-          message.Data.Execute();
-          if (message.Data.NeedsAck) {
-            var ack = new AckMessage() {
-              Guid = message.Guid
-            };
-            var ackJson = JsonUtility.ToJson(ack);
-            FusionEditorLog.TraceMppm($"Sending ack {ackJson}");
-            var ackBytes = System.Text.Encoding.UTF8.GetBytes(ackJson);
-            client.Send(ackBytes);
+          try {
+            await message.Data.ExecuteAsync();
+          } catch (Exception ex) {
+            FusionEditorLog.Error($"Error while handling MPPM message {message.Data.GetType().FullName}: {ex}");
+            return;
           }
+
+          if (!message.Data.NeedsAck) {
+            return;
+          }
+
+          var ack = new AckMessage() {
+            Guid = message.Guid
+          };
+          var ackJson = JsonUtility.ToJson(ack);
+          FusionEditorLog.TraceMppm($"Sending ack {ackJson}");
+          var ackBytes = System.Text.Encoding.UTF8.GetBytes(ackJson);
+          client.Send(ackBytes);
         });
         Debug.Assert(disconnect != null);
-        
+
         // read persistent commands from the main instance
         var mainInstanceCommandsFolderPath = Path.Combine(s_mainInstancePath, PersistentCommandsFolderPath);
         Debug.Assert(Directory.Exists(mainInstanceCommandsFolderPath));
         foreach (var file in Directory.GetFiles(mainInstanceCommandsFolderPath, "*.json")) {
           var json = File.ReadAllText(file);
-          var wrapper = JsonUtility.FromJson<CommandWrapper>(json);
-          FusionEditorLog.TraceMppm($"Received persistent command {wrapper.Data}");
-          wrapper.Data.Execute();
+          var message = JsonUtility.FromJson<CommandWrapper>(json);
+          FusionEditorLog.TraceMppm($"Received persistent command {message.Data}");
+          message.Data.ExecuteAsync().ContinueWith(t => {
+            if (t.IsFaulted) {
+              FusionEditorLog.Error($"Error while handling persistent MPPM message {message.Data.GetType().FullName}: {t.Exception}");
+            }
+          });
         }
       }
     }
-    
+
     private void BroadcastInternal<T>(T data) where T : FusionMppmCommand {
       Assert.Check(Status == FusionMppmStatus.MainInstance, "Only the main instance can send commands");
-      
+
       var guid = Guid.NewGuid().ToString();
       var wrapper = new CommandWrapper() {
         Guid = guid,
         Data = data
       };
-      
-      var str   = JsonUtility.ToJson(wrapper);
+
+      var str = JsonUtility.ToJson(wrapper);
       var bytes = System.Text.Encoding.UTF8.GetBytes(str);
-      
+
       FusionEditorLog.TraceMppm($"Broadcasting command {str}");
       ChannelService.BroadcastBinary(_mpeChannelId, bytes);
 
@@ -1958,7 +2158,7 @@ namespace Fusion {
         FusionEditorLog.TraceMppm($"Saving persistent command to {filePath}");
         File.WriteAllText(filePath, str);
       }
-      
+
       if (data.NeedsAck) {
         // well, we need to wait
         var channels = ChannelService.GetChannelClientList();
@@ -1967,29 +2167,29 @@ namespace Fusion {
         WaitForAcks(numAcks, guid);
       }
     }
-    
+
     private void ReceiveAck(int connectionId, byte[] data) {
-      var json    = System.Text.Encoding.UTF8.GetString(data);
+      var json = System.Text.Encoding.UTF8.GetString(data);
       var message = JsonUtility.FromJson<AckMessage>(json);
       lock (_acks) {
         _acks.Add((connectionId, message.Guid));
       }
       FusionEditorLog.TraceMppm($"Received ack {json}");
     }
-    
+
     private void WaitForAcks(int numAcks, string guid) {
-      var timer   = Stopwatch.StartNew();
+      var timer = Stopwatch.StartNew();
       var timeout = TimeSpan.FromSeconds(2);
-      
+
       FusionEditorLog.TraceMppm($"Waiting for {numAcks} acks for {guid}");
-      
+
       while (timer.Elapsed < timeout) {
         for (int i = 0; numAcks > 0 && i < _acks.Count; i++) {
           var ack = _acks[i];
           if (ack.guid == guid) {
             _acks.RemoveAt(i);
             numAcks--;
-              
+
             FusionEditorLog.TraceMppm($"Received ack for {guid} from {ack.connectionId}, {numAcks} left");
           }
         }
@@ -1998,15 +2198,15 @@ namespace Fusion {
           FusionEditorLog.TraceMppm($"All acks received");
           return;
         }
-          
+
         FusionEditorLog.TraceMppm($"Waiting for {numAcks} acks");
         ChannelService.DispatchMessages();
         Thread.Sleep(10);
       }
-      
+
       FusionEditorLog.TraceMppm($"Timeout waiting for acks ({numAcks} left)");
     }
-    
+
     [Serializable]
     private class CommandWrapper {
       public string Guid;
@@ -2019,7 +2219,7 @@ namespace Fusion {
     }
 #endif
   }
-  
+
   /// <summary>
   /// The base class for all Fusion MPPM commands.
   /// </summary>
@@ -2027,13 +2227,24 @@ namespace Fusion {
   // ReSharper disable once IdentifierTypo
   public abstract class FusionMppmCommand {
     /// <summary>
-    /// Execute the command on a virtual instance.
+    /// Execute the command on a virtual instance. Executes synchronously.
     /// </summary>
-    public abstract void Execute();
+    public virtual void Execute() {
+    }
+
+    /// <summary>
+    /// Execute the command on a virtual instance. By default, calls <see cref="Execute"/>
+    /// </summary>
+    public virtual System.Threading.Tasks.Task ExecuteAsync() {
+      Execute();
+      return System.Threading.Tasks.Task.CompletedTask;
+    }
+
     /// <summary>
     /// Does the main instance need to wait for an ack?
     /// </summary>
     public virtual bool NeedsAck => false;
+
     /// <summary>
     /// If the command is persistent (i.e. needs to be executed on each domain reload), this key is used to store it.
     /// </summary>
@@ -2064,13 +2275,13 @@ namespace Fusion {
     /// Hash of the custom dependency.
     /// </summary>
     public string Hash;
-      
+
     /// <inheritdoc cref="FusionMppmCommand.NeedsAck"/>
     public override bool NeedsAck => true;
 
     /// <inheritdoc cref="FusionMppmCommand.PersistentKey"/>
     public override string PersistentKey => $"Dependency_{DependencyName}";
-      
+
     /// <summary>
     /// Registers a custom dependency with the given name and hash.
     /// </summary>
@@ -2086,10 +2297,32 @@ namespace Fusion {
 #endregion
 
 
+#region FusionUnityEditorPaths.cs
+
+namespace Fusion {
+  /// <summary>
+  /// Fusion Unity paths.
+  /// </summary>
+  public static partial class FusionUnityEditorPaths {
+    /// <summary>
+    /// Root folder of Fusion installation.
+    /// </summary>
+    public const string Root =
+#if FUSION_UPM
+      "Packages/com.photonengine.fusion";
+#else
+      "Assets/Photon/Fusion";
+#endif
+  }
+}
+
+#endregion
+
+
 #region FusionUnityExtensions.cs
 
 namespace Fusion {
-#if UNITY_2022_1_OR_NEWER && !UNITY_2022_2_OR_NEWER
+#if !UNITY_6000_4_OR_NEWER
   using UnityEngine;
 #endif
 
@@ -2097,10 +2330,10 @@ namespace Fusion {
   /// Provides backwards compatibility for Unity API.
   /// </summary>
   public static class FusionUnityExtensions {
-    
+
     #region New Find API
 
-#if UNITY_2022_1_OR_NEWER && !UNITY_2022_2_OR_NEWER 
+#if UNITY_2022_1_OR_NEWER && !UNITY_2022_2_OR_NEWER
     public enum FindObjectsInactive {
       Exclude,
       Include,
@@ -2162,10 +2395,390 @@ namespace Fusion {
         objArray[index] = (T)rawObjects[index];
       return objArray;
     }
-
 #endif
+    
+#if !UNITY_6000_4_OR_NEWER
+    public static T[] FindObjectsByType<T>() where T : Object {
+      return Object.FindObjectsByType<T>(FindObjectsSortMode.None);
+    }
+
+    public static T[] FindObjectsByType<T>(FindObjectsInactive findObjectsInactive) where T : Object {
+      return Object.FindObjectsByType<T>(findObjectsInactive, FindObjectsSortMode.None);
+    }
+    
+    public static Object[] FindObjectsByType(System.Type type) {
+      return Object.FindObjectsByType(type, FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+    }
+    
+    public static Object[] FindObjectsByType(System.Type type, FindObjectsInactive findObjectsInactive) {
+      return Object.FindObjectsByType(type, findObjectsInactive, FindObjectsSortMode.None);
+    }
+#endif
+    
+    
 
     #endregion
+  }
+}
+
+#endregion
+
+
+#region FusionUnityNavMeshUtils.cs
+
+namespace Fusion {
+#if FUSION_ENABLE_AI && !FUSION_DISABLE_AI
+
+  /// <summary>
+  /// Shared unity navmesh methods with backwards capabilty.
+  /// </summary>
+  public class FusionUnityNavMeshUtils {
+    /// <summary>
+    /// Wraps GetAreaNames for backwards capability. Uses editor code for old versions.
+    /// </summary>
+    public static string[] GetAreaNames() {
+#if UNITY_6000_0_OR_NEWER || EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED
+      return UnityEngine.AI.NavMesh.GetAreaNames();
+#else
+#if UNITY_EDITOR
+      return UnityEditor.GameObjectUtility.GetNavMeshAreaNames();
+#else 
+      return new string[0];
+#endif
+#endif
+    }
+
+    /// <summary>
+    /// Wraps GetNavMeshAreaFromName for backwards capability. Uses editor code for old versions.
+    /// </summary>
+    /// <param name="name">Unity NavMesh area name</param>
+    public static int GetAreaFromName(string name) {
+#if UNITY_6000_0_OR_NEWER || EDITOR_ONLY_NAVMESH_BUILDER_DEPRECATED
+      return UnityEngine.AI.NavMesh.GetAreaFromName(name);
+#else
+#if UNITY_EDITOR
+      return UnityEditor.GameObjectUtility.GetNavMeshAreaFromName(name);
+#else 
+      return 0;
+#endif
+#endif
+    }
+  }
+
+#endif
+}
+
+#endregion
+
+
+#region FusionUnitySceneManagerUtils.cs
+
+namespace Fusion {
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Text;
+  using UnityEditor;
+  using UnityEngine;
+  using UnityEngine.Pool;
+  using UnityEngine.SceneManagement;
+
+#if UNITY_6000_3_OR_NEWER
+  using ObjectIdType = UnityEngine.EntityId;
+#else
+  using ObjectIdType = System.Int32;
+#endif
+  
+  /// <summary>
+  /// Extension and utility methods for <see cref="SceneManager"/> and <see cref="Scene"/> types.
+  /// </summary>
+  static partial class FusionUnitySceneManagerUtils {
+
+    /// <summary>
+    /// A comparer that can be used when scenes need to be comparable, like when being as keys in a dictionary.
+    /// </summary>
+    public class SceneEqualityComparer : IEqualityComparer<Scene> {
+      /// <summary>
+      /// Compares scenes by their <see cref="Scene.handle"/>
+      /// </summary>
+      public bool Equals(Scene x, Scene y) {
+        return x.handle == y.handle;
+      }
+
+
+      /// <summary>
+      /// Returns <see cref="Scene.handle"/>
+      /// </summary>
+      public int GetHashCode(Scene obj) {
+        return obj.handle.GetHashCode();
+      }
+    }
+
+    /// <summary>
+    /// Returns true if <paramref name="scene"/> is in the build settings. Note that just checking <see cref="Scene.buildIndex"/> is not enough.
+    /// </summary>
+    public static bool IsAddedToBuildSettings(this Scene scene) {
+      if (scene.buildIndex < 0) {
+        return false;
+      }
+      // yep that's a thing: https://docs.unity3d.com/ScriptReference/SceneManagement.Scene-buildIndex.html
+      if (scene.buildIndex >= SceneManager.sceneCountInBuildSettings) {
+        return false;
+      }
+      return true;
+    }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// Editor-only. Adds scene to the build settings.
+    /// </summary>
+    /// <returns>False if the scene is already added</returns>
+    public static bool AddToBuildSettings(Scene scene) {
+      if (IsAddedToBuildSettings(scene)) {
+        return false;
+      }
+
+      EditorBuildSettings.scenes =
+        new[] { new EditorBuildSettingsScene(scene.path, true) }
+        .Concat(EditorBuildSettings.scenes)
+        .ToArray();
+
+      FusionEditorLog.Log($"Added '{scene.path}' as first entry in Build Settings.");
+      return true;
+    }
+#endif
+
+    /// <summary>
+    /// Returns true if <paramref name="scene"/> can be unloaded.
+    /// </summary>
+    /// <param name="scene"></param>
+    /// <returns></returns>
+    public static bool CanBeUnloaded(this Scene scene) {
+      if (!scene.isLoaded) {
+        return false;
+      }
+
+      for (int i = 0; i < SceneManager.sceneCount; ++i) {
+        var s = SceneManager.GetSceneAt(i);
+        if (s != scene && s.isLoaded) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /// <summary>
+    /// Gets the raw handle of a <paramref name="scene"/>
+    /// </summary>
+    public static ulong GetRawHandle(this Scene scene) {
+#if UNITY_6000_4_OR_NEWER
+      return scene.handle.GetRawData();
+#else
+      return (ulong)scene.handle;
+#endif
+    }
+
+    /// <summary>
+    /// Compares the object id to the internal handle of <paramref name="scene"/>
+    /// </summary>
+    public static int CompareRawHandle(this Scene scene, ObjectIdType id) {
+#if UNITY_6000_4_OR_NEWER
+      var idRaw = EntityId.ToULong(id);
+#elif UNITY_6000_3_OR_NEWER
+      var idRaw = (ulong)(int)id;
+#else
+      var idRaw = (ulong)id;
+#endif
+      return scene.GetRawHandle().CompareTo(idRaw);
+    }
+    
+    /// <summary>
+    /// Converts <paramref name="scene"/> into string, dumping all its fields and properties.
+    /// </summary>
+    public static string Dump(this Scene scene) {
+      StringBuilder result = new StringBuilder();
+
+      result.Append("[UnityScene:");
+
+      if (scene.IsValid()) {
+        result.Append(scene.name);
+        result.Append(", isLoaded:").Append(scene.isLoaded);
+        result.Append(", buildIndex:").Append(scene.buildIndex);
+        result.Append(", isDirty:").Append(scene.isDirty);
+        result.Append(", path:").Append(scene.path);
+        result.Append(", rootCount:").Append(scene.rootCount);
+        result.Append(", isSubScene:").Append(scene.isSubScene);
+      } else {
+        result.Append("<Invalid>");
+      }
+
+      result.Append(", handle:").Append(scene.handle.ToString());
+      result.Append("]");
+      return result.ToString();
+    }
+
+    /// <summary>
+    /// Converts <paramref name="loadSceneParameters"/> to string.
+    /// </summary>
+    public static string Dump(this LoadSceneParameters loadSceneParameters) {
+      return $"[LoadSceneParameters: {loadSceneParameters.loadSceneMode}, localPhysicsMode:{loadSceneParameters.localPhysicsMode}]";
+    }
+
+    /// <summary>
+    /// Gets scene's build index based on its name or path.
+    /// </summary>
+    public static int GetSceneBuildIndex(string nameOrPath) {
+      if (nameOrPath.IndexOf('/', StringComparison.Ordinal) >= 0) {
+        return SceneUtility.GetBuildIndexByScenePath(nameOrPath);
+      } else {
+        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; ++i) {
+          var scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+          var sceneName = GetFileNameWithoutExtension(scenePath);
+          if (sceneName.Equals(nameOrPath, StringComparison.OrdinalIgnoreCase)) {
+            return i;
+          }
+        }
+
+        return -1;
+      }
+    }
+
+    /// <summary>
+    /// Gets all the root GameObjects, sorted by their simbling index.
+    /// </summary>
+    public static void GetRootGameObjectsInHierarchyOrder(this Scene scene, List<GameObject> rootGameObjects) {
+      scene.GetRootGameObjects(rootGameObjects ?? throw new ArgumentNullException(nameof(rootGameObjects)));
+      // roots are not served in any order, it seems; sort them by sibling index
+      rootGameObjects.Sort((a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+    }
+    
+    /// <summary>
+    /// Gets a component on a scene. If there are none or more than one, throws an exception.
+    /// Pass <paramref name="includeDisabled"/> false to skip disabled <see cref="Behaviour"/> components.
+    /// </summary>
+    public static T GetSingleComponentOrThrow<T>(this Scene scene, bool includeInactive = false, bool includeDisabled = true) where T : Component {
+      using (ListPool<GameObject>.Get(out var roots)) {
+        // order does not matter
+        scene.GetRootGameObjects(roots);
+
+        T result = null;
+
+        foreach (var root in roots) {
+          if (!includeInactive && !root.activeInHierarchy) {
+            continue;
+          }
+
+          var component = includeDisabled
+            ? root.GetComponentInChildren<T>(includeInactive: includeInactive)
+            : GetEnabledComponentInChildren<T>(root, includeInactive);
+          if (component) {
+            if (result) {
+              throw new InvalidOperationException($"Multiple components of type {typeof(T).FullName} found");
+            } else {
+              result = component;
+            }
+          }
+        }
+
+        if (result == null) {
+          throw new InvalidOperationException($"Components of type {typeof(T).FullName} not found");
+        }
+
+        return result;
+      }
+    }
+
+    /// <summary>
+    /// Gets all the component present on a scene, depth first.
+    /// Pass <paramref name="includeDisabled"/> false to skip disabled <see cref="Behaviour"/> components.
+    /// </summary>
+    public static T GetComponentInHierarchyOrder<T>(this Scene scene, bool includeInactive = false, bool includeDisabled = true) where T: class{
+      using (ListPool<GameObject>.Get(out var roots)) {
+        scene.GetRootGameObjectsInHierarchyOrder(roots);
+        foreach (var root in roots) {
+          if (!includeInactive && !root.activeInHierarchy) {
+            continue;
+          }
+          var result = includeDisabled
+            ? root.GetComponentInChildren<T>(includeInactive: includeInactive)
+            : GetEnabledComponentInChildren<T>(root, includeInactive);
+          if (result != null) {
+            return result;
+          }
+        }
+
+        return null;
+      }
+    }
+
+    /// <summary>
+    /// Gets all the component present on a scene, depth first.
+    /// Pass <paramref name="includeDisabled"/> false to skip disabled <see cref="Behaviour"/> components.
+    /// </summary>
+    public static T[] GetComponentsInHierarchyOrder<T>(this Scene scene, bool includeInactive = false, bool includeDisabled = true) where T : class {
+      using (ListPool<GameObject>.Get(out var roots)) {
+        scene.GetRootGameObjectsInHierarchyOrder(roots);
+        return GetComponentsInHierarchyOrder<T>(roots, includeInactive, includeDisabled);
+      }
+    }
+
+    /// <summary>
+    /// Gets all the component present on a scene, depth first.
+    /// Pass <paramref name="includeDisabled"/> false to skip disabled <see cref="Behaviour"/> components.
+    /// </summary>
+    public static T[] GetComponentsInHierarchyOrder<T>(IList<GameObject> roots, bool includeInactive = false, bool includeDisabled = true) where T : class {
+      using (ListPool<T>.Get(out var partialResults))
+      using (ListPool<T>.Get(out var fullResults)) {
+        foreach (var root in roots) {
+          if (!includeInactive && !root.activeInHierarchy) {
+            continue;
+          }
+
+          partialResults.Clear();
+          root.GetComponentsInChildren<T>(includeInactive: includeInactive, partialResults);
+          if (!includeDisabled) {
+            partialResults.RemoveAll(IsDisabled);
+          }
+          fullResults.AddRange(partialResults);
+        }
+
+        return fullResults.ToArray();
+      }
+    }
+
+    static T GetEnabledComponentInChildren<T>(GameObject root, bool includeInactive) where T : class {
+      using (ListPool<T>.Get(out var components)) {
+        root.GetComponentsInChildren(includeInactive, components);
+        foreach (var component in components) {
+          if (!IsDisabled(component)) {
+            return component;
+          }
+        }
+
+        return null;
+      }
+    }
+
+    static bool IsDisabled(object component) {
+      return component is Behaviour { enabled: false };
+    }
+
+    internal static ReadOnlySpan<char> GetFileNameWithoutExtension(ReadOnlySpan<char> nameOrPath) {
+      var lastSlash = nameOrPath.LastIndexOf('/');
+      int index = 0;
+      if (lastSlash >= 0) {
+        index = lastSlash + 1;
+      } else {
+        index = 0;
+      }
+
+      var lastDot = nameOrPath.LastIndexOf('.');
+      if (lastDot >= index) {
+        return nameOrPath.Slice(index, lastDot - index);
+      } else {
+        return nameOrPath.Slice(index);
+      }
+    }
   }
 }
 
@@ -3622,6 +4235,12 @@ namespace Fusion {
   /// </summary>
   public static class FusionScalableIMGUI {
     private static GUISkin _scalableSkin;
+    
+    // reset static fields to allow to disable domain reload
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticFields() {
+      _scalableSkin = null;
+    }
 
     private static void InitializedGUIStyles(GUISkin baseSkin) {
       _scalableSkin = baseSkin == null ? GUI.skin : baseSkin;
@@ -3713,45 +4332,7 @@ namespace Fusion {
   using UnityEngine;
   using UnityEngine.SceneManagement;
 
-  public static class FusionUnitySceneManagerUtils {
-
-    public class SceneEqualityComparer : IEqualityComparer<Scene> {
-      public bool Equals(Scene x, Scene y) {
-        return x.handle == y.handle;
-      }
-
-      public int GetHashCode(Scene obj) {
-        return obj.handle;
-      }
-    }
-
-    public static bool IsAddedToBuildSettings(this Scene scene) {
-      if (scene.buildIndex < 0) {
-        return false;
-      }
-      // yep that's a thing: https://docs.unity3d.com/ScriptReference/SceneManagement.Scene-buildIndex.html
-      if (scene.buildIndex >= SceneManager.sceneCountInBuildSettings) {
-        return false;
-      }
-      return true;
-    }
-
-#if UNITY_EDITOR
-    public static bool AddToBuildSettings(Scene scene) {
-      if (IsAddedToBuildSettings(scene)) {
-        return false;
-      }
-
-      EditorBuildSettings.scenes =
-        new[] { new EditorBuildSettingsScene(scene.path, true) }
-        .Concat(EditorBuildSettings.scenes)
-        .ToArray();
-
-      Debug.Log($"Added '{scene.path}' as first entry in Build Settings.");
-      return true;
-    }
-#endif
-
+  public static partial class FusionUnitySceneManagerUtils {
     public static LocalPhysicsMode GetLocalPhysicsMode(this Scene scene) {
       LocalPhysicsMode mode = LocalPhysicsMode.None;
       if (scene.GetPhysicsScene() != Physics.defaultPhysicsScene) {
@@ -3846,62 +4427,6 @@ namespace Fusion {
       }
       return null;
     }
-
-    public static bool CanBeUnloaded(this Scene scene) {
-      if (!scene.isLoaded) {
-        return false;
-      }
-      
-      for (int i = 0; i < SceneManager.sceneCount; ++i) {
-        var s = SceneManager.GetSceneAt(i);
-        if (s != scene && s.isLoaded) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    public static string Dump(this Scene scene) {
-      StringBuilder result = new StringBuilder();
-
-      result.Append("[UnityScene:");
-      
-      if (scene.IsValid()) {
-        result.Append(scene.name);
-        result.Append(", isLoaded:").Append(scene.isLoaded);
-        result.Append(", buildIndex:").Append(scene.buildIndex);
-        result.Append(", isDirty:").Append(scene.isDirty);
-        result.Append(", path:").Append(scene.path);
-        result.Append(", rootCount:").Append(scene.rootCount);
-        result.Append(", isSubScene:").Append(scene.isSubScene);
-      } else {
-        result.Append("<Invalid>");
-      }
-
-      result.Append(", handle:").Append(scene.handle);
-      result.Append("]");
-      return result.ToString();
-    }
-
-    public static string Dump(this LoadSceneParameters loadSceneParameters) {
-      return $"[LoadSceneParameters: {loadSceneParameters.loadSceneMode}, localPhysicsMode:{loadSceneParameters.localPhysicsMode}]";
-    }
-    
-    public static int GetSceneBuildIndex(string nameOrPath) {
-      if (nameOrPath.IndexOf('/') >= 0) {
-        return SceneUtility.GetBuildIndexByScenePath(nameOrPath);
-      } else {
-        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; ++i) {
-          var scenePath = SceneUtility.GetScenePathByBuildIndex(i);
-          GetFileNameWithoutExtensionPosition(scenePath, out var nameIndex, out var nameLength);
-          if (nameLength == nameOrPath.Length && string.Compare(scenePath, nameIndex, nameOrPath, 0, nameLength, true) == 0) {
-            return i;
-          }
-        }
-
-        return -1;
-      }
-    }
     
     public static int GetSceneIndex(IList<string> scenePathsOrNames, string nameOrPath) {
       if (nameOrPath.IndexOf('/') >= 0) {
@@ -3950,13 +4475,6 @@ namespace Fusion
   using Analyzer;
 
     public static class NetworkRunnerVisibilityExtensions {
-   
-      // TODO: Still needed?
-      [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-      private static void ResetAllSimulationStatics() {
-        ResetStatics();
-      }
-      
       /// <summary>
       /// Types that fusion.runtime isn't aware of, which need to be found using names instead.
       /// </summary>
@@ -3989,8 +4507,18 @@ namespace Fusion
 
         public LinkedList<RunnerVisibilityLink> Nodes = new LinkedList<RunnerVisibilityLink>();
       }
-
+      
+      // Project Auditor: Static field not reset, field is reset but project auditor says a false positive.
+#pragma warning disable UDR0002 
       private static bool _commonLinksWithMissingInputAuthNeedRefresh;
+#pragma warning restore UDR0002
+      
+      // reset static fields to allow to disable domain reload
+      [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+      private static void ResetStaticFields() {
+        _commonLinksWithMissingInputAuthNeedRefresh = false;
+        ResetStatics();
+      }
 
       public static void RetryRefreshCommonLinks() {
         _commonLinksWithMissingInputAuthNeedRefresh = false;

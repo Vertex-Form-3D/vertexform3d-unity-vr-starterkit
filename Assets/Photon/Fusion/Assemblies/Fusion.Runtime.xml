@@ -68,14 +68,57 @@
             Returns a string representation of the block.
             </summary>
         </member>
+        <member name="F:Fusion.Allocator.BlockList.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.BlockList.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Allocator.BlockList.BYTE_OF_HEAD">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.BlockList.Head"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.BlockList.BYTE_COUNT_OF_HEAD">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.BlockList.Head"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.BlockList.BYTE_OF_TAIL">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.BlockList.Tail"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.BlockList.BYTE_COUNT_OF_TAIL">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.BlockList.Tail"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_OF_INDEX">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Bucket.Index"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_COUNT_OF_INDEX">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Bucket.Index"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_OF_SEGMENT_STRIDE">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Bucket.SegmentStride"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_COUNT_OF_SEGMENT_STRIDE">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Bucket.SegmentStride"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_OF_SEGMENT_WORD_COUNT">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Bucket.SegmentWordCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_COUNT_OF_SEGMENT_WORD_COUNT">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Bucket.SegmentWordCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_OF_SEGMENT_CAPACITY">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Bucket.SegmentCapacity"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Bucket.BYTE_COUNT_OF_SEGMENT_CAPACITY">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Bucket.SegmentCapacity"/>.</summary>
+        </member>
         <member name="T:Fusion.Allocator.Config">
             <summary>
             Memory Allocator Configuration
-            </summary>
-        </member>
-        <member name="F:Fusion.Allocator.Config.SIZE">
-            <summary>
-            Config Size
             </summary>
         </member>
         <member name="F:Fusion.Allocator.Config.DEFAULT_BLOCK_SHIFT">
@@ -156,6 +199,42 @@
             Config ToString
             </summary>
         </member>
+        <member name="F:Fusion.Allocator.Config.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.BYTE_OF_BLOCK_SHIFT">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Config.BlockShift"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.BYTE_COUNT_OF_BLOCK_SHIFT">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Config.BlockShift"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.BYTE_OF_BLOCK_COUNT">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Config.BlockCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.BYTE_COUNT_OF_BLOCK_COUNT">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Config.BlockCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.BYTE_OF_GLOBALS_SIZE">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Config.GlobalsSize"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Config.BYTE_COUNT_OF_GLOBALS_SIZE">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Config.GlobalsSize"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Segment.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Segment.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Segment.BYTE_OF_NEXT">
+            <summary>Byte offset of <see cref="F:Fusion.Allocator.Segment.Next"/>.</summary>
+        </member>
+        <member name="F:Fusion.Allocator.Segment.BYTE_COUNT_OF_NEXT">
+            <summary>Byte size of <see cref="F:Fusion.Allocator.Segment.Next"/>.</summary>
+        </member>
         <member name="T:Fusion.PageSizes">
             <summary>
             Page Bit Shift Lookup Table
@@ -185,11 +264,6 @@
             </summary>
             <param name="obj">Ptr</param>
             <returns>Ptr Address</returns>
-        </member>
-        <member name="F:Fusion.Ptr.SIZE">
-            <summary>
-            Ptr Size
-            </summary>
         </member>
         <member name="P:Fusion.Ptr.Null">
             <summary>
@@ -294,6 +368,18 @@
             <returns>
             <see cref="T:Fusion.Ptr"/> with <see cref="F:Fusion.Ptr.Address"/> decreased by <paramref name="v"/>
             </returns>
+        </member>
+        <member name="F:Fusion.Ptr.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Ptr.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Ptr.BYTE_OF_ADDRESS">
+            <summary>Byte offset of <see cref="F:Fusion.Ptr.Address"/>.</summary>
+        </member>
+        <member name="F:Fusion.Ptr.BYTE_COUNT_OF_ADDRESS">
+            <summary>Byte size of <see cref="F:Fusion.Ptr.Address"/>.</summary>
         </member>
         <member name="T:Fusion.CapacityAttribute">
             <summary>
@@ -910,6 +996,11 @@
         <member name="P:Fusion.CloudServices.IsMasterClient">
             <summary>
             Signal if the local peer is also the Master Client of the Current Room
+            </summary>
+        </member>
+        <member name="P:Fusion.CloudServices.MasterClientActorId">
+            <summary>
+            The current Master Client in the Room
             </summary>
         </member>
         <member name="P:Fusion.CloudServices.AuthenticationValues">
@@ -2785,9 +2876,6 @@
             Represents the unique identifier for a NetworkBehaviour instance.
             </summary>
         </member>
-        <member name="F:Fusion.NetworkBehaviourId.SIZE">
-            <summary>Size of the NetworkBehaviourId structure in bytes.</summary>
-        </member>
         <member name="F:Fusion.NetworkBehaviourId.Object">
             <summary>
             The NetworkId of the object this behaviour belongs to.
@@ -2856,6 +2944,24 @@
             <param name="a">The first NetworkBehaviourId to compare.</param>
             <param name="b">The second NetworkBehaviourId to compare.</param>
             <returns>True if the NetworkBehaviourId instances are not equal, false otherwise.</returns>
+        </member>
+        <member name="F:Fusion.NetworkBehaviourId.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkBehaviourId.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkBehaviourId.BYTE_OF_OBJECT">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkBehaviourId.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkBehaviourId.BYTE_COUNT_OF_OBJECT">
+            <summary>Byte size of <see cref="F:Fusion.NetworkBehaviourId.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkBehaviourId.BYTE_OF_BEHAVIOUR">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkBehaviourId.Behaviour"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkBehaviourId.BYTE_COUNT_OF_BEHAVIOUR">
+            <summary>Byte size of <see cref="F:Fusion.NetworkBehaviourId.Behaviour"/>.</summary>
         </member>
         <member name="T:Fusion.NetworkBehaviourUtils">
             <summary>
@@ -3423,6 +3529,12 @@
             </summary>
             <param name="obj">NetworkObject to use as the AreaOfInterestOverride.</param>
         </member>
+        <member name="M:Fusion.NetworkTransform.OnEnable">
+            <summary>
+            OnEnable handles the case where a NetworkTransform is enabled after being disabled on the StateAuthority while already spawned.
+            This is to prevent and old state in a snapshot (or the default state) from overriding the current position.
+            </summary>
+        </member>
         <member name="M:Fusion.NetworkTransform.Spawned">
             <inheritdoc />
         </member>
@@ -3522,11 +3634,6 @@
             Networked properties word count for the base <see cref="T:Fusion.NetworkTRSPData"/>
             </summary>
         </member>
-        <member name="F:Fusion.NetworkTRSPData.SIZE">
-            <summary>
-            The actual size for the networked properties in bytes
-            </summary>
-        </member>
         <member name="F:Fusion.NetworkTRSPData.POSITION_OFFSET">
             <summary>
             Offset to point at the position values on the data buffer
@@ -3562,6 +3669,48 @@
             Id of a behaviour used as the reference point for this component during area of interest operations
             The behaviour should be a <see cref="T:Fusion.NetworkTRSP"/> derived class, that is on the same Transform as its associated <see cref="T:Fusion.NetworkObject"/>
             </summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_OF_PARENT">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkTRSPData.Parent"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_COUNT_OF_PARENT">
+            <summary>Byte size of <see cref="F:Fusion.NetworkTRSPData.Parent"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_OF_POSITION">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkTRSPData.Position"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_COUNT_OF_POSITION">
+            <summary>Byte size of <see cref="F:Fusion.NetworkTRSPData.Position"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_OF_ROTATION">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkTRSPData.Rotation"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_COUNT_OF_ROTATION">
+            <summary>Byte size of <see cref="F:Fusion.NetworkTRSPData.Rotation"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_OF_SCALE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkTRSPData.Scale"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_COUNT_OF_SCALE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkTRSPData.Scale"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_OF_TELEPORT_KEY">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkTRSPData.TeleportKey"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_COUNT_OF_TELEPORT_KEY">
+            <summary>Byte size of <see cref="F:Fusion.NetworkTRSPData.TeleportKey"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_OF_AREA_OF_INTEREST_OVERRIDE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkTRSPData.AreaOfInterestOverride"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkTRSPData.BYTE_COUNT_OF_AREA_OF_INTEREST_OVERRIDE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkTRSPData.AreaOfInterestOverride"/>.</summary>
         </member>
         <member name="T:Fusion.NestedComponentUtilities">
             <summary>
@@ -3711,6 +3860,54 @@
             <summary>
             Ignore this field when scanning for pointers.
             </summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_OF_FLAGS">
+            <summary>Byte offset of <see cref="F:Fusion.DynamicHeap.Object.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_COUNT_OF_FLAGS">
+            <summary>Byte size of <see cref="F:Fusion.DynamicHeap.Object.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_OF_BLOCK">
+            <summary>Byte offset of <see cref="F:Fusion.DynamicHeap.Object.Block"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_COUNT_OF_BLOCK">
+            <summary>Byte size of <see cref="F:Fusion.DynamicHeap.Object.Block"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_OF_GEN">
+            <summary>Byte offset of <see cref="F:Fusion.DynamicHeap.Object.Gen"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_COUNT_OF_GEN">
+            <summary>Byte size of <see cref="F:Fusion.DynamicHeap.Object.Gen"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_OF_TYPE">
+            <summary>Byte offset of <see cref="F:Fusion.DynamicHeap.Object.Type"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_COUNT_OF_TYPE">
+            <summary>Byte size of <see cref="F:Fusion.DynamicHeap.Object.Type"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_OF_ARRAY">
+            <summary>Byte offset of <see cref="F:Fusion.DynamicHeap.Object.Array"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.Object.BYTE_COUNT_OF_ARRAY">
+            <summary>Byte size of <see cref="F:Fusion.DynamicHeap.Object.Array"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.ObjectFree.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.ObjectFree.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.ObjectFree.BYTE_OF_NEXT">
+            <summary>Byte offset of <see cref="F:Fusion.DynamicHeap.ObjectFree.Next"/>.</summary>
+        </member>
+        <member name="F:Fusion.DynamicHeap.ObjectFree.BYTE_COUNT_OF_NEXT">
+            <summary>Byte size of <see cref="F:Fusion.DynamicHeap.ObjectFree.Next"/>.</summary>
         </member>
         <member name="T:Fusion.DynamicHeapInstance">
             <summary>
@@ -5330,6 +5527,7 @@
         <member name="F:Fusion.LagCompensationSettings.Enabled">
             <summary>
             Indicates if a <see cref="T:Fusion.HitboxManager"/> instance should be added when the <see cref="T:Fusion.NetworkRunner"/> is initialized.
+            Manually added <see cref="T:Fusion.HitboxManager"/> will auto-destroy on spawned if this setting is disabled.
             </summary>
         </member>
         <member name="F:Fusion.LagCompensationSettings.HitboxBufferLengthInMs">
@@ -5577,9 +5775,6 @@
             A Networked fusion type for degrees. This can be used with the <see cref="T:Fusion.NetworkedAttribute"/>, in RPCs, or in <see cref="T:Fusion.NetworkInput"/> structs.
             </summary>
         </member>
-        <member name="F:Fusion.Angle.SIZE">
-            <summary>Size of this struct in bytes.</summary>
-        </member>
         <member name="M:Fusion.Angle.Clamp(Fusion.Angle,Fusion.Angle)">
             <summary>
             Clamps the current value to the supplied min-max range.
@@ -5728,6 +5923,18 @@
             <summary>
             String representation of the Angle.
             </summary>
+        </member>
+        <member name="F:Fusion.Angle.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Angle.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Angle.BYTE_OF__VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.Angle._value"/>.</summary>
+        </member>
+        <member name="F:Fusion.Angle.BYTE_COUNT_OF__VALUE">
+            <summary>Byte size of <see cref="F:Fusion.Angle._value"/>.</summary>
         </member>
         <member name="T:Fusion.AssetObject">
             <summary>
@@ -6356,6 +6563,30 @@
             <param name="right">Second Vector3Compressed instance.</param>
             <returns>True if the value of the first Vector3Compressed instance is not equal to the value of the second Vector3Compressed instance, otherwise false.</returns>
         </member>
+        <member name="F:Fusion.Vector3Compressed.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.BYTE_OF_X_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector3Compressed.xEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.BYTE_COUNT_OF_X_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector3Compressed.xEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.BYTE_OF_Y_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector3Compressed.yEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.BYTE_COUNT_OF_Y_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector3Compressed.yEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.BYTE_OF_Z_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector3Compressed.zEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector3Compressed.BYTE_COUNT_OF_Z_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector3Compressed.zEncoded"/>.</summary>
+        </member>
         <member name="T:Fusion.Vector4Compressed">
             <summary>
             Represents a compressed Vector4 value for network transmission.
@@ -6435,6 +6666,36 @@
             <param name="right">Second Vector4Compressed instance.</param>
             <returns>True if the value of the first Vector4Compressed instance is not equal to the value of the second Vector4Compressed instance, otherwise false.</returns>
         </member>
+        <member name="F:Fusion.Vector4Compressed.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_OF_X_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector4Compressed.xEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_COUNT_OF_X_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector4Compressed.xEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_OF_Y_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector4Compressed.yEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_COUNT_OF_Y_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector4Compressed.yEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_OF_Z_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector4Compressed.zEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_COUNT_OF_Z_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector4Compressed.zEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_OF_W_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.Vector4Compressed.wEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.Vector4Compressed.BYTE_COUNT_OF_W_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.Vector4Compressed.wEncoded"/>.</summary>
+        </member>
         <member name="T:Fusion.QuaternionCompressed">
             <summary>
             Represents a compressed Quaternion value for network transmission.
@@ -6513,6 +6774,36 @@
             <param name="left">First QuaternionCompressed instance.</param>
             <param name="right">Second QuaternionCompressed instance.</param>
             <returns>True if the value of the first QuaternionCompressed instance is not equal to the value of the second QuaternionCompressed instance, otherwise false.</returns>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_OF_X_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.QuaternionCompressed.xEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_COUNT_OF_X_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.QuaternionCompressed.xEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_OF_Y_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.QuaternionCompressed.yEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_COUNT_OF_Y_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.QuaternionCompressed.yEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_OF_Z_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.QuaternionCompressed.zEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_COUNT_OF_Z_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.QuaternionCompressed.zEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_OF_W_ENCODED">
+            <summary>Byte offset of <see cref="F:Fusion.QuaternionCompressed.wEncoded"/>.</summary>
+        </member>
+        <member name="F:Fusion.QuaternionCompressed.BYTE_COUNT_OF_W_ENCODED">
+            <summary>Byte size of <see cref="F:Fusion.QuaternionCompressed.wEncoded"/>.</summary>
         </member>
         <member name="T:Fusion.ConnectionType">
             <summary>
@@ -7375,9 +7666,6 @@
             Represents a boolean value that can be networked.
             </summary>
         </member>
-        <member name="F:Fusion.NetworkBool.SIZE">
-            <summary>The size of the NetworkBool structure in bytes.</summary>
-        </member>
         <member name="M:Fusion.NetworkBool.#ctor(System.Boolean)">
             <summary>
             Initializes a new instance of the NetworkBool struct with the specified value.
@@ -7421,6 +7709,18 @@
             Defines an implicit conversion of a bool to a NetworkBool.
             </summary>
             <param name="val">The bool to convert.</param>
+        </member>
+        <member name="F:Fusion.NetworkBool.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkBool.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkBool.BYTE_OF__VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkBool._value"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkBool.BYTE_COUNT_OF__VALUE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkBool._value"/>.</summary>
         </member>
         <member name="T:Fusion.NetworkButtons">
             <summary>
@@ -8105,9 +8405,6 @@
             </summary>
             <returns>A random unsigned integer value between 0 and uint.MaxValue, inclusive.</returns>
         </member>
-        <member name="F:Fusion.NetworkRNG.SIZE">
-            <summary>Size of the struct in bytes.</summary>
-        </member>
         <member name="F:Fusion.NetworkRNG.MAX">
             <summary>Maximum allowed value</summary>
         </member>
@@ -8159,6 +8456,24 @@
             Returns a random UInt32 within [minInclusive, maxInclusive] (range is inclusive).
             If minInclusive is greater than maxInclusive, then the numbers are automatically swapped.
             </summary>
+        </member>
+        <member name="F:Fusion.NetworkRNG.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkRNG.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkRNG.BYTE_OF__STATE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkRNG._state"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkRNG.BYTE_COUNT_OF__STATE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkRNG._state"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkRNG.BYTE_OF__INC">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkRNG._inc"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkRNG.BYTE_COUNT_OF__INC">
+            <summary>Byte size of <see cref="F:Fusion.NetworkRNG._inc"/>.</summary>
         </member>
         <member name="T:Fusion.NetworkString`1">
             <summary>
@@ -8605,11 +8920,6 @@
             Gets an equality comparer that can be used to compare two PlayerRef instances.
             </summary>
         </member>
-        <member name="F:Fusion.PlayerRef.SIZE">
-            <summary>
-            The size of the PlayerRef structure in bytes.
-            </summary>
-        </member>
         <member name="F:Fusion.PlayerRef.MASTER_CLIENT_RAW">
             <summary>
             A constant representing the raw index value for the master client.
@@ -8743,6 +9053,18 @@
             </summary>
             <param name="other">The PlayerRef to compare with the current PlayerRef.</param>
             <returns>true if the specified PlayerRef is equal to the current PlayerRef; otherwise, false.</returns>
+        </member>
+        <member name="F:Fusion.PlayerRef.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.PlayerRef.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.PlayerRef.BYTE_OF__INDEX">
+            <summary>Byte offset of <see cref="F:Fusion.PlayerRef._index"/>.</summary>
+        </member>
+        <member name="F:Fusion.PlayerRef.BYTE_COUNT_OF__INDEX">
+            <summary>Byte size of <see cref="F:Fusion.PlayerRef._index"/>.</summary>
         </member>
         <member name="T:Fusion.ReadWriteUtils">
             <summary>
@@ -9151,9 +9473,6 @@
             Can be used to reference a scene by index or by path.
             </summary>
         </member>
-        <member name="F:Fusion.SceneRef.SIZE">
-            <summary>The size of the SceneRef structure in bytes.</summary>
-        </member>
         <member name="F:Fusion.SceneRef.FLAG_ADDRESSABLE">
             <summary>A constant representing the flag for addressable scenes.</summary>
         </member>
@@ -9274,6 +9593,18 @@
             <param name="a">SceneRef a</param>
             <param name="b">SceneRef b</param>
             <returns>true if the values are not equal; otherwise, false.</returns>
+        </member>
+        <member name="F:Fusion.SceneRef.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SceneRef.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SceneRef.BYTE_OF_RAW_VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.SceneRef.RawValue"/>.</summary>
+        </member>
+        <member name="F:Fusion.SceneRef.BYTE_COUNT_OF_RAW_VALUE">
+            <summary>Byte size of <see cref="F:Fusion.SceneRef.RawValue"/>.</summary>
         </member>
         <member name="T:Fusion.SerializableDictionary">
             <summary>
@@ -9431,11 +9762,6 @@
             <param name="obj">The Tick object for which to get a hash code.</param>
             <returns>A hash code for the specified Tick object.</returns>
         </member>
-        <member name="F:Fusion.Tick.SIZE">
-            <summary>
-            The size of the Tick structure in bytes.
-            </summary>
-        </member>
         <member name="F:Fusion.Tick.ALIGNMENT">
             <summary>
             The alignment of the Tick structure in bytes.
@@ -9535,6 +9861,18 @@
             </summary>
             <param name="value">The Tick to convert.</param>
             <returns>true if the Tick's raw value is greater than 0; otherwise, false.</returns>
+        </member>
+        <member name="F:Fusion.Tick.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.Tick.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.Tick.BYTE_OF_RAW">
+            <summary>Byte offset of <see cref="F:Fusion.Tick.Raw"/>.</summary>
+        </member>
+        <member name="F:Fusion.Tick.BYTE_COUNT_OF_RAW">
+            <summary>Byte size of <see cref="F:Fusion.Tick.Raw"/>.</summary>
         </member>
         <member name="T:Fusion.TickAccumulator">
             <summary>
@@ -9644,9 +9982,6 @@
             The tick rate is resolved by the client and server tick rates.
             </remarks>
         </member>
-        <member name="F:Fusion.TickRate.Resolved.SIZE">
-            <summary>The size of the Resolved structure in bytes.</summary>
-        </member>
         <member name="F:Fusion.TickRate.Resolved.WORDS">
             <summary>The size of the Resolved structure in words.</summary>
         </member>
@@ -9694,6 +10029,36 @@
         </member>
         <member name="M:Fusion.TickRate.Resolved.ToString">
             <inheritdoc />
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_OF_CLIENT">
+            <summary>Byte offset of <see cref="F:Fusion.TickRate.Resolved.Client"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_COUNT_OF_CLIENT">
+            <summary>Byte size of <see cref="F:Fusion.TickRate.Resolved.Client"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_OF_CLIENT_SEND">
+            <summary>Byte offset of <see cref="F:Fusion.TickRate.Resolved.ClientSend"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_COUNT_OF_CLIENT_SEND">
+            <summary>Byte size of <see cref="F:Fusion.TickRate.Resolved.ClientSend"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_OF_SERVER">
+            <summary>Byte offset of <see cref="F:Fusion.TickRate.Resolved.Server"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_COUNT_OF_SERVER">
+            <summary>Byte size of <see cref="F:Fusion.TickRate.Resolved.Server"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_OF_SERVER_SEND">
+            <summary>Byte offset of <see cref="F:Fusion.TickRate.Resolved.ServerSend"/>.</summary>
+        </member>
+        <member name="F:Fusion.TickRate.Resolved.BYTE_COUNT_OF_SERVER_SEND">
+            <summary>Byte size of <see cref="F:Fusion.TickRate.Resolved.ServerSend"/>.</summary>
         </member>
         <member name="T:Fusion.TickRate.ValidateResult">
             <summary>
@@ -10230,11 +10595,6 @@
             Returns a hash code for the specified NetworkId object.
             </summary>
         </member>
-        <member name="F:Fusion.NetworkId.SIZE">
-            <summary>
-            The size of the network id in bytes.
-            </summary>
-        </member>
         <member name="F:Fusion.NetworkId.ALIGNMENT">
             <summary>
             The alignment of the network id in bytes.
@@ -10330,6 +10690,18 @@
             <summary>
             String conversion specifically for use in prefixing names of GameObjects.
             </summary>
+        </member>
+        <member name="F:Fusion.NetworkId.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkId.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkId.BYTE_OF_RAW">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkId.Raw"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkId.BYTE_COUNT_OF_RAW">
+            <summary>Byte size of <see cref="F:Fusion.NetworkId.Raw"/>.</summary>
         </member>
         <member name="T:Fusion.PriorityLevel">
             <summary>
@@ -10742,9 +11114,6 @@
             Get the hashcode for a NetworkObjectGuid
             </summary>
         </member>
-        <member name="F:Fusion.NetworkObjectGuid.SIZE">
-            <summary>The Size of the NetworkObjectGuid in bytes</summary>
-        </member>
         <member name="F:Fusion.NetworkObjectGuid.ALIGNMENT">
             <summary>The alignment of the NetworkObjectGuid</summary>
         </member>
@@ -10873,6 +11242,30 @@
             <param name="t">NetworkObjectGuid to convert from</param>
             <returns>NetworkPrefabRef</returns>
         </member>
+        <member name="F:Fusion.NetworkObjectGuid.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.BYTE_OF_RAW_GUID_VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectGuid.RawGuidValue"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.BYTE_COUNT_OF_RAW_GUID_VALUE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectGuid.RawGuidValue"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.BYTE_OF__DATA0">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectGuid._data0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.BYTE_COUNT_OF__DATA0">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectGuid._data0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.BYTE_OF__DATA1">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectGuid._data1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectGuid.BYTE_COUNT_OF__DATA1">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectGuid._data1"/>.</summary>
+        </member>
         <member name="T:Fusion.NetworkPrefabRef">
             <summary>
             NetworkPrefabRef
@@ -10895,9 +11288,6 @@
             <summary>
             Get the hashcode for a NetworkPrefabRef
             </summary>
-        </member>
-        <member name="F:Fusion.NetworkPrefabRef.SIZE">
-            <summary>The Size of the NetworkPrefabRef in bytes</summary>
         </member>
         <member name="F:Fusion.NetworkPrefabRef.ALIGNMENT">
             <summary>The alignment of the NetworkPrefabRef</summary>
@@ -11027,6 +11417,30 @@
             <param name="t">NetworkPrefabRef to convert from</param>
             <returns>NetworkObjectGuid</returns>
         </member>
+        <member name="F:Fusion.NetworkPrefabRef.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.BYTE_OF_RAW_GUID_VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkPrefabRef.RawGuidValue"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.BYTE_COUNT_OF_RAW_GUID_VALUE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkPrefabRef.RawGuidValue"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.BYTE_OF__DATA0">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkPrefabRef._data0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.BYTE_COUNT_OF__DATA0">
+            <summary>Byte size of <see cref="F:Fusion.NetworkPrefabRef._data0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.BYTE_OF__DATA1">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkPrefabRef._data1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabRef.BYTE_COUNT_OF__DATA1">
+            <summary>Byte size of <see cref="F:Fusion.NetworkPrefabRef._data1"/>.</summary>
+        </member>
         <member name="T:Fusion.NetworkObjectHeaderFlags">
             <summary>
             Enum representing various flags for a network object header.
@@ -11120,10 +11534,17 @@
             Network object header information for a <see cref="T:Fusion.NetworkObject"/>.
             </summary>
         </member>
-        <member name="F:Fusion.NetworkObjectHeader.SIZE">
-            <summary>
-            The size of the NetworkObjectHeader in bytes.
-            </summary>
+        <member name="F:Fusion.NetworkObjectHeader.PlayerUniqueData.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.PlayerUniqueData.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.PlayerUniqueData.BYTE_OF_FLAGS">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.PlayerUniqueData.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.PlayerUniqueData.BYTE_COUNT_OF_FLAGS">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.PlayerUniqueData.Flags"/>.</summary>
         </member>
         <member name="F:Fusion.NetworkObjectHeader.WORDS">
             <summary>
@@ -11262,6 +11683,78 @@
             </summary>
             <returns>True if the instances are not equal; otherwise, false.</returns>
         </member>
+        <member name="F:Fusion.NetworkObjectHeader.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_ID">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.Id"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_ID">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.Id"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_WORD_COUNT">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.WordCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_WORD_COUNT">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.WordCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_BEHAVIOUR_COUNT">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.BehaviourCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_BEHAVIOUR_COUNT">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.BehaviourCount"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_TYPE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.Type"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_TYPE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.Type"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_NESTING_ROOT">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.NestingRoot"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_NESTING_ROOT">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.NestingRoot"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_NESTING_KEY">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.NestingKey"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_NESTING_KEY">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.NestingKey"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_FLAGS">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_FLAGS">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_INPUT_AUTHORITY">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.InputAuthority"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_INPUT_AUTHORITY">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.InputAuthority"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_STATE_AUTHORITY">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.StateAuthority"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_STATE_AUTHORITY">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.StateAuthority"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF_PLAYER_DATA">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader.PlayerData"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF_PLAYER_DATA">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader.PlayerData"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_OF__RESERVED">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectHeader._reserved"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectHeader.BYTE_COUNT_OF__RESERVED">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectHeader._reserved"/>.</summary>
+        </member>
         <member name="M:Fusion.NetworkObjectHeaderSnapshot.BuildCRC">
             <summary>
             Compute the CRC of this Object Snapshot
@@ -11293,6 +11786,12 @@
             <summary>
             Meta information about a network object.
             </summary>
+        </member>
+        <member name="M:Fusion.NetworkObjectMeta.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
         </member>
         <member name="P:Fusion.NetworkObjectMeta.Flags">
             <summary> The flags indicating various states or properties of the network object. </summary>
@@ -11334,9 +11833,6 @@
             <summary>
             Returns a hash code for the specified NetworkObjectNestingKey.
             </summary>
-        </member>
-        <member name="F:Fusion.NetworkObjectNestingKey.SIZE">
-            <summary>The size of the NetworkObjectNestingKey in bytes.</summary>
         </member>
         <member name="F:Fusion.NetworkObjectNestingKey.ALIGNMENT">
             <summary>The alignment of the NetworkObjectNestingKey in bytes.</summary>
@@ -11387,6 +11883,18 @@
             Returns a string that represents the current object.
             </summary>
             <returns>A string that represents the current object.</returns>
+        </member>
+        <member name="F:Fusion.NetworkObjectNestingKey.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectNestingKey.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectNestingKey.BYTE_OF_VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectNestingKey.Value"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectNestingKey.BYTE_COUNT_OF_VALUE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectNestingKey.Value"/>.</summary>
         </member>
         <member name="T:Fusion.INetworkObjectProvider">
             <summary>
@@ -11625,9 +12133,6 @@
             </summary>
             <param name="obj">The NetworkObjectTypeId instance.</param>
         </member>
-        <member name="F:Fusion.NetworkObjectTypeId.SIZE">
-            <summary>Represents the size of a NetworkObjectTypeId in bytes.</summary>
-        </member>
         <member name="F:Fusion.NetworkObjectTypeId.ALIGNMENT">
             <summary>Represents the alignment of a NetworkObjectTypeId in memory.</summary>
         </member>
@@ -11800,6 +12305,24 @@
             A NetworkObjectTypeId instance that represents a Prefab with the given NetworkPrefabId.
             </returns>
         </member>
+        <member name="F:Fusion.NetworkObjectTypeId.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectTypeId.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectTypeId.BYTE_OF__VALUE0">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectTypeId._value0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectTypeId.BYTE_COUNT_OF__VALUE0">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectTypeId._value0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectTypeId.BYTE_OF__VALUE1">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkObjectTypeId._value1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkObjectTypeId.BYTE_COUNT_OF__VALUE1">
+            <summary>Byte size of <see cref="F:Fusion.NetworkObjectTypeId._value1"/>.</summary>
+        </member>
         <member name="T:Fusion.INetworkAssetSource`1">
             <summary>
             Interface for a network asset source.
@@ -11871,11 +12394,6 @@
         <member name="M:Fusion.NetworkPrefabId.EqualityComparer.GetHashCode(Fusion.NetworkPrefabId)">
             <summary>
             Gets the hash code of a NetworkPrefabId.
-            </summary>
-        </member>
-        <member name="F:Fusion.NetworkPrefabId.SIZE">
-            <summary>
-            The size of a NetworkPrefabId.
             </summary>
         </member>
         <member name="F:Fusion.NetworkPrefabId.ALIGNMENT">
@@ -11962,6 +12480,18 @@
             <summary>
             Compares the NetworkPrefabId to another NetworkPrefabId.
             </summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabId.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabId.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabId.BYTE_OF_RAW_VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkPrefabId.RawValue"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPrefabId.BYTE_COUNT_OF_RAW_VALUE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkPrefabId.RawValue"/>.</summary>
         </member>
         <member name="T:Fusion.NetworkPrefabTableGetPrefabResult">
             <summary>
@@ -12311,11 +12841,6 @@
             Header for RPC messages.
             </summary>
         </member>
-        <member name="F:Fusion.RpcHeader.SIZE">
-            <summary>
-            The size of the RpcHeader structure in bytes.
-            </summary>
-        </member>
         <member name="F:Fusion.RpcHeader.Object">
             <summary>
             The NetworkId of the object associated with the RPC message.
@@ -12376,6 +12901,30 @@
             </summary>
             <returns>Returns a string that represents the current RpcHeader.</returns>
         </member>
+        <member name="F:Fusion.RpcHeader.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.BYTE_OF_OBJECT">
+            <summary>Byte offset of <see cref="F:Fusion.RpcHeader.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.BYTE_COUNT_OF_OBJECT">
+            <summary>Byte size of <see cref="F:Fusion.RpcHeader.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.BYTE_OF_BEHAVIOUR">
+            <summary>Byte offset of <see cref="F:Fusion.RpcHeader.Behaviour"/>.</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.BYTE_COUNT_OF_BEHAVIOUR">
+            <summary>Byte size of <see cref="F:Fusion.RpcHeader.Behaviour"/>.</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.BYTE_OF_METHOD">
+            <summary>Byte offset of <see cref="F:Fusion.RpcHeader.Method"/>.</summary>
+        </member>
+        <member name="F:Fusion.RpcHeader.BYTE_COUNT_OF_METHOD">
+            <summary>Byte size of <see cref="F:Fusion.RpcHeader.Method"/>.</summary>
+        </member>
         <member name="T:Fusion.RpcHostMode">
             <summary>
             Options for when the game is run in <see cref="F:Fusion.SimulationModes.Host"/> mode and RPC is invoked by the host.
@@ -12420,9 +12969,6 @@
             <summary>
             Creates a new RpcInfo instance for a local RPC message.
             </summary>
-            <param name="runner">The NetworkRunner associated with the RPC message.</param>
-            <param name="channel">The RpcChannel through which the RPC message was sent.</param>
-            <param name="hostMode">The RpcHostMode of the RPC message.</param>
             <returns>Returns a new RpcInfo instance with the provided parameters.</returns>
         </member>
         <member name="M:Fusion.RpcInfo.FromMessage(Fusion.NetworkRunner,Fusion.SimulationMessage*,Fusion.RpcHostMode)">
@@ -12456,6 +13002,9 @@
         </member>
         <member name="F:Fusion.RpcInvokeData.Delegate">
             <summary>Represents the delegate to be invoked for the RPC message.</summary>
+        </member>
+        <member name="F:Fusion.RpcInvokeData.Method">
+            <summary>Represents the method to be invoked for the RPC message.</summary>
         </member>
         <member name="M:Fusion.RpcInvokeData.ToString">
             <summary>
@@ -13398,6 +13947,12 @@
             </summary>
             <param name="player">The player to be promoted to master client</param>
         </member>
+        <member name="M:Fusion.NetworkRunner.GetMasterClient">
+            <summary>
+            Gets the <see cref="T:Fusion.PlayerRef"/> of the current master client. Can only be called in shared mode.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Fusion.NetworkRunner.UpdateInternal(System.Double)">
             <summary>
             This method is meant to be called by <see cref="T:Fusion.INetworkRunnerUpdater"/>.
@@ -13452,11 +14007,25 @@
             </summary>
             <param name="id">The NetworkId for which state authority is being requested.</param>
         </member>
+        <member name="M:Fusion.NetworkRunner.BatchRequestStateAuthority(System.Collections.Generic.List{Fusion.NetworkId})">
+            <summary>
+            Requests state authority for up to <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.MAX_OBJECTS"/> objects in shared mode.
+            If any of the specified objects state authority cannot be changed, the entire batch request will fail and no authority will be changed.
+            </summary>
+            <param name="ids">Specified list of <see cref="T:Fusion.NetworkId"/> to request. Should have at max <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.MAX_OBJECTS"/> Ids.</param>
+        </member>
         <member name="M:Fusion.NetworkRunner.ReleaseStateAuthority(Fusion.NetworkId)">
             <summary>
             Releases state authority for a given <see cref="T:Fusion.NetworkId"/> on shared mode.
             </summary>
             <param name="id">The NetworkId for which state authority needs to be released.</param>
+        </member>
+        <member name="M:Fusion.NetworkRunner.BatchReleaseStateAuthority(System.Collections.Generic.List{Fusion.NetworkId})">
+            <summary>
+            Releases state authority for up to <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.MAX_OBJECTS"/> objects in shared mode.
+            If any of the specified objects state authority cannot be changed, the entire batch release will fail and no authority will be changed.
+            </summary>
+            <param name="ids">Specified list of <see cref="T:Fusion.NetworkId"/> to request. Should have at max <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.MAX_OBJECTS"/> Ids.</param>
         </member>
         <member name="M:Fusion.NetworkRunner.TryGetInputForPlayer``1(Fusion.PlayerRef,``0@)">
             <summary>
@@ -13694,6 +14263,11 @@
         </member>
         <member name="M:Fusion.NetworkRunner.HasAnyActiveConnections">
             <inheritdoc cref="M:Fusion.Simulation.HasAnyActiveConnections"/>
+        </member>
+        <member name="E:Fusion.NetworkRunner.DebugRpcEvent">
+            <summary>
+            Event for RPC sent  
+            </summary>
         </member>
         <member name="M:Fusion.NetworkRunner.GetInstancesEnumerator">
             <summary>
@@ -14892,6 +15466,53 @@
             Unloads all prefabs.
             </summary>
         </member>
+        <member name="T:Fusion.NetworkRunnerRpcEventDelegate">
+            <summary>
+            Delegate type for RPC sent callback
+            </summary>
+        </member>
+        <member name="T:Fusion.NetworkRunnerDebugRpcEventType">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEventType.LocalCall">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEventType.RemoteCall">
+            <summary/>
+        </member>
+        <member name="T:Fusion.NetworkRunnerDebugRpcEvent">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.EventType">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.Tick">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.Runner">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.Behaviour">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.MethodBase">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.SentBytes">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.SourcePlayer">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.TargetPlayer">
+            <summary/>
+        </member>
+        <member name="F:Fusion.NetworkRunnerDebugRpcEvent.LocalInvokeInfo">
+            <summary/>
+        </member>
+        <member name="M:Fusion.NetworkRunnerDebugRpcEvent.ToString">
+            <summary/>
+        </member>
         <member name="T:Fusion.NetworkSpawnStatus">
             <summary>
             Network Spawn Status
@@ -16078,6 +16699,18 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="F:Fusion.NetworkSceneLoadId.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneLoadId.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneLoadId.BYTE_OF_VALUE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneLoadId.Value"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneLoadId.BYTE_COUNT_OF_VALUE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneLoadId.Value"/>.</summary>
+        </member>
         <member name="T:Fusion.NetworkLoadSceneParameters">
             <summary>
             Parameters for loading a scene
@@ -16163,6 +16796,24 @@
             Returns a string representation of the <see cref="T:Fusion.NetworkLoadSceneParameters"/>
             </summary>
         </member>
+        <member name="F:Fusion.NetworkLoadSceneParameters.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkLoadSceneParameters.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkLoadSceneParameters.BYTE_OF_LOAD_ID">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkLoadSceneParameters.LoadId"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkLoadSceneParameters.BYTE_COUNT_OF_LOAD_ID">
+            <summary>Byte size of <see cref="F:Fusion.NetworkLoadSceneParameters.LoadId"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkLoadSceneParameters.BYTE_OF__FLAGS">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkLoadSceneParameters._flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkLoadSceneParameters.BYTE_COUNT_OF__FLAGS">
+            <summary>Byte size of <see cref="F:Fusion.NetworkLoadSceneParameters._flags"/>.</summary>
+        </member>
         <member name="T:Fusion.NetworkSceneInfoDefaultFlags">
             <summary>
             Network Scene Info Default Flags
@@ -16180,12 +16831,6 @@
             Each write increases <see cref="P:Fusion.NetworkSceneInfo.Version"/> which can be used to generate unique scene objects ids
             for when a scene is supposed to be reloaded. 
             </summary>
-        </member>
-        <member name="F:Fusion.NetworkSceneInfo.WORD_COUNT">
-            <summary>The size of the struct in words </summary>
-        </member>
-        <member name="F:Fusion.NetworkSceneInfo.SIZE">
-            <summary>The size of the struct in bytes </summary>
         </member>
         <member name="F:Fusion.NetworkSceneInfo.MaxScenes">
             <summary>Max number of scenes that can be stored</summary>
@@ -16265,6 +16910,114 @@
             </summary>
             <param name="sceneRef">SceneRef to convert</param>
             <returns>Returns a <see cref="T:Fusion.NetworkSceneInfo"/> instance</returns>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__FLAGS">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__FLAGS">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE0">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE0">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE1">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE1">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE2">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene2"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE2">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene2"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE3">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene3"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE3">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene3"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE4">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene4"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE4">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene4"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE5">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene5"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE5">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene5"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE6">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene6"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE6">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene6"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE7">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._scene7"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE7">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._scene7"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META0">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META0">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta0"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META1">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META1">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta1"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META2">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta2"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META2">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta2"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META3">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta3"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META3">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta3"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META4">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta4"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META4">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta4"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META5">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta5"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META5">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta5"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META6">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta6"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META6">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta6"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_OF__SCENE_META7">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta7"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkSceneInfo.BYTE_COUNT_OF__SCENE_META7">
+            <summary>Byte size of <see cref="F:Fusion.NetworkSceneInfo._sceneMeta7"/>.</summary>
         </member>
         <member name="T:Fusion.NetworkSceneInfoChangeSource">
             <summary>
@@ -16928,11 +17681,14 @@
         </member>
         <member name="M:Fusion.Simulation.Server.ProcessHostMigrationData(System.Byte[],System.Collections.Generic.Dictionary{Fusion.NetworkId,Fusion.NetworkObjectHeaderSnapshot},Fusion.Allocator)">
             <summary>
-            Process the serialized data from the bytebuffer into a organized Dictionary of NetIDs=NO Snapshots
+            Read the serialized data from the bytebuffer into a organized Dictionary of NetIDs=NO Snapshots. The data read
+            is serialised by either SerializeHostMigrationData or WriteHostMigrationData. The error strategy here is to log 
+            the first one, then exit false. There is no point in trying to continue once the data is incorrect. We should
+            then fully disable HostMigration for this game.
             </summary>
             <param name="data">Data buffer to read the data from</param>
             <param name="networkObjectMap">Target dictionary that will be filled with NetworkObjects data</param>
-            <param name="allocator">Allocator used to create new <see cref="T:Fusion.NetworkObjectHeaderSnapshot"/></param>
+            <param name="allocator">Memory allocator</param>
         </member>
         <member name="T:Fusion.RpcSendMessageResult">
             <summary>
@@ -17521,12 +18277,6 @@
             Simulation Input Header
             </summary>
         </member>
-        <member name="F:Fusion.SimulationInputHeader.WORD_COUNT">
-            <summary>Word count of the header.</summary>
-        </member>
-        <member name="F:Fusion.SimulationInputHeader.SIZE">
-            <summary>Size of the header.</summary>
-        </member>
         <member name="F:Fusion.SimulationInputHeader.Tick">
             <summary>Tick of the input.</summary>
         </member>
@@ -17539,13 +18289,40 @@
         <member name="F:Fusion.SimulationInputHeader.InterpTo">
             <summary>Interpolation to tick of the input.</summary>
         </member>
+        <member name="F:Fusion.SimulationInputHeader.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_OF_TICK">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationInputHeader.Tick"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_COUNT_OF_TICK">
+            <summary>Byte size of <see cref="F:Fusion.SimulationInputHeader.Tick"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_OF_INTERP_ALPHA">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationInputHeader.InterpAlpha"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_COUNT_OF_INTERP_ALPHA">
+            <summary>Byte size of <see cref="F:Fusion.SimulationInputHeader.InterpAlpha"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_OF_INTERP_FROM">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationInputHeader.InterpFrom"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_COUNT_OF_INTERP_FROM">
+            <summary>Byte size of <see cref="F:Fusion.SimulationInputHeader.InterpFrom"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_OF_INTERP_TO">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationInputHeader.InterpTo"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationInputHeader.BYTE_COUNT_OF_INTERP_TO">
+            <summary>Byte size of <see cref="F:Fusion.SimulationInputHeader.InterpTo"/>.</summary>
+        </member>
         <member name="T:Fusion.SimulationMessage">
             <summary>
             Simulation Message
             </summary>
-        </member>
-        <member name="F:Fusion.SimulationMessage.SIZE">
-            <summary>SimulationMessage size in bytes.</summary>
         </member>
         <member name="F:Fusion.SimulationMessage.MAX_PAYLOAD_SIZE">
             <summary>Max user message size in bytes.</summary>
@@ -17716,6 +18493,150 @@
         </member>
         <member name="M:Fusion.SimulationMessage.ToString(System.Boolean)">
             <summary>Simulation Message ToString</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_TICK">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.Tick"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_TICK">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.Tick"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_SOURCE">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.Source"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_SOURCE">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.Source"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_CAPACITY">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.Capacity"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_CAPACITY">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.Capacity"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_OFFSET">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.Offset"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_OFFSET">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.Offset"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_REFERENCES">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.References"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_REFERENCES">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.References"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_FLAGS">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_FLAGS">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.Flags"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_OF_TARGET">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessage.Target"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessage.BYTE_COUNT_OF_TARGET">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessage.Target"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetPlayerObject.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetPlayerObject.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetPlayerObject.BYTE_OF_OBJECT">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SetPlayerObject.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetPlayerObject.BYTE_COUNT_OF_OBJECT">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SetPlayerObject.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.BYTE_OF_OBJECT">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.BYTE_COUNT_OF_OBJECT">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.BYTE_OF_INTERESTED">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.Interested"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.BYTE_COUNT_OF_INTERESTED">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.Interested"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.BYTE_OF_PLAYER">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.Player"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.BYTE_COUNT_OF_PLAYER">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeSetAlwaysInterested.Player"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.BYTE_OF_OBJECT">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.BYTE_COUNT_OF_OBJECT">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.Object"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.BYTE_OF_ACQUIRE">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.Acquire"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.BYTE_COUNT_OF_ACQUIRE">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeRequestStateAuthority.Acquire"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.BYTE_OF_ACQUIRE">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.Acquire"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.BYTE_COUNT_OF_ACQUIRE">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.Acquire"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.BYTE_OF_COUNT">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.Count"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.BYTE_COUNT_OF_COUNT">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.Count"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.BYTE_OF__BUFFER">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority._buffer"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority.BYTE_COUNT_OF__BUFFER">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SharedModeBatchRequestStateAuthority._buffer"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.BYTE_OF_CENTER">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.Center"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.BYTE_COUNT_OF_CENTER">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.Center"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.BYTE_OF_RADIUS">
+            <summary>Byte offset of <see cref="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.Radius"/>.</summary>
+        </member>
+        <member name="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.BYTE_COUNT_OF_RADIUS">
+            <summary>Byte size of <see cref="F:Fusion.SimulationMessageInternal_SetAreaOfInterest.Radius"/>.</summary>
         </member>
         <member name="T:Fusion.SimulationMessagePtr">
             <summary>
@@ -17888,20 +18809,22 @@
             Network Physics <see cref="T:Fusion.INetworkStruct"/>
             </summary>
         </member>
-        <member name="F:Fusion.NetworkPhysicsInfo.WORD_COUNT">
-            <summary>
-            <see cref="T:Fusion.NetworkPhysicsInfo"/> Word Count
-            </summary>
-        </member>
-        <member name="F:Fusion.NetworkPhysicsInfo.SIZE">
-            <summary>
-            <see cref="T:Fusion.NetworkPhysicsInfo"/> Total Size
-            </summary>
-        </member>
         <member name="F:Fusion.NetworkPhysicsInfo.TimeScale">
             <summary>
             <see cref="T:Fusion.NetworkPhysicsInfo"/> Time Scale
             </summary>
+        </member>
+        <member name="F:Fusion.NetworkPhysicsInfo.SIZE">
+            <summary>Total size of the struct in bytes.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPhysicsInfo.WORD_COUNT">
+            <summary>Total word count of the struct (4-byte words).</summary>
+        </member>
+        <member name="F:Fusion.NetworkPhysicsInfo.BYTE_OF_TIME_SCALE">
+            <summary>Byte offset of <see cref="F:Fusion.NetworkPhysicsInfo.TimeScale"/>.</summary>
+        </member>
+        <member name="F:Fusion.NetworkPhysicsInfo.BYTE_COUNT_OF_TIME_SCALE">
+            <summary>Byte size of <see cref="F:Fusion.NetworkPhysicsInfo.TimeScale"/>.</summary>
         </member>
         <member name="T:Fusion.INetworkStruct">
             <summary>
