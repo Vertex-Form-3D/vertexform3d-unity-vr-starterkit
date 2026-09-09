@@ -21,7 +21,7 @@ mergeInto(LibraryManager.library, {
                 Module.PhotonVoice_JS_Global.workerPreInitQueue = new Array();
             } else {
                 const b = e.data.packet;
-                const ptr = _malloc(b.byteLength);
+                const ptr = _malloc(b.byteLength) >>> 0;
                 if (e.data.decode) {
                     HEAPF32.set(b, ptr / 4);
                     {{{ makeDynCall('viiii', 'decoderDataCallback') }}}(e.data.stream, ptr, b.length, e.data.eos);

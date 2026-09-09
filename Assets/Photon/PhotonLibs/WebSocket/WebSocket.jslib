@@ -37,7 +37,7 @@ SocketCreate: function(url, protocols, openCallback, recvCallback, errorCallback
         if (e.data instanceof ArrayBuffer)
         {
             const b = e.data;
-            const ptr = _malloc(b.byteLength);
+            const ptr = _malloc(b.byteLength) >>> 0;
             const dataHeap = new Int8Array(HEAPU8.buffer, ptr, b.byteLength);
             dataHeap.set(new Int8Array(b));
             {{{ makeDynCall('viii', 'recvCallback') }}}(instance, ptr, b.byteLength);

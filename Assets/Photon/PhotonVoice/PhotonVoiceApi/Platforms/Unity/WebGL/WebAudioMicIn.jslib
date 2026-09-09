@@ -69,7 +69,7 @@ mergeInto(LibraryManager.library, {
                             worklet.port.onmessage = function(e) {
                                 if (ctx[2]) return;
                                 const b = e.data;
-                                const ptr = _malloc(b.byteLength);
+                                const ptr = _malloc(b.byteLength) >>> 0;
 
                                 const dataHeap = new Float32Array(HEAPU8.buffer, ptr, b.length);
                                 dataHeap.set(b);

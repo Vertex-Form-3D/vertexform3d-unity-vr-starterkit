@@ -11,11 +11,11 @@ mergeInto(LibraryManager.library, {
                     
                     console.info('[PV] PhotonVoice_WebRTC_EnumerateDevices res:', res);
 
-                    const ptr = _malloc(res.length * 4);
+                    const ptr = _malloc(res.length * 4) >>> 0;
                     for (let i = 0; i < res.length; i++) {
                         const s = res[i];
                         const l = s.length * 4 + 1;
-                        const sPtr = _malloc(l);
+                        const sPtr = _malloc(l) >>> 0;
                         stringToUTF8(s, sPtr, l)
                         Module.HEAPU32[ptr / 4 + i] = sPtr;
                     }
