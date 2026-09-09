@@ -213,6 +213,7 @@ mergeInto(LibraryManager.library, {
     PhotonVoice_WebAudioAudioOut_Write: function(handle, data, dataLenFloat, offsetSamples) {
         const ctx = Module.PhotonVoice_WebAudioAudioOut_Global.Sources.get(handle);
         if (ctx) {
+            data = data >>> 0;
             const x = HEAPF32.slice(data / 4, data / 4 + dataLenFloat);
             ctx.playProc.port.postMessage([x, offsetSamples]);
         }
