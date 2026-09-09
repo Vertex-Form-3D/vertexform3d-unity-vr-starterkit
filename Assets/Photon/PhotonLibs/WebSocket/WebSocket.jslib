@@ -11,6 +11,8 @@ SocketCreate: function(url, protocols, openCallback, recvCallback, errorCallback
         sendBufForShared: null,
         send: typeof(SharedArrayBuffer) == "function" ? // SharedArrayBuffer is available and will not crash in 'isinstance' check
     		function (socketInstance, ptr, length) {
+                ptr = ptr >>> 0;
+
                 if (HEAPU8.buffer instanceof SharedArrayBuffer) {
                     if (!this.sendBufForShared || this.sendBufForShared.byteLength < length) {
                         this.sendBufForShared = new ArrayBuffer(length);
@@ -24,6 +26,7 @@ SocketCreate: function(url, protocols, openCallback, recvCallback, errorCallback
             }
             :
             function (socketInstance, ptr, length) { // SharedArrayBuffer is not defined, ptr type is always ArrayBuffer
+                ptr = ptr >>> 0;
                 this.socket.send(new Uint8Array(HEAPU8.buffer, ptr, length));
             }
     }
