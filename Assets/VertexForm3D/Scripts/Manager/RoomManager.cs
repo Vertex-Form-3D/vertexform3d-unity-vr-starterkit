@@ -478,14 +478,41 @@ namespace VertexFormCore
                 _spawnWhenReadyCoroutine = StartCoroutine(WaitForAddressableSceneThenSpawn(player));
         }
 
+        /// <summary>
+        /// Waits for the addressable world scene with NO timeout, by design.
+        ///
+        /// This wait spans a cloud download of the world bundle, which on a weak connection can
+        /// legitimately take minutes. The previous 60s limit gave up and force-spawned the
+        /// player into a scene that had no colliders yet — they fell forever, and because the
+        /// world finished loading underneath them afterwards they ended up below the terrain
+        /// with no way back up. Not spawning is strictly better than spawning into a world with
+        /// no ground: the loading screen simply stays up until the scene is genuinely ready.
+        ///
+        /// The coroutine is stopped by <see cref="ResetAddressableSceneSpawnState"/> when the
+        /// player leaves, and bails out on its own if the runner goes away, so it cannot leak.
+        /// </summary>
         private IEnumerator WaitForAddressableSceneThenSpawn(PlayerRef player)
         {
-            const float timeout = 60f;
             float elapsed = 0f;
+            float nextHeartbeat = 30f;
 
-            while (!_addressableSceneReady && elapsed < timeout)
+            while (!_addressableSceneReady)
             {
+                if (_runner == null || !_runner.IsRunning)
+                {
+                    Debug.LogWarning($"[SpawnManager] Runner went away after {elapsed:F0}s while waiting for the world scene — abandoning deferred spawn.");
+                    _spawnWhenReadyCoroutine = null;
+                    yield break;
+                }
+
                 elapsed += Time.deltaTime;
+
+                if (elapsed >= nextHeartbeat)
+                {
+                    Debug.Log($"[SpawnManager] Still waiting for the addressable world scene to download/load ({elapsed:F0}s elapsed). Player stays on the loading screen until it is ready.");
+                    nextHeartbeat += 30f;
+                }
+
                 yield return null;
             }
 
@@ -494,13 +521,7 @@ namespace VertexFormCore
             if (!_hasPendingNetworkSpawn || _pendingNetworkSpawnPlayer != player)
                 yield break;
 
-            if (!_addressableSceneReady)
-            {
-                Debug.LogWarning("[SpawnManager] Timed out waiting for addressable scene load — spawning networked player with fallback position.");
-                ConsumePendingNetworkSpawn(force: true);
-                yield break;
-            }
-
+            Debug.Log($"[SpawnManager] Addressable world scene ready after {elapsed:F0}s — spawning networked player.");
             ConsumePendingNetworkSpawn();
         }
 
@@ -586,16 +607,35 @@ namespace VertexFormCore
         /// Prefers PlayerSpawnPointScript poses, then a non-zero inspector spawnPosition, then a safe
         /// elevated fallback so large terrains do not bury the player at world origin under the mesh.
         /// </summary>
-        private void ResolveSpawnPose(out Vector3 spawnPos, out Quaternion spawnRot)
+        private void ResolveSpawnPose(PlayerRef player, out Vector3 spawnPos, out Quaternion spawnRot)
         {
             PlayerSpawnPointScript[] playerSpawnPointScripts = GetSpawnPointsInWorldScene();
             if (playerSpawnPointScripts.Length > 0)
             {
-                int pspIndex = UnityEngine.Random.Range(0, playerSpawnPointScripts.Length);
+                // Deterministic slot assignment, NOT random.
+                //
+                // Every client spawns its own player locally, so a random pick cannot be
+                // coordinated between clients. When a group arrives together (e.g. everyone
+                // stepping through a Creator Toolkit teleport at once) two clients routinely
+                // draw the same index, spawn capsules inside one another, and PhysX resolves
+                // the overlap by ejecting one of them — frequently downward, through the
+                // terrain collider, which is one-sided and offers no way back up.
+                //
+                // Deriving the slot from the player id makes collisions impossible while
+                // players <= spawn points, and needs no network agreement at all.
+                int id = Mathf.Abs(player.PlayerId);
+                int pspIndex = id % playerSpawnPointScripts.Length;
                 PlayerSpawnPointScript pps = playerSpawnPointScripts[pspIndex];
-                spawnPos = pps.transform.position;
+
                 spawnRot = pps.transform.rotation;
-                Debug.Log($"[SpawnManager] Using spawn point {pspIndex} at position {spawnPos}");
+
+                // More players than spawn points (the common case — a scene with a single
+                // marker puts EVERY player through this path) so fan them out instead of
+                // stacking them on top of each other.
+                int wrap = id / playerSpawnPointScripts.Length;
+                spawnPos = ResolveScatteredSpawn(pps.transform.position, wrap);
+
+                Debug.Log($"[SpawnManager] Using spawn point {pspIndex} (player {player.PlayerId}, ring {wrap}) at position {spawnPos}");
                 return;
             }
 
@@ -616,6 +656,67 @@ namespace VertexFormCore
             spawnPos = new Vector3(0f, 2f, 0f);
             spawnRot = Quaternion.identity;
             Debug.LogWarning($"[SpawnManager] No spawn points found — using elevated origin fallback {spawnPos} (set PlayerSpawnPointScript or RoomManager.spawnPosition).");
+        }
+
+        /// <summary>
+        /// Places the Nth arrival around a spawn marker in a sunflower (phyllotaxis) pattern:
+        /// golden angle with radius growing as sqrt(n). That keeps neighbours roughly
+        /// <c>ringSpacing</c> apart however many players share one marker, where a fixed-radius
+        /// ring would bunch up badly — which matters most in a scene with a single spawn point,
+        /// because then every player is scattered and nothing else is keeping them apart.
+        ///
+        /// Each scattered position is ground-checked before it is accepted. If a spot has no
+        /// ground under it — a ledge, a hole, the far side of a wall — the radius is halved and
+        /// tried again, walking back toward the marker. Standing slightly close to someone is
+        /// always better than spawning over a drop.
+        /// </summary>
+        private static Vector3 ResolveScatteredSpawn(Vector3 basePos, int wrap)
+        {
+            if (wrap <= 0)
+                return TryFindGround(basePos, out Vector3 atMarker) ? atMarker : basePos;
+
+            const float ringSpacing = 0.8f;
+            float angle = wrap * 137.508f * Mathf.Deg2Rad;
+            Vector3 dir = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+            float radius = ringSpacing * Mathf.Sqrt(wrap);
+
+            for (int attempt = 0; attempt < 4; attempt++)
+            {
+                if (TryFindGround(basePos + dir * radius, out Vector3 grounded))
+                    return grounded;
+                radius *= 0.5f;
+            }
+
+            Debug.LogWarning($"[SpawnManager] No ground found around spawn marker {basePos} for ring {wrap} — falling back to the marker itself.");
+            return TryFindGround(basePos, out Vector3 fallback) ? fallback : basePos;
+        }
+
+        /// <summary>
+        /// Finds the solid ground directly beneath a candidate spawn position.
+        ///
+        /// Spawn markers are authored at floor level, so using one verbatim can leave the player
+        /// capsule slightly intersecting the floor; PhysX then resolves that penetration by
+        /// ejecting the capsule, and on a terrain that often means downward and through.
+        ///
+        /// Deliberately short-range: the probe starts just above the candidate and reaches only
+        /// a couple of metres down, so it corrects small placement errors but can never relocate
+        /// a player onto a different storey or onto a ceiling above them.
+        /// </summary>
+        private static bool TryFindGround(Vector3 candidate, out Vector3 grounded)
+        {
+            const float probeUp = 0.5f;
+            const float probeDown = 2.0f;
+            const float standOffset = 0.05f;
+
+            Vector3 origin = candidate + Vector3.up * probeUp;
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, probeUp + probeDown, ~0, QueryTriggerInteraction.Ignore))
+            {
+                grounded = hit.point + Vector3.up * standOffset;
+                return true;
+            }
+
+            grounded = candidate;
+            return false;
         }
 
         private static bool TryGetWorldSceneSafeFallback(out Vector3 spawnPos, out Quaternion spawnRot)
@@ -670,7 +771,7 @@ namespace VertexFormCore
                 return;
             }
 
-            ResolveSpawnPose(out Vector3 spawnPos, out Quaternion spawnRot);
+            ResolveSpawnPose(player, out Vector3 spawnPos, out Quaternion spawnRot);
             SpawnVRPlayer(player, spawnPos, spawnRot);
         }
 
