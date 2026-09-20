@@ -705,11 +705,8 @@ namespace VertexFormCore
         // ==================== APPLY FUNCTIONS ====================
         private void Sit()
         {
-            if (networkSetup == null) return;
-            if (networkSetup.IsSitting)
-            {
-                return;
-            }
+            if (!TryResolveNetworkSetup("Sit")) return;
+
             networkSetup.SetSittingHeight(false);
             isStanding = false;
             postureUISetting?.Disable(); // Sets disableSprite + disableText
@@ -717,14 +714,39 @@ namespace VertexFormCore
 
         private void Stand()
         {
-            if (networkSetup == null) return;
-            if (networkSetup.IsSitting)
-            {
-                return;
-            }
+            if (!TryResolveNetworkSetup("Stand")) return;
+
+            // Standing up from a seat is the whole point of this button, so it must NOT bail out
+            // when IsSitting is true. The old guard did exactly that, which meant pressing Stand
+            // while seated on a SitSpot silently did nothing — it only worked once something else
+            // cleared IsSitting, which reads to the player as the button being delayed or ignored.
+            networkSetup.LeaveCurrentSeatIfAny();
             networkSetup.SetStandingHeight(false);
             isStanding = true;
             postureUISetting?.Enable(); // Sets enableSprite + enableText
+        }
+
+        /// <summary>
+        /// Resolves networkSetup on demand instead of silently doing nothing when it is null.
+        ///
+        /// The posture buttons can be pressed in the first seconds after arriving, before the local
+        /// player has finished spawning and this reference has been assigned. The old code returned
+        /// without a word, so the press was simply lost and the player had to press again a few
+        /// seconds later — which is what "clicking Standing is delayed" actually was.
+        /// </summary>
+        private bool TryResolveNetworkSetup(string action)
+        {
+            if (networkSetup != null) return true;
+
+            networkSetup = RoomManager.Instance != null ? RoomManager.Instance.GetLocalPlayerSetup() : null;
+
+            if (networkSetup == null)
+            {
+                Debug.LogWarning($"[PlayerUIManager] {action} pressed before the local player finished spawning — ignored.");
+                return false;
+            }
+
+            return true;
         }
 
         private void MuteVoice()

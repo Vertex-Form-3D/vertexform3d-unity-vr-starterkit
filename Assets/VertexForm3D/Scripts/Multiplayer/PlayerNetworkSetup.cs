@@ -28,15 +28,20 @@ namespace VertexFormCore
         public float standingHeight;
         public float sittingHeight;
 
-        [Header("VR standing height")]
-        [Tooltip("Eye height, in metres, that every VR player is placed at on arrival regardless of " +
-                 "their real-world posture. ~1.65 is a typical adult standing eye height.")]
-        public float standingEyeHeight = 1.65f;
+        [Header("VR eye heights")]
+        [Tooltip("Eye height, in metres, that every VR player is placed at when standing, regardless " +
+                 "of their real-world posture.")]
+        public float standingEyeHeight = 1.85f;
+
+        [Tooltip("Eye height, in metres, when seated. An average chair seat is ~0.45m and adult " +
+                 "seated eye height above the seat is ~0.75m, so ~1.20m puts the avatar at a " +
+                 "believable height for sitting in an ordinary chair.")]
+        public float sittingEyeHeight = 1.35f;
 
         /// <summary>Below this the headset has not reported a real pose yet, so calibration is refused.</summary>
         const float MinValidTrackedHeadHeight = 0.2f;
 
-        /// <summary>How long after standing to keep re-asserting the calibrated height (see KeepStandingHeightCalibrated).</summary>
+        /// <summary>How long after a posture change to keep re-asserting the calibrated height.</summary>
         const float HeightCalibrationWindowSeconds = 8f;
 
         /// <summary>How far the eye height may drift before recalibrating, in metres.</summary>
@@ -463,7 +468,11 @@ namespace VertexFormCore
                 IsSitting = true;
             }
             IsSittingHeightFixed = true;
-            cameraOffset.transform.localPosition = Vector3.up * sittingHeight;
+
+            if (NetworkedIsVrStyle())
+                StartEyeHeightCalibration();
+            else
+                cameraOffset.transform.localPosition = Vector3.up * sittingHeight;
         }
 
         public void SetStandingHeight(bool calledFromSitSpot)
@@ -475,7 +484,7 @@ namespace VertexFormCore
             IsSittingHeightFixed = false;
 
             if (NetworkedIsVrStyle())
-                StartStandingHeightCalibration();
+                StartEyeHeightCalibration();
             else
                 cameraOffset.transform.localPosition = Vector3.up * standingHeight;
 
@@ -504,7 +513,10 @@ namespace VertexFormCore
         /// baseline — stand up out of the chair and you genuinely rise. Only the starting point is
         /// normalised.
         /// </summary>
-        void CalibrateVrStandingHeight()
+        /// <summary>Eye height the calibration aims for, following the current posture.</summary>
+        float TargetEyeHeight => IsSittingHeightFixed ? sittingEyeHeight : standingEyeHeight;
+
+        void CalibrateVrEyeHeight()
         {
             if (cameraOffset == null || xROrigin == null)
             {
@@ -523,14 +535,15 @@ namespace VertexFormCore
             if (trackedHeadHeight < MinValidTrackedHeadHeight)
                 return;
 
-            float newOffsetY = standingEyeHeight - trackedHeadHeight;
+            float target = TargetEyeHeight;
+            float newOffsetY = target - trackedHeadHeight;
             Vector3 local = cameraOffset.transform.localPosition;
             cameraOffset.transform.localPosition = new Vector3(local.x, newOffsetY, local.z);
 
             if (!_heightCalibrated)
             {
-                Debug.Log($"[PlayerNetworkSetup] Calibrated standing height: tracked head {trackedHeadHeight:F2}m, " +
-                          $"target {standingEyeHeight:F2}m, offset {newOffsetY:F2}m.");
+                Debug.Log($"[PlayerNetworkSetup] Calibrated {(IsSittingHeightFixed ? "sitting" : "standing")} height: " +
+                          $"tracked head {trackedHeadHeight:F2}m, target {target:F2}m, offset {newOffsetY:F2}m.");
             }
 
             _heightCalibrated = true;
@@ -546,15 +559,15 @@ namespace VertexFormCore
                 return;
 
             _heightCalibrated = false;
-            StartStandingHeightCalibration();
+            StartEyeHeightCalibration();
         }
 
-        void StartStandingHeightCalibration()
+        void StartEyeHeightCalibration()
         {
             if (_heightCalibrationCoroutine != null)
                 StopCoroutine(_heightCalibrationCoroutine);
 
-            _heightCalibrationCoroutine = StartCoroutine(KeepStandingHeightCalibrated());
+            _heightCalibrationCoroutine = StartCoroutine(KeepEyeHeightCalibrated());
         }
 
         /// <summary>
@@ -567,20 +580,17 @@ namespace VertexFormCore
         /// re-assertion landing after the spawn-time call is what wipes the height today. Rather than
         /// guess the ordering, this re-applies over a short window and verifies the result held.
         /// </summary>
-        IEnumerator KeepStandingHeightCalibrated()
+        IEnumerator KeepEyeHeightCalibrated()
         {
             float elapsed = 0f;
 
             while (elapsed < HeightCalibrationWindowSeconds)
             {
-                // A player who has deliberately sat down owns their height; leave them alone.
-                if (IsSittingHeightFixed)
-                    break;
+                float target = TargetEyeHeight;
+                float actual = xROrigin != null ? xROrigin.CameraInOriginSpacePos.y : target;
 
-                float actual = xROrigin != null ? xROrigin.CameraInOriginSpacePos.y : standingEyeHeight;
-
-                if (!_heightCalibrated || Mathf.Abs(actual - standingEyeHeight) > HeightCalibrationTolerance)
-                    CalibrateVrStandingHeight();
+                if (!_heightCalibrated || Mathf.Abs(actual - target) > HeightCalibrationTolerance)
+                    CalibrateVrEyeHeight();
 
                 elapsed += Time.deltaTime;
                 yield return null;
