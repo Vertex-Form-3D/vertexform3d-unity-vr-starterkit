@@ -87,6 +87,16 @@ namespace VertexFormCore
         [Networked] public platform Platform { get; set; }
         [Networked] public WebGpuBrowserKind WebGpuBrowserKind { get; set; }
 
+        /// <summary>
+        /// Megaphone state, replicated so late joiners get the current value. Applied in Render().
+        /// Set through <see cref="MegaphoneHandler"/>, never written directly by remote clients.
+        /// </summary>
+        [Networked] public bool MegaphoneOn { get; set; }
+
+        bool _megaphoneApplied;
+        bool _lastAppliedMegaphone;
+        Coroutine _remoteVoiceSetupCoroutine;
+
         public bool NetworkedIsVrStyle() => PlatformPresentation.IsVrStyle(Platform, WebGpuBrowserKind);
 
         public bool NetworkedIsDesktopStyle() => PlatformPresentation.IsDesktopStyle(Platform, WebGpuBrowserKind);
@@ -185,6 +195,33 @@ namespace VertexFormCore
             Debug.Log("-->spawning player done");
             Debug.Log("transform.position: " + transform.position + "transform.rotation: " + transform.rotation);
 
+        }
+
+        // Self-correcting safety net: InitializePlayer() below makes a one-time decision about
+        // whether to disable this player's AudioListener, based on Object.HasInputAuthority at
+        // that moment. If Fusion hasn't finished the input-authority handshake yet when that check
+        // runs, the LOCAL player's own listener can be disabled by mistake, which mutes everything
+        // for that client (ambiance included) rather than just avoiding a duplicate listener for
+        // remote players. Render() runs every frame with an authority value that is always
+        // up to date, so it corrects that mistake automatically instead of leaving audio dead
+        // for the rest of the session.
+        public override void Render()
+        {
+            if (audioListener != null && audioListener.enabled != Object.HasInputAuthority)
+            {
+                audioListener.enabled = Object.HasInputAuthority;
+                Debug.Log($"-->audio listener corrected to {(Object.HasInputAuthority ? "enabled (local player)" : "disabled (remote player)")}");
+            }
+
+            // Apply the networked megaphone state whenever it differs from what this client last
+            // applied. Two bool comparisons per frame, and it means a client that joined after the
+            // megaphone was switched on still picks up the correct value on its very first frame.
+            if (!_megaphoneApplied || _lastAppliedMegaphone != MegaphoneOn)
+            {
+                _lastAppliedMegaphone = MegaphoneOn;
+                _megaphoneApplied = true;
+                ApplyMegaphoneState();
+            }
         }
 
         private IEnumerator InitializePlayer()
@@ -437,7 +474,7 @@ namespace VertexFormCore
             }
             IsSittingHeightFixed = false;
 
-            if (IsVrStyle())
+            if (NetworkedIsVrStyle())
                 StartStandingHeightCalibration();
             else
                 cameraOffset.transform.localPosition = Vector3.up * standingHeight;
@@ -451,8 +488,6 @@ namespace VertexFormCore
 
             }
         }
-
-        bool IsVrStyle() => PlatformPresentation.IsVrStyle(Platform, WebGpuBrowserKind);
 
         /// <summary>
         /// Puts the VR player's eyes at <see cref="standingEyeHeight"/> regardless of what their body
@@ -507,7 +542,7 @@ namespace VertexFormCore
         /// </summary>
         public void RecenterStandingHeight()
         {
-            if (!IsVrStyle())
+            if (!NetworkedIsVrStyle())
                 return;
 
             _heightCalibrated = false;
@@ -558,23 +593,30 @@ namespace VertexFormCore
             Debug.Log("Reset Position");
             transform.localPosition = Vector3.zero;
         }
+        /// <summary>
+        /// Turns this player's megaphone on or off.
+        ///
+        /// Writes networked STATE rather than firing an RPC. The previous implementation sent
+        /// RPC_MegaPhoneHandle to RpcTargets.All, and a Fusion RPC only reaches clients connected at
+        /// that instant — it is never replayed. So anyone who joined after the megaphone was switched
+        /// on never learned about it, kept this player at 3D positional audio, and could not hear
+        /// them from across the room. Whether it worked came down purely to join order, which is why
+        /// it appeared to work for some people and not others. As networked state, Fusion replicates
+        /// the current value to late joiners automatically.
+        /// </summary>
         public void MegaphoneHandler(bool active)
         {
             if (Object.HasInputAuthority)
             {
-                RPC_MegaPhoneHandle(active, Object.Id);
+                MegaphoneOn = active;
+                Debug.Log($"[PlayerNetworkSetup] Megaphone set to {active} for player {PlayerName}");
             }
         }
 
-        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-        public void RPC_MegaPhoneHandle(bool on, NetworkId objectId)
+        /// <summary>Applies the current networked megaphone state to this player's audio.</summary>
+        void ApplyMegaphoneState()
         {
-            // Only apply to the specific player that requested it
-            if (Object != null && Object.Id == objectId)
-            {
-                Debug.Log($"[PlayerNetworkSetup] RPC_MegaPhoneHandle called for player {PlayerName} - Megaphone: {on}");
-                SetMegaphoneMode(on);
-            }
+            SetSpatialBlend(MegaphoneOn ? 0f : 1f);
         }
 
         private void OnApplicationPause(bool pause)
@@ -633,68 +675,88 @@ namespace VertexFormCore
         }
 
         /// <summary>
-        /// Setup voice components for remote players to ensure their audio is heard
+        /// Sets up a remote player's voice and keeps checking until their audio is actually arriving.
+        ///
+        /// The previous version ran once, roughly half a second after spawn. If the Speaker object
+        /// existed it configured the AudioSource, logged success and stopped — but a Speaker existing
+        /// is not the same as it being LINKED to that player's voice stream. Photon links the stream
+        /// asynchronously, and on a client that was still streaming in the world it could easily be
+        /// late. The result was one specific remote player being inaudible on one specific client
+        /// while everyone else came through fine, with a log line claiming setup had succeeded.
+        ///
+        /// This version polls until speaker.IsLinked is true, so the log tells you whether voice is
+        /// genuinely working rather than whether an object reference was non-null.
         /// </summary>
         private void SetupRemotePlayerVoiceComponents()
         {
+            if (_remoteVoiceSetupCoroutine != null)
+                StopCoroutine(_remoteVoiceSetupCoroutine);
+
+            _remoteVoiceSetupCoroutine = StartCoroutine(SetupRemotePlayerVoiceRoutine());
+        }
+
+        private IEnumerator SetupRemotePlayerVoiceRoutine()
+        {
+            const float timeout = 30f;   // generous: a client may still be downloading the world
+            const float interval = 0.5f;
+
+            float elapsed = 0f;
+            bool configured = false;
+
             Debug.Log($"[PlayerNetworkSetup] Setting up remote player voice components for {PlayerName}");
 
-            // For remote players, we primarily need the Speaker component
-            if (playerSpeaker != null)
+            while (elapsed < timeout)
             {
-                AudioSource audioSource = playerSpeaker.GetComponent<AudioSource>();
-                if (audioSource != null)
-                {
-                    // Ensure audio source is properly configured for 3D spatial audio
-                    audioSource.spatialBlend = 1f; // Default to 3D spatial audio
-                    audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-                    audioSource.minDistance = 1f;
-                    audioSource.maxDistance = 50f;
-                    Debug.Log($"[PlayerNetworkSetup] Remote player speaker audio source configured for {PlayerName}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[PlayerNetworkSetup] AudioSource not found on remote player speaker for {PlayerName}");
-                }
-            }
-            else if (voiceNetworkObject != null)
-            {
-                // Fallback: try to get speaker from VoiceNetworkObject
-                Debug.Log($"[PlayerNetworkSetup] Waiting for VoiceNetworkObject to initialize speaker for {PlayerName}");
-                StartCoroutine(WaitForRemotePlayerSpeaker());
-            }
-            else
-            {
-                Debug.LogError($"[PlayerNetworkSetup] No voice components found for remote player {PlayerName}!");
-            }
-        }
+                if (playerSpeaker == null)
+                    playerSpeaker = GetPlayerSpeaker();
 
-        /// <summary>
-        /// Coroutine to wait for remote player speaker to be initialized
-        /// </summary>
-        private IEnumerator WaitForRemotePlayerSpeaker()
-        {
-            float timeout = 10f;
-            float elapsed = 0f;
-
-            while (playerSpeaker == null && elapsed < timeout)
-            {
-                playerSpeaker = GetPlayerSpeaker();
                 if (playerSpeaker != null)
                 {
-                    Debug.Log($"[PlayerNetworkSetup] Remote player speaker found for {PlayerName}");
-                    SetupRemotePlayerVoiceComponents(); // Call setup again now that speaker exists
-                    yield break;
+                    if (!configured)
+                    {
+                        AudioSource audioSource = playerSpeaker.GetComponent<AudioSource>();
+                        if (audioSource != null)
+                        {
+                            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+                            audioSource.minDistance = 1f;
+                            audioSource.maxDistance = 50f;
+
+                            // Deliberately NOT spatialBlend = 1f. Hardcoding 3D here overwrote the
+                            // megaphone every time this ran — including from the old retry path — so
+                            // a player who switched their megaphone on went quiet again the moment
+                            // their speaker finished linking. Derive it from the networked state.
+                            ApplyMegaphoneState();
+
+                            configured = true;
+                            Debug.Log($"[PlayerNetworkSetup] Remote player speaker audio source configured for {PlayerName}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[PlayerNetworkSetup] AudioSource not found on remote player speaker for {PlayerName}");
+                        }
+                    }
+
+                    if (playerSpeaker.IsLinked)
+                    {
+                        Debug.Log($"[PlayerNetworkSetup] Remote voice READY for {PlayerName} after {elapsed:F1}s (speaker linked).");
+                        _remoteVoiceSetupCoroutine = null;
+                        yield break;
+                    }
                 }
-                elapsed += 0.5f;
-                yield return new WaitForSeconds(0.5f);
+
+                elapsed += interval;
+                yield return new WaitForSeconds(interval);
             }
 
-            if (playerSpeaker == null)
-            {
-                Debug.LogError($"[PlayerNetworkSetup] Timeout: Could not find speaker for remote player {PlayerName}");
-            }
+            // Timed out. Say exactly which half failed — a missing speaker and an unlinked speaker
+            // are different problems, and "random voice issues" is what you get without this.
+            string state = playerSpeaker == null ? "speaker MISSING" : "speaker present but NOT LINKED";
+            Debug.LogError($"[PlayerNetworkSetup] Remote voice NOT ready for {PlayerName} after {timeout}s — {state}. " +
+                           $"This player will be inaudible on this client.");
+
+            _remoteVoiceSetupCoroutine = null;
         }
+
         /// <summary>
         /// Get the individual player recorder for muting
         /// </summary>

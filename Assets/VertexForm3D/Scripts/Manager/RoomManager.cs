@@ -525,13 +525,21 @@ namespace VertexFormCore
             ConsumePendingNetworkSpawn();
         }
 
-        private void ConsumePendingNetworkSpawn(bool force = false)
+        /// <summary>
+        /// Spawns the deferred player, but only once the world scene is genuinely ready.
+        /// There is deliberately no "force" path: spawning without a loaded world means
+        /// spawning without colliders, which drops the player through the map permanently.
+        /// </summary>
+        private void ConsumePendingNetworkSpawn()
         {
             if (!_hasPendingNetworkSpawn)
                 return;
 
-            if (!_addressableSceneReady && !force)
+            if (!_addressableSceneReady)
+            {
+                Debug.LogWarning("[SpawnManager] ConsumePendingNetworkSpawn called before the world scene was ready — ignoring, the deferred spawn will run when it loads.");
                 return;
+            }
 
             var player = _pendingNetworkSpawnPlayer;
             _hasPendingNetworkSpawn = false;
@@ -545,9 +553,7 @@ namespace VertexFormCore
             if (localVRPlayer != null)
                 return;
 
-            Debug.Log(force
-                ? "[SpawnManager] Forcing deferred networked VR player spawn (scene not marked ready)."
-                : "[SpawnManager] Addressable scene loaded — spawning deferred networked VR player.");
+            Debug.Log("[SpawnManager] Addressable scene loaded — spawning deferred networked VR player.");
             SpawnNetworkPlayerAtWorldSpawn(player);
         }
 
