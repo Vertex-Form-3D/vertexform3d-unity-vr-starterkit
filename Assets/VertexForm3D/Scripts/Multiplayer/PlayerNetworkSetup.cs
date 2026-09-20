@@ -24,8 +24,26 @@ namespace VertexFormCore
         [SerializeField] private TextMeshProUGUI PlayerName_Text;
         [SerializeField] private GameObject cameraOffset;
         [SerializeField] private XROrigin xROrigin;
+        [Tooltip("Desktop/web only. In VR the standing height is calibrated from the headset instead — see standingEyeHeight.")]
         public float standingHeight;
         public float sittingHeight;
+
+        [Header("VR standing height")]
+        [Tooltip("Eye height, in metres, that every VR player is placed at on arrival regardless of " +
+                 "their real-world posture. ~1.65 is a typical adult standing eye height.")]
+        public float standingEyeHeight = 1.65f;
+
+        /// <summary>Below this the headset has not reported a real pose yet, so calibration is refused.</summary>
+        const float MinValidTrackedHeadHeight = 0.2f;
+
+        /// <summary>How long after standing to keep re-asserting the calibrated height (see KeepStandingHeightCalibrated).</summary>
+        const float HeightCalibrationWindowSeconds = 8f;
+
+        /// <summary>How far the eye height may drift before recalibrating, in metres.</summary>
+        const float HeightCalibrationTolerance = 0.05f;
+
+        bool _heightCalibrated;
+        Coroutine _heightCalibrationCoroutine;
         public TeleportationProvider tp;
         public GravityProvider gp;
         public GameObject leftHand;
@@ -418,7 +436,12 @@ namespace VertexFormCore
                 IsSitting = false;
             }
             IsSittingHeightFixed = false;
-            cameraOffset.transform.localPosition = Vector3.up * standingHeight;
+
+            if (IsVrStyle())
+                StartStandingHeightCalibration();
+            else
+                cameraOffset.transform.localPosition = Vector3.up * standingHeight;
+
             var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
             if (xrRig != null)
             {
@@ -427,6 +450,108 @@ namespace VertexFormCore
                 xrRig.orbitCamera.ResetTargetOffset();
 
             }
+        }
+
+        bool IsVrStyle() => PlatformPresentation.IsVrStyle(Platform, WebGpuBrowserKind);
+
+        /// <summary>
+        /// Puts the VR player's eyes at <see cref="standingEyeHeight"/> regardless of what their body
+        /// is doing in the real world — sitting in a chair, lying down, standing on a box.
+        ///
+        /// The headset reports its real height above the physical floor, so writing a fixed offset
+        /// (the old behaviour) gave a different in-world height for every player and every posture:
+        /// someone seated arrived crouching. Instead the offset is SOLVED for, so the camera lands on
+        /// the target height right now:
+        ///
+        ///     offset = targetEyeHeight - currentTrackedHeadHeight
+        ///
+        /// Real head movement afterwards still works normally, because it is relative to this new
+        /// baseline — stand up out of the chair and you genuinely rise. Only the starting point is
+        /// normalised.
+        /// </summary>
+        void CalibrateVrStandingHeight()
+        {
+            if (cameraOffset == null || xROrigin == null)
+            {
+                Debug.LogWarning("[PlayerNetworkSetup] Cannot calibrate standing height — cameraOffset or xROrigin is not assigned.");
+                return;
+            }
+
+            // Camera position in XR Origin space already includes the current offset, so subtract it
+            // back out to recover the headset's own tracked height.
+            float currentOffsetY = cameraOffset.transform.localPosition.y;
+            float trackedHeadHeight = xROrigin.CameraInOriginSpacePos.y - currentOffsetY;
+
+            // Before the headset reports a real pose this reads as ~0. Calibrating then would bake in
+            // a bogus offset — which is a version of the bug being fixed — so refuse and let the
+            // retry loop try again next frame.
+            if (trackedHeadHeight < MinValidTrackedHeadHeight)
+                return;
+
+            float newOffsetY = standingEyeHeight - trackedHeadHeight;
+            Vector3 local = cameraOffset.transform.localPosition;
+            cameraOffset.transform.localPosition = new Vector3(local.x, newOffsetY, local.z);
+
+            if (!_heightCalibrated)
+            {
+                Debug.Log($"[PlayerNetworkSetup] Calibrated standing height: tracked head {trackedHeadHeight:F2}m, " +
+                          $"target {standingEyeHeight:F2}m, offset {newOffsetY:F2}m.");
+            }
+
+            _heightCalibrated = true;
+        }
+
+        /// <summary>
+        /// Re-runs the standing-height calibration. Wire this to a recenter gesture (both thumbsticks
+        /// clicked, say) or a menu button so a player can reset themselves after changing posture.
+        /// </summary>
+        public void RecenterStandingHeight()
+        {
+            if (!IsVrStyle())
+                return;
+
+            _heightCalibrated = false;
+            StartStandingHeightCalibration();
+        }
+
+        void StartStandingHeightCalibration()
+        {
+            if (_heightCalibrationCoroutine != null)
+                StopCoroutine(_heightCalibrationCoroutine);
+
+            _heightCalibrationCoroutine = StartCoroutine(KeepStandingHeightCalibrated());
+        }
+
+        /// <summary>
+        /// Keeps calibrating until it sticks, then stops.
+        ///
+        /// A single call at spawn is not reliable for two reasons. The headset may not report a valid
+        /// pose for the first few frames. And XROrigin re-asserts its own value for the camera offset
+        /// when the tracking origin mode resolves — which happens asynchronously, and again after
+        /// SceneLoader stops and restarts the XR subsystems during a scene transition. That
+        /// re-assertion landing after the spawn-time call is what wipes the height today. Rather than
+        /// guess the ordering, this re-applies over a short window and verifies the result held.
+        /// </summary>
+        IEnumerator KeepStandingHeightCalibrated()
+        {
+            float elapsed = 0f;
+
+            while (elapsed < HeightCalibrationWindowSeconds)
+            {
+                // A player who has deliberately sat down owns their height; leave them alone.
+                if (IsSittingHeightFixed)
+                    break;
+
+                float actual = xROrigin != null ? xROrigin.CameraInOriginSpacePos.y : standingEyeHeight;
+
+                if (!_heightCalibrated || Mathf.Abs(actual - standingEyeHeight) > HeightCalibrationTolerance)
+                    CalibrateVrStandingHeight();
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            _heightCalibrationCoroutine = null;
         }
         public void ResetPosition()
         {
