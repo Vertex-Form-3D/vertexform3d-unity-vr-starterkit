@@ -167,6 +167,44 @@ namespace VertexFormCore.Editor
                 EditorGUIUtility.PingObject(lsc);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(lsc.scene);
             }
+
+            EnsureVersionDisplay();
+        }
+
+        /// <summary>
+        /// Adds the app version label to the scene.
+        ///
+        /// It lives in its own prefab rather than inside LoginSceneComponent deliberately. Putting
+        /// it inside LoginSceneComponent would propagate it to every existing instance of that
+        /// prefab, so it would appear in the login scene of every project that has ever run this
+        /// tool — including apps people have already built and customised. A separate prefab has no
+        /// existing instances anywhere, so only scenes built from here onwards get it.
+        ///
+        /// Runs independently of the LoginSceneComponent check above, so clicking the button on a
+        /// scene that already has the login component still adds a missing version label rather
+        /// than doing nothing.
+        /// </summary>
+        void EnsureVersionDisplay()
+        {
+            if (GameObject.Find("VersionDisplay") != null)
+                return;
+
+            GameObject prefab = Resources.Load<GameObject>("CustomEditor/VersionDisplay");
+            if (prefab == null)
+            {
+                Debug.LogWarning("[DevTools] VersionDisplay prefab not found at Resources/CustomEditor/VersionDisplay — app version label was not added.");
+                return;
+            }
+
+            GameObject vd = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            if (vd == null)
+            {
+                Debug.LogWarning("[DevTools] Could not instantiate the VersionDisplay prefab — app version label was not added.");
+                return;
+            }
+
+            vd.name = "VersionDisplay";
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(vd.scene);
         }
 
         public void MakeThisMixedRealityScene()
