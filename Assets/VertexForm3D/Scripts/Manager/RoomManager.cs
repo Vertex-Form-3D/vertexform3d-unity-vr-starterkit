@@ -403,6 +403,14 @@ namespace VertexFormCore
             if (player == _runner.LocalPlayer)
             {
                 Debug.Log($"[SpawnManager] Local player joined: {player}");
+
+                // A leftover reference from a previous session would make the spawn below skip itself.
+                if (localVRPlayer != null && !HasLiveLocalPlayerRig())
+                {
+                    Debug.LogWarning("[SpawnManager] Found a stale local player rig reference from a previous session — clearing it so this join spawns properly.");
+                    ClearLocalPlayerRig("stale reference at join");
+                }
+
                 SetAddressableSceneVisuals(false);
                 PositionTempVRPlayerInstantly();
                 TrySpawnNetworkPlayerWhenReady(player);
@@ -460,6 +468,13 @@ namespace VertexFormCore
             if (localVRPlayer != null)
             {
                 Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+
+                // Nothing further runs on this path, so the temporary loading rig that
+                // PositionTempVRPlayerInstantly just switched on would stay on next to the real one.
+                // That is the two sets of hands and the second teleport ray: movement input goes to one
+                // rig while the camera renders the other, and the comfort vignette comes from whichever
+                // rig owns the locomotion provider.
+                ShowLocalTempVRPlayer(false);
                 return;
             }
 
@@ -774,6 +789,13 @@ namespace VertexFormCore
             if (localVRPlayer != null)
             {
                 Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+
+                // Nothing further runs on this path, so the temporary loading rig that
+                // PositionTempVRPlayerInstantly just switched on would stay on next to the real one.
+                // That is the two sets of hands and the second teleport ray: movement input goes to one
+                // rig while the camera renders the other, and the comfort vignette comes from whichever
+                // rig owns the locomotion provider.
+                ShowLocalTempVRPlayer(false);
                 return;
             }
 
@@ -838,10 +860,70 @@ namespace VertexFormCore
 
         public void ShowLocalTempVRPlayer(bool status)
         {
+            // The temporary rig and the real networked rig must never be on together: each carries its own
+            // camera, hands and locomotion, so two of them means two teleport rays, and movement input goes
+            // to one rig while you are looking through the other.
+            if (status && HasLiveLocalPlayerRig())
+            {
+                Debug.LogWarning("[SpawnManager] Refusing to show the temporary VR rig — the networked player rig is already live. Showing both leaves two sets of hands and splits movement input.");
+                ConnectVRObject.SetActive(false);
+                return;
+            }
+
             Debug.Log("ConnectVRObject.transform.position: " + ConnectVRObject.transform.position);
             Debug.Log("ConnectVRObject.transform.rotation: " + ConnectVRObject.transform.rotation);
             ConnectVRObject.SetActive(status);
             Debug.Log($"[SpawnManager] Temp VR Player visibility set to: {status}");
+        }
+
+        /// <summary>
+        /// True when <see cref="localVRPlayer"/> still refers to a real, networked rig. A rig despawned by
+        /// Fusion leaves a destroyed reference behind, which must not count as "already spawned".
+        /// </summary>
+        private bool HasLiveLocalPlayerRig()
+        {
+            if (localVRPlayer == null)
+                return false;
+
+            var netObj = localVRPlayer.GetComponent<NetworkObject>();
+            return netObj != null && netObj.IsValid;
+        }
+
+        /// <summary>
+        /// Forgets (and removes) the local networked rig. Nothing used to clear <see cref="localVRPlayer"/>,
+        /// so the reference outlived the session. On the next join the spawn was skipped as "already
+        /// spawned" while the temporary loading rig stayed switched on — the double hands and rays, with
+        /// movement going to a rig that was no longer the one being rendered.
+        /// </summary>
+        private void ClearLocalPlayerRig(string reason)
+        {
+            GameObject rig = localVRPlayer;
+
+            localVRPlayer = null;
+            spawnedPlayers.Clear();
+
+            if (rig == null)
+                return;
+
+            Debug.Log($"[SpawnManager] Clearing local player rig ({reason}).");
+
+            NetworkObject netObj = rig.GetComponent<NetworkObject>();
+
+            // Fusion owns anything it spawned. Destroying one of its objects behind its back logs errors
+            // and can leave the room with a phantom player, so despawn through the runner while that is
+            // still possible, and leave anything we don't own for the shutdown that follows.
+            if (netObj != null && netObj.IsValid && _runner != null && _runner.IsRunning)
+            {
+                if (netObj.HasStateAuthority)
+                {
+                    _runner.Despawn(netObj);
+                }
+
+                return;
+            }
+
+            // No live runner behind it any more — this is a leftover GameObject, safe to remove directly.
+            Destroy(rig);
         }
 
         /// <summary>
@@ -1037,6 +1119,8 @@ namespace VertexFormCore
         }
         public void LeaveRoom()
         {
+            ClearLocalPlayerRig("LeaveRoom");
+
             if (_runner != null && IsRunnerBusy)
             {
                 _runner.Shutdown();
@@ -1283,6 +1367,10 @@ namespace VertexFormCore
             Log($"Runner shutdown: {shutdownReason}");
             _pendingVoiceJoin = false;
             ResetAddressableSceneSpawnState();
+
+            // Covers every path that ends a session, not just the in-app Leave button: a dropped
+            // connection, an error, or a world switch that shuts the runner down on its own.
+            ClearLocalPlayerRig($"runner shutdown ({shutdownReason})");
 
             // Avoid scene fallback on user-initiated / normal shutdown.
             if (shutdownReason != ShutdownReason.Ok)

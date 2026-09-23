@@ -60,6 +60,12 @@ namespace VertexFormCore
         [SerializeField] private float maxPanelUpAngle = 30f;
         [Tooltip("Minimum gap kept between the bottom edge of a panel and the floor beneath the user.")]
         [SerializeField] private float panelFloorClearance = 0.3f;
+
+        [Tooltip("Hard lower limit for the centre of a world-space panel, measured up from the floor under " +
+                 "the user. This is the guarantee that a panel never sinks: it does not depend on what the " +
+                 "panel is built from, so new art or a nested model cannot defeat it. Raise it if a panel " +
+                 "still reads as too low; the whole panel moves up together.")]
+        [SerializeField] private float minPanelCenterHeight = 1.3f;
         [Tooltip("How far below the head to look for the floor.")]
         [SerializeField] private float floorProbeDistance = 5f;
         public NetworkObject networkObject;
@@ -1007,19 +1013,43 @@ namespace VertexFormCore
                 floorY = xrCameraTransform.root.position.y;
             }
 
-            if (!TryGetLowestVisibleY(UIObject, out float bottom))
-                bottom = UIObject.transform.position.y;
+            // Only ever lifts, never lowers. Both rules below propose a lift and the larger one wins, so
+            // adding a rule can never drag a panel down into something the other rule was protecting it from.
+            float lift = 0f;
 
-            float lowestAllowed = floorY + panelFloorClearance;
-            if (bottom < lowestAllowed)
-                UIObject.transform.position += Vector3.up * (lowestAllowed - bottom);
+            // Primary guarantee. Works off the panel's own transform, which is the one thing that is always
+            // there, so it holds regardless of what the panel is made of. The measurement below has now been
+            // wrong twice in the same direction — first it missed the Main Map's tab bar because it only read
+            // the root canvas, then it missed the laptop model because it only read UI graphics. This rule
+            // does not care.
+            float minimumCentre = floorY + minPanelCenterHeight;
+            if (UIObject.transform.position.y < minimumCentre)
+                lift = minimumCentre - UIObject.transform.position.y;
+
+            // Secondary. When the panel's extents can be measured, keep the lowest visible point clear of the
+            // floor too — that catches a panel taller than minPanelCenterHeight allows for.
+            if (TryGetLowestVisibleY(UIObject, out float bottom))
+            {
+                float liftForBottomEdge = (floorY + panelFloorClearance) - bottom;
+                if (liftForBottomEdge > lift)
+                    lift = liftForBottomEdge;
+            }
+
+            if (lift > 0f)
+                UIObject.transform.position += Vector3.up * lift;
         }
 
         /// <summary>
         /// Lowest point of anything that will actually be drawn in the panel. Measures every graphic rather
         /// than the root canvas, because parts of a panel can sit outside the canvas rectangle — the Main Map's
         /// bottom tab bar does — and those were the parts still ending up under the floor.
-        /// Counts graphics that will be visible once the panel is switched on, since this runs just before that.
+        ///
+        /// It also measures mesh renderers, because a panel is not only UI. The Main Map is framed by a 3D
+        /// laptop model (MainMapVisual Element, 8 mesh renderers), and its body and keyboard hang well below
+        /// the canvas that shows the map. Measuring graphics alone lifted the screen clear of the floor and
+        /// left the laptop underneath it sunk into the ground.
+        ///
+        /// Counts anything that will be visible once the panel is switched on, since this runs just before that.
         /// </summary>
         bool TryGetLowestVisibleY(GameObject UIObject, out float lowest)
         {
@@ -1044,7 +1074,75 @@ namespace VertexFormCore
                 }
             }
 
+            foreach (var renderer in UIObject.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer == null || !renderer.enabled || !WillBeActive(renderer.transform, root))
+                    continue;
+
+                // Effects have no meaningful resting extent and would drag the measurement around.
+                if (renderer is ParticleSystemRenderer || renderer is TrailRenderer || renderer is LineRenderer)
+                    continue;
+
+                if (TryGetRendererLowestY(renderer, out float rendererLowest) && rendererLowest < lowest)
+                {
+                    lowest = rendererLowest;
+                    found = true;
+                }
+            }
+
             return found;
+        }
+
+        /// <summary>
+        /// Lowest world-space Y of a renderer's geometry.
+        ///
+        /// Built from the mesh rather than read off <see cref="Renderer.bounds"/> on purpose: that property
+        /// is only filled in once the object has been drawn, and this runs immediately before the panel is
+        /// switched on for the first time. A panel that has never been visible would otherwise measure as
+        /// nothing and be left where it was.
+        /// </summary>
+        static bool TryGetRendererLowestY(Renderer renderer, out float lowest)
+        {
+            lowest = float.MaxValue;
+
+            Mesh mesh = null;
+            if (renderer is SkinnedMeshRenderer skinned)
+                mesh = skinned.sharedMesh;
+            else if (renderer.TryGetComponent(out MeshFilter filter))
+                mesh = filter.sharedMesh;
+
+            if (mesh == null)
+            {
+                // Sprite renderers and anything else without a mesh filter. Bounds are the only option here,
+                // so skip it when they are still empty rather than reporting a false floor at the origin.
+                Bounds worldBounds = renderer.bounds;
+                if (worldBounds.size.sqrMagnitude <= 0f)
+                    return false;
+
+                lowest = worldBounds.min.y;
+                return true;
+            }
+
+            Bounds local = mesh.bounds;
+            Vector3 centre = local.center;
+            Vector3 extents = local.extents;
+            Matrix4x4 toWorld = renderer.transform.localToWorldMatrix;
+
+            // All eight corners: the panel is rotated to face the user, so the lowest corner in world space
+            // is not necessarily the one that is lowest in the mesh's own space.
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 corner = new Vector3(
+                    centre.x + ((i & 1) == 0 ? -extents.x : extents.x),
+                    centre.y + ((i & 2) == 0 ? -extents.y : extents.y),
+                    centre.z + ((i & 4) == 0 ? -extents.z : extents.z));
+
+                float y = toWorld.MultiplyPoint3x4(corner).y;
+                if (y < lowest)
+                    lowest = y;
+            }
+
+            return true;
         }
 
         /// <summary>True if every object from this one up to the panel root is switched on.</summary>
