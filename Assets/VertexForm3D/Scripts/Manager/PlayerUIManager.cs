@@ -52,6 +52,16 @@ namespace VertexFormCore
         public event Action<bool> onVoiceModeChanged;
         public float distanceFromCamera = 1.5f;
         public Transform xrCameraTransform;
+
+        [Header("VR Panel Placement")]
+        [Tooltip("How far below eye level a panel may follow the user's gaze, in degrees. Looking further down than this still opens the panel at this angle, so it cannot be pushed into the floor.")]
+        [SerializeField] private float maxPanelDownAngle = 15f;
+        [Tooltip("How far above eye level a panel may follow the user's gaze, in degrees.")]
+        [SerializeField] private float maxPanelUpAngle = 30f;
+        [Tooltip("Minimum gap kept between the bottom edge of a panel and the floor beneath the user.")]
+        [SerializeField] private float panelFloorClearance = 0.3f;
+        [Tooltip("How far below the head to look for the floor.")]
+        [SerializeField] private float floorProbeDistance = 5f;
         public NetworkObject networkObject;
 
         private NetworkObject spawnedSelfieStick;
@@ -948,14 +958,133 @@ namespace VertexFormCore
                 return;
             if (UseHeadMountedMenuPath())
             {
-                UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
+                Vector3 head = xrCameraTransform.position;
+
+                // Horizontal facing. Looking straight up or down leaves almost nothing of forward once the
+                // vertical part is removed, so fall back to the head's up vector, which at that moment
+                // points the way the face is turned.
                 Vector3 flatForward = xrCameraTransform.forward;
-                flatForward.y = 0;
+                flatForward.y = 0f;
+                if (flatForward.sqrMagnitude < 0.0001f)
+                {
+                    flatForward = xrCameraTransform.forward.y < 0f ? xrCameraTransform.up : -xrCameraTransform.up;
+                    flatForward.y = 0f;
+                }
+                if (flatForward.sqrMagnitude < 0.0001f)
+                    flatForward = Vector3.forward;
                 flatForward.Normalize();
-                UIObject.transform.forward = -flatForward;
-                UIObject.transform.rotation = Quaternion.Euler(0, UIObject.transform.eulerAngles.y + 180, 0);
+
+                // Still opens where the user is looking, but the vertical part of the gaze is limited.
+                // Positioning along the raw camera forward is what put panels in the floor: looking 45
+                // degrees down with the Main Map at 3 m placed its centre over 2 m below the eyes.
+                float pitch = Mathf.Asin(Mathf.Clamp(xrCameraTransform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+                pitch = Mathf.Clamp(pitch, -maxPanelDownAngle, maxPanelUpAngle);
+                Vector3 direction = flatForward * Mathf.Cos(pitch * Mathf.Deg2Rad) +
+                                    Vector3.up * Mathf.Sin(pitch * Mathf.Deg2Rad);
+
+                // Upright and facing the user, as before.
+                UIObject.transform.rotation = Quaternion.LookRotation(flatForward, Vector3.up);
+                UIObject.transform.position = head + direction * distanceFromCamera;
+
+                KeepPanelAboveFloor(UIObject, head);
             }
 
+        }
+
+        /// <summary>
+        /// Hard guarantee on top of the angle limit: lifts the panel if its bottom edge would still sit
+        /// below the floor under the user. Covers a small room, a user sitting low, or a distance large
+        /// enough that even the limited downward angle reaches the ground.
+        /// </summary>
+        void KeepPanelAboveFloor(GameObject UIObject, Vector3 head)
+        {
+            if (!TryFindFloorBelow(head, out float floorY))
+            {
+                // No collider under the user (a floor mesh without a collider, for instance). The player's
+                // own root sits at their feet, so use that rather than skipping the check entirely.
+                if (xrCameraTransform == null)
+                    return;
+                floorY = xrCameraTransform.root.position.y;
+            }
+
+            if (!TryGetLowestVisibleY(UIObject, out float bottom))
+                bottom = UIObject.transform.position.y;
+
+            float lowestAllowed = floorY + panelFloorClearance;
+            if (bottom < lowestAllowed)
+                UIObject.transform.position += Vector3.up * (lowestAllowed - bottom);
+        }
+
+        /// <summary>
+        /// Lowest point of anything that will actually be drawn in the panel. Measures every graphic rather
+        /// than the root canvas, because parts of a panel can sit outside the canvas rectangle — the Main Map's
+        /// bottom tab bar does — and those were the parts still ending up under the floor.
+        /// Counts graphics that will be visible once the panel is switched on, since this runs just before that.
+        /// </summary>
+        bool TryGetLowestVisibleY(GameObject UIObject, out float lowest)
+        {
+            lowest = float.MaxValue;
+            bool found = false;
+            var corners = new Vector3[4];
+            Transform root = UIObject.transform;
+
+            foreach (var graphic in UIObject.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
+            {
+                if (graphic == null || !graphic.enabled || !WillBeActive(graphic.transform, root))
+                    continue;
+
+                graphic.rectTransform.GetWorldCorners(corners);
+                for (int i = 0; i < 4; i++)
+                {
+                    if (corners[i].y < lowest)
+                    {
+                        lowest = corners[i].y;
+                        found = true;
+                    }
+                }
+            }
+
+            return found;
+        }
+
+        /// <summary>True if every object from this one up to the panel root is switched on.</summary>
+        static bool WillBeActive(Transform t, Transform root)
+        {
+            for (Transform current = t; current != null; current = current.parent)
+            {
+                if (!current.gameObject.activeSelf)
+                    return false;
+                if (current == root)
+                    return true;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Floor height under the head. Ignores triggers and anything belonging to the local player's own
+        /// rig — the rig carries colliders of its own (its character controller, hands) that a straight
+        /// ray down from the head would otherwise hit first.
+        /// </summary>
+        bool TryFindFloorBelow(Vector3 head, out float floorY)
+        {
+            floorY = 0f;
+            Transform ownRoot = xrCameraTransform != null ? xrCameraTransform.root : null;
+
+            RaycastHit[] hits = Physics.RaycastAll(head, Vector3.down, floorProbeDistance, ~0, QueryTriggerInteraction.Ignore);
+            float nearest = float.MaxValue;
+            bool found = false;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (ownRoot != null && hits[i].collider.transform.IsChildOf(ownRoot))
+                    continue;
+                if (hits[i].distance < nearest)
+                {
+                    nearest = hits[i].distance;
+                    floorY = hits[i].point.y;
+                    found = true;
+                }
+            }
+            return found;
         }
     }
 

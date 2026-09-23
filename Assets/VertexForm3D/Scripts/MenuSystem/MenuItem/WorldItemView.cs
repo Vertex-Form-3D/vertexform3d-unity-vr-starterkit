@@ -17,6 +17,11 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     [SerializeField] Button starBtn;
     public bool isinCache;
     bool isDownloading;
+
+    // Whether the pointer (mouse or controller ray) is over this card right now. Tracked so the card can
+    // bring its buttons back the moment a download finishes: until now only a fresh pointer-enter could do
+    // that, so anyone who kept pointing at the card while it downloaded had to move away and back to Enter.
+    bool _pointerInside;
     public GameObject howerUI;
     public WorldData worlddata = new WorldData();
     public bool InitalizeInStart;
@@ -165,15 +170,24 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     public void OnFinishDownload(bool status)
     {
         downloadPanel.gameObject.SetActive(false);
+
+        // Cleared on failure too. It used to stay true after a failed download, and OnPointerEnter
+        // refuses to show the buttons while it is set, so the card went dead until the menu was rebuilt.
+        isDownloading = false;
+
         if (status)
         {
             clikedBtn.gameObject.SetActive(true);
-            isDownloading = false;
         }
         else
         {
             downloadBtn.gameObject.SetActive(true);
         }
+
+        // Show Enter (or Download again, after a failure) straight away if the user is still pointing at
+        // the card, rather than waiting for a pointer-enter that is never going to come.
+        if (howerUI != null && (_pointerInside || DesktopMobileControlSettings.UseMobileMenuHoverUx))
+            howerUI.SetActive(true);
     }
 
     public void OnDownloadProgress(string message, float downloadedSizeMB, float totalSizeMB, float downloadPecentage)
@@ -185,6 +199,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        _pointerInside = false;
         if (DesktopMobileControlSettings.UseMobileMenuHoverUx)
             return;
         howerUI.SetActive(false);
@@ -192,9 +207,17 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        _pointerInside = true;
         if (!isDownloading)
         {
             howerUI.SetActive(true);
         }
+    }
+
+    private void OnDisable()
+    {
+        // Closing the menu while hovering sends no pointer-exit, so reset here or the card would think it
+        // is still being pointed at next time the menu opens.
+        _pointerInside = false;
     }
 }
