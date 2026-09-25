@@ -340,8 +340,24 @@ namespace VertexFormCore
             {
                 Debug.Log("-->setting player name text");
                 PlayerName_Text.text = PlayerName.ToString();
-                float yRot = Object.HasInputAuthority == true ? 0 : 180;
-                PlayerName_Text.transform.localRotation = Quaternion.Euler(Vector3.up * yRot);
+
+                // The tag used to be rotated exactly once, here, to a fixed 0 or 180 degrees on the
+                // assumption that a remote avatar permanently faces the other way. It never updated
+                // again, so the moment either player turned — or you simply walked around someone —
+                // the name went edge-on or read back to front.
+                //
+                // PlayerTag already does this properly: it points the tag's +Z away from the local
+                // camera every frame, which is the orientation that renders text readable rather than
+                // mirrored, and it keeps the tag upright so looking down at someone does not tilt it.
+                // Attaching it here rather than duplicating that logic means there is one
+                // implementation to maintain, and it needs no change to the avatar prefab — this tag
+                // lives inside a nested prefab, where a YAML edit would be considerably riskier than
+                // an AddComponent.
+                if (PlayerName_Text.GetComponent<PlayerTag>() == null)
+                {
+                    PlayerName_Text.gameObject.AddComponent<PlayerTag>();
+                }
+
                 Debug.Log("-->player name text set");
             }
             SetStandingHeight(true);

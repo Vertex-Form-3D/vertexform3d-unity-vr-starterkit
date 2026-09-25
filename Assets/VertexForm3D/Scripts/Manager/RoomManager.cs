@@ -107,6 +107,15 @@ namespace VertexFormCore
             }
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
+
+            // Seatbelt for players who end up under the world anyway. Attached here rather than
+            // authored into a scene or prefab so that it cannot be lost in a merge, and so it
+            // ships with the framework instead of needing every project to remember it. This
+            // object already survives scene loads, which is exactly what the recovery needs.
+            if (GetComponent<PlayerFallRecovery>() == null)
+            {
+                gameObject.AddComponent<PlayerFallRecovery>();
+            }
         }
 
         void Start()
@@ -670,13 +679,63 @@ namespace VertexFormCore
 
             if (TryGetWorldSceneSafeFallback(out spawnPos, out spawnRot))
             {
+                spawnPos = LiftOutOfGeometry(spawnPos, "world-scene safe fallback");
                 Debug.LogWarning($"[SpawnManager] No spawn points / spawnPosition — using world-scene safe fallback at {spawnPos}");
                 return;
             }
 
-            spawnPos = new Vector3(0f, 2f, 0f);
+            spawnPos = LiftOutOfGeometry(new Vector3(0f, 2f, 0f), "elevated origin fallback");
             spawnRot = Quaternion.identity;
             Debug.LogWarning($"[SpawnManager] No spawn points found — using elevated origin fallback {spawnPos} (set PlayerSpawnPointScript or RoomManager.spawnPosition).");
+        }
+
+        /// <summary>
+        /// Last-resort guard for the two fallback spawn positions, which are guesses rather than
+        /// authored places: world origin plus two metres, or two metres above the scene's first root
+        /// object. Both assume that spot is in open air.
+        ///
+        /// A terrain authored away from the origin breaks that assumption completely — the centre of
+        /// the world can sit several metres BELOW the ground surface. Spawning there puts the player
+        /// inside the terrain, and a terrain collider is one-sided, so PhysX ejects them downward and
+        /// there is no way back up. This needs no crowd and no spawn-point contention: one player
+        /// arriving alone falls through, every time.
+        ///
+        /// Applied ONLY to the fallbacks. An authored spawn point inside a building legitimately has
+        /// geometry above it, and lifting those would stand people on the roof.
+        /// </summary>
+        private static Vector3 LiftOutOfGeometry(Vector3 candidate, string reason)
+        {
+            const float columnHeight = 1000f;
+            const float standOffset = 0.05f;
+
+            RaycastHit[] hits = Physics.RaycastAll(candidate + Vector3.up * columnHeight, Vector3.down,
+                                                   columnHeight * 2f, ~0, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0)
+                return candidate;
+
+            // Anything the column hits ABOVE the candidate is something the candidate is underneath.
+            // Take the LOWEST such surface rather than the first one the ray meets: the first is the
+            // roof of whatever is overhead, while the lowest is the floor immediately above the
+            // player, which is where they were actually meant to be standing.
+            bool buried = false;
+            float surfaceY = float.MaxValue;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                float y = hits[i].point.y;
+                if (y > candidate.y && y < surfaceY)
+                {
+                    surfaceY = y;
+                    buried = true;
+                }
+            }
+
+            if (!buried)
+                return candidate;
+
+            Vector3 lifted = new Vector3(candidate.x, surfaceY + standOffset, candidate.z);
+            Debug.LogWarning($"[SpawnManager] {reason} at {candidate} was underneath geometry — lifted to {lifted}. " +
+                             "This world has no reachable PlayerSpawnPoint; the fallback is a guess, not a place. Add one.");
+            return lifted;
         }
 
         /// <summary>
@@ -873,7 +932,51 @@ namespace VertexFormCore
             Debug.Log("ConnectVRObject.transform.position: " + ConnectVRObject.transform.position);
             Debug.Log("ConnectVRObject.transform.rotation: " + ConnectVRObject.transform.rotation);
             ConnectVRObject.SetActive(status);
+
+            if (status)
+            {
+                SuppressTempRigCollision(ConnectVRObject);
+            }
+
             Debug.Log($"[SpawnManager] Temp VR Player visibility set to: {status}");
+        }
+
+        /// <summary>
+        /// Takes the temporary loading rig out of physics entirely.
+        ///
+        /// It is a placeholder to look through while the world downloads; it never needs to
+        /// collide with anything. Leaving it solid is what turns the "double hands" glitch into
+        /// people falling out of the world: when this rig is up at the same time as the real
+        /// player rig there are two capsules in one spot, PhysX is already pushing them apart,
+        /// and the moment another player's capsule arrives nearby that push gets big enough to
+        /// drive somebody down through a terrain collider — which is one-sided, so there is no
+        /// way back up.
+        ///
+        /// Deliberately a blunt safety net rather than a fix for the handoff itself. Whatever
+        /// path leaves this rig switched on, and whenever it started happening, it can no longer
+        /// throw anyone out of the world — the worst case becomes a cosmetic second pair of hands.
+        ///
+        /// Triggers are left alone: those are used for interaction, not for blocking movement.
+        /// </summary>
+        private static void SuppressTempRigCollision(GameObject rig)
+        {
+            if (rig == null)
+                return;
+
+            int disabled = 0;
+            foreach (Collider col in rig.GetComponentsInChildren<Collider>(true))
+            {
+                if (col == null || !col.enabled || col.isTrigger)
+                    continue;
+
+                col.enabled = false;
+                disabled++;
+            }
+
+            if (disabled > 0)
+            {
+                Debug.Log($"[SpawnManager] Temp VR rig removed from physics ({disabled} collider(s) disabled).");
+            }
         }
 
         /// <summary>
@@ -1117,6 +1220,28 @@ namespace VertexFormCore
 #endif
             return appSettings;
         }
+        /// <summary>
+        /// "I'm stuck" — puts the local player back on the last ground they stood on.
+        ///
+        /// Exists so a menu Button can be wired to it in the Inspector. The recovery component
+        /// itself is attached at runtime and so cannot be dragged into an OnClick slot, but this
+        /// manager is a real object in the scene, so it can.
+        ///
+        /// Covers what the automatic recovery cannot see on its own: being wedged inside geometry
+        /// rather than below it, where there is still ground underneath and nothing looks wrong.
+        /// </summary>
+        public void UnstickLocalPlayer()
+        {
+            var recovery = GetComponent<PlayerFallRecovery>();
+            if (recovery == null)
+            {
+                Debug.LogWarning("[RoomManager] Unstick requested but no PlayerFallRecovery is attached.");
+                return;
+            }
+
+            recovery.RecoverNow();
+        }
+
         public void LeaveRoom()
         {
             ClearLocalPlayerRig("LeaveRoom");
@@ -1368,9 +1493,19 @@ namespace VertexFormCore
             _pendingVoiceJoin = false;
             ResetAddressableSceneSpawnState();
 
-            // Covers every path that ends a session, not just the in-app Leave button: a dropped
-            // connection, an error, or a world switch that shuts the runner down on its own.
-            ClearLocalPlayerRig($"runner shutdown ({shutdownReason})");
+            // Deliberately does NOT clear the local player rig here.
+            //
+            // An earlier version did, on the reasoning that a shutdown ends the session. It does
+            // not: moving between worlds also shuts the runner down, and that is an ordinary
+            // transition rather than an ending. Destroying the rig on that path pulled the player
+            // out of their own body midway through the transition screen — they fell, with nothing
+            // to stand in, until the next spawn put them back. "Fell during the transition, then
+            // respawned in the scene" was this, and nothing else.
+            //
+            // The stale reference this was meant to catch is handled where it can be judged
+            // safely: PlayerJoined checks HasLiveLocalPlayerRig() and clears the reference only
+            // when the rig behind it is genuinely gone. LeaveRoom still clears explicitly, because
+            // leaving really is an ending.
 
             // Avoid scene fallback on user-initiated / normal shutdown.
             if (shutdownReason != ShutdownReason.Ok)

@@ -59,11 +59,50 @@ public class PlayerTag : MonoBehaviour
         if (_overrideUsable)
             return _cameraTransform;
 
-        // Camera.main is cached internally by Unity, so this is cheap per frame.
-        // Resolving every frame (rather than caching once) means we cannot latch
-        // onto a remote player's camera during the window before PlayerNetworkSetup
-        // disables it.
+        // Resolved every frame rather than cached once, so we cannot latch onto a remote
+        // player's camera during the window before PlayerNetworkSetup disables it.
+        Camera viewer = ResolveViewerCamera();
+        return viewer != null ? viewer.transform : null;
+    }
+
+    /// <summary>
+    /// The camera the local person is actually looking through.
+    ///
+    /// <see cref="Camera.main"/> is tried first and is correct in VR, where the headset camera
+    /// carries the MainCamera tag. It is NOT enough on its own: the desktop third-person view
+    /// renders through OrbitCamera, which is deliberately Untagged, so Camera.main there is
+    /// either null or some other rig's camera. A tag aimed at a camera nobody is looking
+    /// through renders back-to-front, which is why desktop names came out mirrored.
+    ///
+    /// The fallback is simply whatever is drawing the screen: the enabled camera with the
+    /// highest depth that is not rendering into a texture. Cameras that DO render into a
+    /// texture — the mirror, the selfie stick — are excluded, since facing those would be just
+    /// as wrong as facing nothing.
+    /// </summary>
+    static Camera ResolveViewerCamera()
+    {
         Camera main = Camera.main;
-        return main != null ? main.transform : null;
+        if (IsViewerCamera(main))
+            return main;
+
+        Camera best = null;
+        Camera[] all = Camera.allCameras;
+        for (int i = 0; i < all.Length; i++)
+        {
+            if (!IsViewerCamera(all[i]))
+                continue;
+
+            if (best == null || all[i].depth > best.depth)
+                best = all[i];
+        }
+
+        return best;
+    }
+
+    static bool IsViewerCamera(Camera cam)
+    {
+        return cam != null
+               && cam.isActiveAndEnabled
+               && cam.targetTexture == null;
     }
 }
