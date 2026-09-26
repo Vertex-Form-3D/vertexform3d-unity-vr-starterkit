@@ -68,11 +68,39 @@ public class PlayerFallRecovery : MonoBehaviour
     float _voidCheckTimer;
     bool _nothingBelow;
     bool _loggedUnrecoverable;
+    bool _worldWasReady;
 
     void Update()
     {
         if (!ResolveRig())
             return;
+
+        // Stand down entirely while a world transition is in progress.
+        //
+        // Between worlds the old scene has unloaded and the next one has not arrived, so there is
+        // genuinely nothing under the player — which looks exactly like falling out of the world
+        // and is not. Worse, the safe position recorded moments earlier is a coordinate in the
+        // world being left; teleporting to it lands the player wherever that happens to be in the
+        // NEW world, usually in mid-air. Recovering during a transition therefore causes the very
+        // fall it exists to prevent.
+        bool worldReady = RoomManager.Instance != null && RoomManager.Instance.IsWorldSceneReady;
+
+        if (!worldReady)
+        {
+            if (_worldWasReady)
+            {
+                // A transition just started. Everything learned about the previous world is about
+                // to become meaningless — above all the safe position, which belongs to a scene
+                // that is being unloaded.
+                _worldWasReady = false;
+                _hasSafePosition = false;
+                ResetFallState();
+            }
+
+            return;
+        }
+
+        _worldWasReady = true;
 
         // Flying deliberately spends long periods off the ground, so recovery stands down.
         if (_flying != null && _flying.enabled)
@@ -135,6 +163,16 @@ public class PlayerFallRecovery : MonoBehaviour
     {
         if (!ResolveRig())
             return;
+
+        // Also guarded here, not just in Update, because RecoverNow() is public and can be driven
+        // from an "I'm stuck" button at any moment — including mid-transition, when there is no
+        // world to recover into.
+        if (RoomManager.Instance == null || !RoomManager.Instance.IsWorldSceneReady)
+        {
+            Debug.Log("[PlayerFallRecovery] Recovery requested while the world is still loading — " +
+                      "ignoring until the scene is in.");
+            return;
+        }
 
         Vector3 target;
         string source;
