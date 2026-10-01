@@ -64,6 +64,10 @@ namespace VertexFormCore
         // Where the temporary loading rig was put, and whether it is currently being held there.
         // See HoldTempRigInPlace.
         private bool _tempRigAnchored;
+
+        // A spawn Fusion queued because the player prefab was still loading (TrySpawn -> Queued).
+        private bool _hasQueuedLocalSpawn;
+        private PlayerRef _queuedLocalSpawnPlayer;
         private Vector3 _tempRigAnchor;
 
         /// <summary>
@@ -435,6 +439,27 @@ namespace VertexFormCore
                 startGameArgs.PlayerCount = playerCount;
 
             // Start game session
+            // Optionally hand back the lobby's Photon connection before the game runner takes one.
+            //
+            // The session-list lobby is a second NetworkRunner living alongside this one, so while a
+            // player is inside a world they hold two connections, and two runners are delivering
+            // callbacks to whoever is listening. Closing the lobby here leaves exactly one runner for
+            // the duration of the session. The cost is that per-world player counts cannot update
+            // while the lobby is down, which is why it is a setting rather than the default.
+            //
+            // Awaited deliberately: the lobby must be fully down before StartGame, or the two overlap
+            // across the window where the local player object is spawned.
+            if (ProjectManager.ShutsDownLobbyRunnerOnWorldEntry && NetworkLobby.Instance != null)
+            {
+                await NetworkLobby.Instance.ShutdownLobbyRunner();
+
+                if (generation != _connectGeneration)
+                {
+                    Debug.Log("[RoomManager] Connect superseded while shutting the lobby runner down — aborting.");
+                    return;
+                }
+            }
+
             Debug.Log($"[RoomManager] About to call StartGame with session name: {sessionName} (scene path: {mapName})");
 
             var startGameTask = _runner.StartGame(startGameArgs);
@@ -523,10 +548,16 @@ namespace VertexFormCore
         {
             _addressableSceneReady = false;
             _hasPendingNetworkSpawn = false;
+            _hasQueuedLocalSpawn = false;
             if (_spawnWhenReadyCoroutine != null)
             {
                 StopCoroutine(_spawnWhenReadyCoroutine);
                 _spawnWhenReadyCoroutine = null;
+            }
+            if (_spawnWhenGroundCoroutine != null)
+            {
+                StopCoroutine(_spawnWhenGroundCoroutine);
+                _spawnWhenGroundCoroutine = null;
             }
         }
 
@@ -947,8 +978,73 @@ namespace VertexFormCore
                 return;
             }
 
-            ResolveSpawnPose(player, out Vector3 spawnPos, out Quaternion spawnRot);
-            SpawnVRPlayer(player, spawnPos, spawnRot);
+            if (_spawnWhenGroundCoroutine != null)
+                return;                                 // already waiting for this world's ground
+            _spawnWhenGroundCoroutine = StartCoroutine(SpawnWhenGroundIsPresent(player));
+        }
+
+        private Coroutine _spawnWhenGroundCoroutine;
+
+        /// <summary>
+        /// Spawns the player only once there is solid ground under their spawn position.
+        ///
+        /// 2026-10-01, seen live in Luxury Villa: a Quest joining as the second player was placed on
+        /// the spawn marker at the world origin and fell straight through the terrain, at x=0, z=0,
+        /// forever. The ground probe around the marker had found nothing, so the player was placed
+        /// on the marker itself, which sits on (or just inside) the terrain surface. On a slower
+        /// device the world scene reports "loaded" a moment before its colliders are queryable;
+        /// spawning a capsule that overlaps a one-sided terrain makes PhysX push it out downward.
+        /// The editor, being fast, always found the ground, which is why it never happened there.
+        ///
+        /// So: sync physics, look for ground, and if there is none yet keep the loading rig up
+        /// and look again next frame. If the world genuinely has no ground at the marker after
+        /// the timeout, spawn ABOVE it rather than in it, so the player drops onto whatever is
+        /// there instead of being ejected through it.
+        /// </summary>
+        private IEnumerator SpawnWhenGroundIsPresent(PlayerRef player)
+        {
+            const float timeout = 15f;
+            const float liftWhenNoGround = 1.5f;
+            float waited = 0f;
+
+            while (true)
+            {
+                if (_runner == null || !_runner.IsRunning || !_addressableSceneReady || localVRPlayer != null)
+                {
+                    _spawnWhenGroundCoroutine = null;
+                    yield break;
+                }
+
+                // Make sure colliders that were just loaded or moved are visible to raycasts.
+                Physics.SyncTransforms();
+
+                ResolveSpawnPose(player, out Vector3 spawnPos, out Quaternion spawnRot);
+
+                if (TryFindGround(spawnPos, out Vector3 grounded))
+                {
+                    if (waited > 0f)
+                        Debug.Log($"[SpawnManager] Ground under the spawn position became available after {waited:F1}s.");
+                    _spawnWhenGroundCoroutine = null;
+                    SpawnVRPlayer(player, grounded, spawnRot);
+                    yield break;
+                }
+
+                if (waited >= timeout)
+                {
+                    Vector3 lifted = spawnPos + Vector3.up * liftWhenNoGround;
+                    Debug.LogWarning($"[SpawnManager] No ground under spawn position {spawnPos} after {timeout:F0}s — " +
+                                     $"spawning {liftWhenNoGround}m above it at {lifted}. Check that the floor at this spawn point has a collider.");
+                    _spawnWhenGroundCoroutine = null;
+                    SpawnVRPlayer(player, lifted, spawnRot);
+                    yield break;
+                }
+
+                if (waited == 0f)
+                    Debug.Log($"[SpawnManager] No ground under spawn position {spawnPos} yet — waiting for the world's colliders before spawning.");
+
+                waited += Time.deltaTime;
+                yield return null;
+            }
         }
 
         private void SpawnVRPlayer(PlayerRef player, Vector3 spawnPos, Quaternion spawnRot)
@@ -972,37 +1068,48 @@ namespace VertexFormCore
 
             ShowLocalTempVRPlayer(false);
 
-            NetworkObject vrpNetworkObject = _runner.Spawn(prefabToSpawn, spawnPos, spawnRot, player);
-            Debug.Log($"[SpawnManager] Runner.Spawn returned: {(vrpNetworkObject != null ? vrpNetworkObject.name : "NULL")}");
+            // TrySpawn rather than Spawn, because Spawn cannot tell "failed" apart from "queued".
+            //
+            // NetworkProjectConfig has EnqueueIncompleteSynchronousSpawns switched on. With that flag,
+            // when the player prefab is not loaded yet — typically the FIRST entry of a session —
+            // Spawn returns null, and Fusion then spawns the player anyway a frame or two later.
+            // We used to read that null as a failure: the temporary loading rig was switched back on,
+            // and because localVRPlayer is only ever set from the return value, nothing ever learned
+            // that the real player had arrived. That is the double hands: the temp rig frozen where it
+            // was put, next to a real player who can move. A respawn "fixed" it because by then the
+            // prefab was loaded and Spawn returned the object directly.
+            //
+            // Queued spawns now complete through NotifyLocalPlayerSpawned, which the player object
+            // calls from its own Spawned() — the one moment that is true on every path.
+            NetworkSpawnStatus spawnStatus = _runner.TrySpawn(prefabToSpawn, out NetworkObject vrpNetworkObject, spawnPos, spawnRot, player);
+            Debug.Log($"[SpawnManager] Runner.TrySpawn returned {spawnStatus}: {(vrpNetworkObject != null ? vrpNetworkObject.name : "NULL")}");
+
+            if (spawnStatus == NetworkSpawnStatus.Queued)
+            {
+                _queuedLocalSpawnPlayer = player;
+                _hasQueuedLocalSpawn = true;
+
+                // Keep the loading rig up at the spawn point until the real player arrives, so the
+                // headset is never left without a camera for those frames. NotifyLocalPlayerSpawned
+                // takes it down.
+                Debug.Log("[SpawnManager] Player prefab still loading — spawn queued by Fusion. Holding the temp rig until the player object arrives.");
+                ConnectVRObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
+                ShowLocalTempVRPlayer(true);
+                return;
+            }
 
             if (vrpNetworkObject != null)
             {
                 Debug.Log("vrpNetworkObject.transform.position: " + vrpNetworkObject.transform.position);
                 Debug.Log("vrpNetworkObject.transform.rotation: " + vrpNetworkObject.transform.rotation);
 
-                // Track the spawned player
-                spawnedPlayers[player] = vrpNetworkObject;
-
                 if (vrpNetworkObject.HasInputAuthority)
                 {
-                    localVRPlayer = vrpNetworkObject.gameObject;
-
-                    // Stamp the rig with the connect it belongs to, so the next world change can tell
-                    // it apart from the rig it is about to spawn.
-                    _localRigGeneration = _connectGeneration;
-
-                    // The player is in the world. The temporary rig is no longer standing in nothing,
-                    // so it stops being held.
-                    _worldTransitionInFlight = false;
-
-                    if (SceneLoader.Instance != null)
-                        SceneLoader.Instance.ActivateScene();
-                    Debug.Log($"[SpawnManager] VR Player spawned successfully! GameObject: {localVRPlayer.name}");
-                    // Manually join voice lobby now that local player is spawned (with a small delay)
-                    StartCoroutine(JoinVoiceLobbyDelayed(1f));
+                    RegisterLocalPlayerRig(vrpNetworkObject, "TrySpawn");
                 }
                 else
                 {
+                    spawnedPlayers[player] = vrpNetworkObject;
                     Debug.Log($"[SpawnManager] Remote VR Player spawned: {vrpNetworkObject.name}");
                 }
             }
@@ -1013,7 +1120,7 @@ namespace VertexFormCore
                 // anyway, there are two of them. Log everything needed to work out WHY the spawn failed,
                 // because the failure itself is the bug; restoring the temp rig is only the symptom.
                 Debug.LogError(
-                    "[SpawnManager] Failed to spawn VR Player - Runner.Spawn returned null. Restoring temp VR player. " +
+                    $"[SpawnManager] Failed to spawn VR Player - TrySpawn returned {spawnStatus}. Restoring temp VR player. " +
                     $"runner='{(_runner != null ? _runner.name : "NULL")}' " +
                     $"runnerRunning={(_runner != null && _runner.IsRunning)} " +
                     $"runnerState={(_runner != null ? _runner.State.ToString() : "n/a")} " +
@@ -1027,6 +1134,64 @@ namespace VertexFormCore
                 ConnectVRObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
                 ShowLocalTempVRPlayer(true);
             }
+        }
+
+        /// <summary>
+        /// Called by the local player object from its own <c>Spawned()</c>. This is the only signal that
+        /// is true on every spawn path, including a spawn Fusion queued because the prefab was still
+        /// loading. If RoomManager already registered this object (the normal, immediate case) it does
+        /// nothing; otherwise it completes the registration the queued spawn skipped, and takes the
+        /// temporary loading rig down.
+        /// </summary>
+        public void NotifyLocalPlayerSpawned(NetworkObject netObj)
+        {
+            if (netObj == null || !netObj.HasInputAuthority)
+                return;
+
+            // Only our own game runner's player counts; another runner's object is not us.
+            if (_runner == null || netObj.Runner != _runner)
+            {
+                Debug.Log($"[SpawnManager] Ignoring local-player Spawned() from another runner ('{(netObj.Runner != null ? netObj.Runner.name : "NULL")}').");
+                return;
+            }
+
+            if (localVRPlayer == netObj.gameObject)
+                return;
+
+            RegisterLocalPlayerRig(netObj, _hasQueuedLocalSpawn ? "queued spawn completed" : "Spawned() callback");
+        }
+
+        /// <summary>
+        /// Everything that must happen once the local networked rig exists. Shared by the immediate
+        /// spawn and the queued spawn so the two can never drift apart again.
+        /// </summary>
+        private void RegisterLocalPlayerRig(NetworkObject netObj, string source)
+        {
+            PlayerRef owner = netObj.InputAuthority;
+            if (_hasQueuedLocalSpawn)
+                owner = _queuedLocalSpawnPlayer;
+
+            _hasQueuedLocalSpawn = false;
+
+            spawnedPlayers[owner] = netObj;
+            localVRPlayer = netObj.gameObject;
+
+            // Stamp the rig with the connect it belongs to, so the next world change can tell
+            // it apart from the rig it is about to spawn.
+            _localRigGeneration = _connectGeneration;
+
+            // The player is in the world. The temporary rig is no longer standing in nothing,
+            // so it stops being held.
+            _worldTransitionInFlight = false;
+
+            // The real rig is here, so the loading rig goes — whichever path got us here.
+            ShowLocalTempVRPlayer(false);
+
+            if (SceneLoader.Instance != null)
+                SceneLoader.Instance.ActivateScene();
+            Debug.Log($"[SpawnManager] VR Player spawned successfully ({source})! GameObject: {localVRPlayer.name}");
+            // Manually join voice lobby now that local player is spawned (with a small delay)
+            StartCoroutine(JoinVoiceLobbyDelayed(1f));
         }
 
         public void ShowLocalTempVRPlayer(bool status)
@@ -1125,6 +1290,7 @@ namespace VertexFormCore
 
             localVRPlayer = null;
             _localRigGeneration = -1;
+            _hasQueuedLocalSpawn = false;
             spawnedPlayers.Clear();
 
             if (rig == null)

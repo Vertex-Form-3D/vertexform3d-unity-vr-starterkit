@@ -11,6 +11,7 @@ using Photon.Voice.Fusion;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using Photon.Voice.Unity;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.InputSystem.XR;
 
 namespace VertexFormCore
@@ -149,6 +150,9 @@ namespace VertexFormCore
 
             if (!Object.HasInputAuthority)
             {
+                // The avatar model just added may carry its own solid colliders.
+                DisableRemotePhysicsBody();
+
                 if (avatarInputConverter.AvatarHand_Left.GetComponentInChildren<AnimateHand>())
                 {
                     Debug.Log("-->destroying left hand");
@@ -175,6 +179,80 @@ namespace VertexFormCore
             avatarModelTransform.localRotation = Quaternion.identity;
         }
 
+        /// <summary>
+        /// Makes another player's copy of this rig non-physical on this machine.
+        ///
+        /// A remote player is only a picture of where someone else is: their position arrives from
+        /// the network every tick. But their rig still carried a full CharacterController — a
+        /// player-sized solid capsule — and a live GravityProvider pulling it down locally while
+        /// the network pulled it back. That is two bodies occupying space that nobody here controls.
+        ///
+        /// When a player joined next to someone already standing there, their capsule appeared
+        /// inside that person's capsule. The CharacterController resolves an overlap by pushing
+        /// out along the shortest way, and on a one-sided terrain or floor collider that is often
+        /// straight down, with no way back up. Fall recovery then returned them to their last safe
+        /// position — which was right beside the new arrival, still standing there — so they were
+        /// pushed through again, over and over. It was random because it depended on who was
+        /// standing where when someone joined.
+        ///
+        /// With the remote capsule and locomotion switched off, players can no longer shove each
+        /// other. They can walk through one another, which is the normal behaviour in social VR.
+        ///
+        /// 2026-10-01: the capsule alone was not enough. Players still fell the moment someone
+        /// joined. The remote rig also carries SOLID hand colliders (finger capsules, wrist and
+        /// watch boxes), and avatar models added later can bring their own. When a player joins,
+        /// their hands appear and move around wherever the network puts them, which can be
+        /// inside your capsule. Your CharacterController then resolves that overlap on its next
+        /// move and can be pushed down through a one-sided floor. So every SOLID collider on a
+        /// remote rig is switched off here. Trigger colliders stay on, so trigger-based features
+        /// still detect other players. Remote hands could never legitimately push anything on
+        /// this machine anyway: networked objects are moved by whoever owns them, not by local
+        /// physics.
+        /// Runs again after the remote avatar model is built (see InitializeSelectedAvatarModel).
+        /// </summary>
+        void DisableRemotePhysicsBody()
+        {
+            int controllers = 0, providers = 0, solidColliders = 0;
+
+            foreach (Collider col in GetComponentsInChildren<Collider>(true))
+            {
+                if (col == null || col is CharacterController || col.isTrigger || !col.enabled)
+                    continue;
+                col.enabled = false;
+                solidColliders++;
+            }
+
+            foreach (CharacterController cc in GetComponentsInChildren<CharacterController>(true))
+            {
+                if (cc != null && cc.enabled)
+                {
+                    cc.enabled = false;
+                    controllers++;
+                }
+            }
+
+            // Gravity, continuous move, turn, teleport, climb: none of them should ever move a
+            // remote player's rig here. Their position comes from the network alone.
+            foreach (LocomotionProvider provider in GetComponentsInChildren<LocomotionProvider>(true))
+            {
+                if (provider != null && provider.enabled)
+                {
+                    provider.enabled = false;
+                    providers++;
+                }
+            }
+
+            foreach (XRBodyTransformer body in GetComponentsInChildren<XRBodyTransformer>(true))
+            {
+                if (body != null)
+                    body.enabled = false;
+            }
+
+            Debug.Log($"[PlayerNetworkSetup] Remote player rig made non-physical: " +
+                      $"{controllers} CharacterController(s), {solidColliders} solid collider(s), " +
+                      $"{providers} locomotion provider(s) disabled.");
+        }
+
         public override void Spawned()
         {
             // Reset avatar initialization flag
@@ -195,6 +273,19 @@ namespace VertexFormCore
                     WebGpuBrowserKind = WebGpuBrowserKind.None;
                 }
             }
+
+            // Tell RoomManager the local rig now exists. When Fusion queues the spawn because the
+            // prefab was still loading, this is the only place RoomManager can learn the player
+            // arrived — without it the temporary loading rig stays on beside us (the double hands).
+            if (Object.HasInputAuthority && RoomManager.Instance != null)
+                RoomManager.Instance.NotifyLocalPlayerSpawned(Object);
+
+            // Done here, before anything else runs on the remote copy, rather than later in
+            // InitializePlayer: that coroutine waits, and every frame it waits is a frame in which a
+            // second solid body is standing in the world.
+            if (!Object.HasInputAuthority)
+                DisableRemotePhysicsBody();
+
             Debug.Log("-->spawning player");
             StartCoroutine(InitializePlayer());
             Debug.Log("-->spawning player done");
