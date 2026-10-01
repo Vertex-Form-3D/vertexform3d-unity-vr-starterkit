@@ -22,6 +22,7 @@ public class SessionInfoData
     public float Latitude;
     public float Longitude;
     public string TourTitle;
+    public string RoomCode;
 }
 
 /// <summary>
@@ -42,6 +43,21 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
 
     public List<SessionInfoData> Sessions = new List<SessionInfoData>();
     public Action OnSessionListChanged;
+
+    /// <summary>
+    /// Raised once per session as the list is rebuilt, after the framework's own fields are filled
+    /// and before <see cref="OnSessionListChanged"/>.
+    ///
+    /// Lets an app read session properties the framework knows nothing about and write them onto
+    /// the entry, without editing this file. World Expo uses it for Street View — instance kind,
+    /// pano id, coordinates, room code — which used to be inlined here and was therefore destroyed
+    /// every time the framework package was imported over it.
+    ///
+    /// <see cref="SessionInfoData"/> is a class, so a subscriber mutates the entry in place.
+    /// Static so a subscriber can attach before this component exists; subscribers must detach in
+    /// OnDestroy, or they will be kept alive across play sessions in the editor.
+    /// </summary>
+    public static event Action<SessionInfo, SessionInfoData> SessionEntryBuilt;
 
     private NetworkRunner _runner;
 
@@ -102,14 +118,27 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
                 Debug.Log($"[NetworkLobby] Session Property: {property.Key} = {property.Value.PropertyValue}");
             }
 
-            Sessions.Add(new SessionInfoData
+            var entry = new SessionInfoData
             {
                 SessionID = session.Name,
                 PlayerCount = session.PlayerCount,
                 MaxPlayers = session.MaxPlayers,
                 Scene = session.Properties.ContainsKey("Scene") ? session.Properties["Scene"].PropertyValue.ToString() : "",
                 IsOpen = session.IsOpen,
-            });
+            };
+
+            Sessions.Add(entry);
+
+            // Hand the raw session to anything that understands properties this framework does not.
+            // A throwing subscriber must not take the whole session list down with it.
+            try
+            {
+                SessionEntryBuilt?.Invoke(session, entry);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[NetworkLobby] A SessionEntryBuilt subscriber threw for session \"{session.Name}\": {e}");
+            }
 
             Debug.Log($"[NetworkLobby] Session: {session.Name} | Scene: {Sessions.Last().Scene} | Players: {session.PlayerCount}/{session.MaxPlayers}"); //| Scene: {session.Properties["Scene"].PropertyValue}");
         }
@@ -173,6 +202,40 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
         _runner = gameObject.AddComponent<NetworkRunner>();
         _runner.AddCallbacks(this);
         await JoinLobby(_runner);
+    }
+
+    /// <summary>
+    /// Shuts the lobby runner down and removes it, then returns.
+    ///
+    /// The lobby is a second NetworkRunner living alongside the game runner — that is how the world
+    /// list can show live player counts. Two runners are two sets of INetworkRunnerCallbacks firing
+    /// on whoever is listening, and a PlayerRef issued by one is meaningless to the other. Calling
+    /// this before entering a world removes that ambiguity entirely, at the cost of the live counts
+    /// while you are in the session.
+    ///
+    /// Awaiting it matters: the runner must be fully down before a game runner starts, or the two
+    /// overlap during exactly the window where a player object is being spawned.
+    /// </summary>
+    public async Task ShutdownLobbyRunner()
+    {
+        if (_runner == null)
+            return;
+
+        Debug.Log("[NetworkLobby] Shutting down lobby runner before entering game session...");
+
+        // Cleared first so anything that checks _runner during the shutdown sees it as gone.
+        NetworkRunner runnerToDestroy = _runner;
+        _runner = null;
+
+        if (runnerToDestroy.IsRunning ||
+            runnerToDestroy.State == NetworkRunner.States.Starting)
+        {
+            await runnerToDestroy.Shutdown();
+        }
+
+        Destroy(runnerToDestroy);
+
+        Debug.Log("[NetworkLobby] Lobby runner shut down and destroyed.");
     }
 
     // ======================== UNUSED METHODS ========================
