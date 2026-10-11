@@ -83,8 +83,17 @@ namespace VertexFormCore
         private bool isFlying = false; // true = Flying, false = Grounded
         private bool isMegaphone = false; // true = Megaphone On, false = Off
         public bool canFlyGlobally = false; // Set by scene/project
+
+        // What the person last chose, kept while the app runs so it travels with them between worlds.
+        // Null until they change that setting, which means 'use the project default'.
+        static bool? s_savedStanding;
+        static bool? s_savedVoiceOn;
+        static bool? s_savedNearGrab;
+        static bool? s_savedMegaphone;
         public bool IsFlying() { return isFlying; } // Set by scene/project
         public bool IsVoiceEnabled() { return isVoiceEnabled; } // Set by scene/project
+        public bool IsMainMenuOpen => menuUI != null && menuUI.activeInHierarchy;
+        public bool IsSettingsMenuOpen => settingUI != null && settingUI.activeInHierarchy;
 
         /// <summary>Runtime mic toggle (settings UI). True = unmuted / should transmit when voice is wired.</summary>
         public bool IsLocalVoiceUnmuted => isVoiceEnabled;
@@ -539,23 +548,55 @@ namespace VertexFormCore
 
         private void PollXrMenuAndSettingsButtons()
         {
-            bool rightHeld = ReadSecondaryButtonHeld(true);
+            // With bare hands the headset reports its own system pinch / menu gesture as these buttons, which
+            // opened the menus by accident. Hands open them on purpose (wrist menu, pinky gesture) instead.
+            // Decided per hand: a tracked hand's 'buttons' are the headset's own pinch, so skip THAT hand only.
+            // A controller in the other hand (or a dead one) is judged on its own.
+            bool rightIsHand = XrHandIsTracked(false);
+            bool leftIsHand = XrHandIsTracked(true);
+            if (rightIsHand) rightPrimaryButtonPressed = true;   // so letting go of the hand does not count as a fresh press
+            if (leftIsHand) leftPrimaryButtonPressed = true;
+            if (rightIsHand && leftIsHand)
+                return;
+
+            bool rightHeld = !rightIsHand && ReadSecondaryButtonHeld(true);
             if (rightHeld && !rightPrimaryButtonPressed)
             {
                 rightPrimaryButtonPressed = true;
                 HandleMenuUI();
             }
-            else if (!rightHeld)
+            else if (!rightHeld && !rightIsHand)
                 rightPrimaryButtonPressed = false;
 
-            bool leftHeld = ReadSecondaryButtonHeld(false);
+            bool leftHeld = !leftIsHand && ReadSecondaryButtonHeld(false);
             if (leftHeld && !leftPrimaryButtonPressed)
             {
                 leftPrimaryButtonPressed = true;
                 HandleSettingUI();
             }
-            else if (!leftHeld)
+            else if (!leftHeld && !leftIsHand)
                 leftPrimaryButtonPressed = false;
+        }
+
+        static readonly System.Collections.Generic.List<UnityEngine.XR.Hands.XRHandSubsystem> _handSubsForUi =
+            new System.Collections.Generic.List<UnityEngine.XR.Hands.XRHandSubsystem>();
+        static UnityEngine.XR.Hands.XRHandSubsystem _handSubForUi;
+        static float _handSubForUiLookup;
+
+        static bool XrHandIsTracked(bool left)
+        {
+            if ((_handSubForUi == null || !_handSubForUi.running) && Time.unscaledTime >= _handSubForUiLookup)
+            {
+                _handSubForUiLookup = Time.unscaledTime + 1f;
+                _handSubsForUi.Clear();
+                SubsystemManager.GetSubsystems(_handSubsForUi);
+                _handSubForUi = null;
+                foreach (var s in _handSubsForUi)
+                    if (s.running) { _handSubForUi = s; break; }
+            }
+            if (_handSubForUi == null || !_handSubForUi.running)
+                return false;
+            return left ? _handSubForUi.leftHand.isTracked : _handSubForUi.rightHand.isTracked;
         }
 
         public void ManageEmojiPanel()
@@ -602,7 +643,10 @@ namespace VertexFormCore
         }
         public void InitializeAllSettings()
         {
-            isStanding = ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on;
+            // The first time someone arrives they get the project's defaults (for example, muted). Once
+            // they change a setting, that choice is kept for the rest of the session and carried into
+            // every world they travel to, instead of resetting to the defaults at each scene load.
+            isStanding = s_savedStanding ?? (ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on);
 
             // Posture
             if (isStanding)
@@ -611,17 +655,20 @@ namespace VertexFormCore
                 Sit();
 
             // Voice
-            if (ProjectManager.instance.settingsUI.defaultSettings.micType == micType.mute)
+            bool startMuted = s_savedVoiceOn.HasValue
+                ? !s_savedVoiceOn.Value
+                : ProjectManager.instance.settingsUI.defaultSettings.micType == micType.mute;
+            if (startMuted)
                 MuteVoice();
             else
                 UnmuteVoice();
 
             // Grab Mode
-            isNearGrab = ProjectManager.instance.settingsUI.defaultSettings.grabMode == grabMode.near;
+            isNearGrab = s_savedNearGrab ?? (ProjectManager.instance.settingsUI.defaultSettings.grabMode == grabMode.near);
             ApplyGrabMode();
 
             // Megaphone
-            isMegaphone = ProjectManager.instance.settingsUI.defaultSettings.megaphone == toggle.on;
+            isMegaphone = s_savedMegaphone ?? (ProjectManager.instance.settingsUI.defaultSettings.megaphone == toggle.on);
             ApplyMegaphoneMode();
 
             // Fly Mode
@@ -682,6 +729,7 @@ namespace VertexFormCore
         {
             if (isStanding) Sit();
             else Stand();
+            s_savedStanding = isStanding;
             //  CloseSettingsUIIfOpen();
         }
 
@@ -689,12 +737,14 @@ namespace VertexFormCore
         {
             if (isVoiceEnabled) MuteVoice();
             else UnmuteVoice();
+            s_savedVoiceOn = isVoiceEnabled;
             onVoiceModeChanged?.Invoke(isVoiceEnabled);
         }
 
         public void OnTapGrabToggle()
         {
             isNearGrab = !isNearGrab;
+            s_savedNearGrab = isNearGrab;
             ApplyGrabMode();
             //  CloseSettingsUIIfOpen();
         }
@@ -714,6 +764,7 @@ namespace VertexFormCore
         public void OnTapMegaphoneToggle()
         {
             isMegaphone = !isMegaphone;
+            s_savedMegaphone = isMegaphone;
             ApplyMegaphoneMode();
             //CloseSettingsUIIfOpen();
         }
@@ -865,6 +916,7 @@ namespace VertexFormCore
                 else
                 {
                     MoveCanvasToCamera(menuUI);
+                    RefreshVrUiInput(menuUI);
                     menuUI.SetActive(true);
                     if (settingUI != null) settingUI.SetActive(false);
                 }
@@ -915,6 +967,7 @@ namespace VertexFormCore
                 else
                 {
                     MoveCanvasToCamera(settingUI);
+                    RefreshVrUiInput(settingUI);
                     settingUI.SetActive(true);
                     if (menuUI != null) menuUI.SetActive(false);
                     SetupMicrophoneDropdown(); // Refresh device list when opening settings
@@ -956,6 +1009,57 @@ namespace VertexFormCore
                 return;
             if (!IsAnyBlockingPanelOpen())
                 xrRigController.SetUiInputLocked(false);
+        }
+
+        /// <summary>
+        /// Called every time the VR Main UI / Settings panel is about to open. The panel is switched off and on each
+        /// time, but that alone does not reset the pieces outside it that decide whether a ray can hit it. If one of
+        /// those gets stuck (the ray draws but buttons never react), reopening the panel did not help. This resets them
+        /// on every open: the managed VR event system (and drops any stray one), each UI ray interactor, and the
+        /// panel canvases' event camera if it is missing. Never throws; a failure here must not stop the menu opening.
+        /// </summary>
+        void RefreshVrUiInput(GameObject panel)
+        {
+            try
+            {
+                // 1. One correct event system. Switching the managed VR one off and on makes the XR UI input module
+                //    pick up the rays again. Only done for a VR-style platform, because the handler would otherwise
+                //    choose the desktop event system (WebXR in a browser).
+                if (EventSystemHandler.Instance != null && ProjectManager.instance != null &&
+                    ProjectManager.instance.platforms != null && ProjectManager.instance.platforms.IsVrStylePlatform())
+                    EventSystemHandler.Instance.RemoveForeignEventSystems();
+
+                // 2. Re-register each UI ray interactor that is currently on (off then on in the same frame).
+                //    Interactors that are deliberately off (see HandleUIInteractor) stay off.
+                if (UIInteractors != null)
+                {
+                    foreach (var interactor in UIInteractors)
+                    {
+                        if (interactor == null || !interactor.gameObject.activeSelf) continue;
+                        interactor.gameObject.SetActive(false);
+                        interactor.gameObject.SetActive(true);
+                    }
+                }
+
+                // 3. A world-space canvas whose event camera was destroyed or switched off cannot be hit by a ray.
+                if (panel != null && xrCameraTransform != null)
+                {
+                    var cam = xrCameraTransform.GetComponent<Camera>();
+                    if (cam != null)
+                    {
+                        foreach (var canvas in panel.GetComponentsInChildren<Canvas>(true))
+                        {
+                            if (canvas.renderMode != RenderMode.WorldSpace) continue;
+                            if (canvas.worldCamera == null || !canvas.worldCamera.isActiveAndEnabled)
+                                canvas.worldCamera = cam;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[PlayerUIManager] RefreshVrUiInput failed: " + e.Message);
+            }
         }
 
         void MoveCanvasToCamera(GameObject UIObject)

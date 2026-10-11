@@ -118,34 +118,49 @@ public class NetworkLobby : MonoBehaviour, INetworkRunnerCallbacks
                 Debug.Log($"[NetworkLobby] Session Property: {property.Key} = {property.Value.PropertyValue}");
             }
 
-            var entry = new SessionInfoData
-            {
-                SessionID = session.Name,
-                PlayerCount = session.PlayerCount,
-                MaxPlayers = session.MaxPlayers,
-                Scene = session.Properties.ContainsKey("Scene") ? session.Properties["Scene"].PropertyValue.ToString() : "",
-                IsOpen = session.IsOpen,
-            };
-
+            var entry = BuildSessionEntry(session);
             Sessions.Add(entry);
-
-            // Hand the raw session to anything that understands properties this framework does not.
-            // A throwing subscriber must not take the whole session list down with it.
-            try
-            {
-                SessionEntryBuilt?.Invoke(session, entry);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[NetworkLobby] A SessionEntryBuilt subscriber threw for session \"{session.Name}\": {e}");
-            }
 
             Debug.Log($"[NetworkLobby] Session: {session.Name} | Scene: {Sessions.Last().Scene} | Players: {session.PlayerCount}/{session.MaxPlayers}"); //| Scene: {session.Properties["Scene"].PropertyValue}");
         }
 
         OnSessionListChanged?.Invoke();
+        SessionDirectory.RaiseChanged();
 
         Debug.Log($"[NetworkLobby] SESSION LIST UPDATED. Found {sessionList.Count} lobbies.");
+    }
+
+    /// <summary>
+    /// Turns a Photon session into the entry the UI reads: the framework's own fields, then
+    /// <see cref="SessionEntryBuilt"/> so an app can add its own.
+    ///
+    /// Public and static so something other than the lobby runner can build the same entry from the
+    /// session it is already inside — an app reporting its own room to a web API, for example, gets
+    /// exactly the fields (Street View included) the lobby list would have carried.
+    /// </summary>
+    public static SessionInfoData BuildSessionEntry(SessionInfo session)
+    {
+        var entry = new SessionInfoData
+        {
+            SessionID = session.Name,
+            PlayerCount = session.PlayerCount,
+            MaxPlayers = session.MaxPlayers,
+            Scene = session.Properties.ContainsKey("Scene") ? session.Properties["Scene"].PropertyValue.ToString() : "",
+            IsOpen = session.IsOpen,
+        };
+
+        // Hand the raw session to anything that understands properties this framework does not.
+        // A throwing subscriber must not take the whole session list down with it.
+        try
+        {
+            SessionEntryBuilt?.Invoke(session, entry);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[NetworkLobby] A SessionEntryBuilt subscriber threw for session \"{session.Name}\": {e}");
+        }
+
+        return entry;
     }
 
     public async Task JoinLobby(NetworkRunner runner)

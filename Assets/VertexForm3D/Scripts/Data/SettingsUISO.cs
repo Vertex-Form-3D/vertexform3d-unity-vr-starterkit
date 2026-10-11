@@ -7,7 +7,7 @@ public enum PhotonCcuAllocation
 {
     [InspectorName("10 CCU — session lobby + live player counts")]
     SessionLobbyAndPlayerCounts,
-    [InspectorName("20 CCU — no lobby runner; hide player counts")]
+    [InspectorName("20 CCU — no lobby runner; player counts need an external API")]
     GameSessionsOnly,
 
     // Appended rather than inserted: these values are serialised by index, so reordering them
@@ -24,7 +24,7 @@ public class SettingsUISO : ScriptableObject
     public SettingClass defaultSettings = new SettingClass();
 
     [Tooltip("Session lobby uses a second NetworkRunner (one CCU) so the world list can show live player counts. " +
-             "Game-sessions-only avoids that runner entirely to free a CCU for more concurrent players. " +
+             "Game-sessions-only avoids that runner entirely to free a CCU for more concurrent players; with no lobby, player counts are hidden unless the app supplies them from an external API (see SessionDirectory). " +
              "The third option keeps the counts while browsing and closes the lobby on entering a world, so " +
              "players inside a world hold one connection instead of two — the lobby does not reopen " +
              "afterwards, so counts stop updating until the app restarts.")]

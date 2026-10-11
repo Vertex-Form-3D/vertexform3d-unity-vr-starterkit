@@ -32,7 +32,7 @@ namespace VertexFormCore
         [Header("VR eye heights")]
         [Tooltip("Eye height, in metres, that every VR player is placed at when standing, regardless " +
                  "of their real-world posture.")]
-        public float standingEyeHeight = 1.85f;
+        public float standingEyeHeight = 1.6f;
 
         [Tooltip("Eye height, in metres, when seated. An average chair seat is ~0.45m and adult " +
                  "seated eye height above the seat is ~0.75m, so ~1.20m puts the avatar at a " +
