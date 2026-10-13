@@ -898,6 +898,34 @@ public class XRRigController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Moves the rig to a world position safely. Used by teleports and by
+    /// <see cref="PlayerFallRecovery"/> when a player has to be pulled back into the world.
+    ///
+    /// Two things make a naive <c>transform.position = ...</c> unreliable here. A
+    /// CharacterController keeps its own internal position and overwrites the transform on its
+    /// next Move(), so it has to be disabled across the write. And accumulated
+    /// <see cref="verticalVelocity"/> has to be cleared, or a player rescued after a long fall
+    /// arrives carrying tens of metres per second downward and is driven straight back through
+    /// the floor.
+    /// </summary>
+    public void TeleportTo(Vector3 worldPosition)
+    {
+        verticalVelocity = 0f;
+
+        if (characterController == null)
+            characterController = GetComponent<CharacterController>();
+
+        bool wasEnabled = characterController != null && characterController.enabled;
+        if (wasEnabled)
+            characterController.enabled = false;
+
+        transform.position = worldPosition;
+
+        if (wasEnabled)
+            characterController.enabled = true;
+    }
+
 }
 
 public enum PersonMode

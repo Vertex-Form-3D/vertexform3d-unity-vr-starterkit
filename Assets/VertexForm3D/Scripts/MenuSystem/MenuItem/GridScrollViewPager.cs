@@ -186,6 +186,31 @@ public class GridScrollViewPager : MonoBehaviour
         }
     }
 
+    public bool IsInitialized => _initialized;
+    public int CurrentPage => currentPage;
+    public int TotalPages => totalPages;
+
+    /// <summary>Where the scroll view should sit for the current page.</summary>
+    public float ExpectedScrollPosition =>
+        totalPages <= 1 ? 0f : Mathf.Clamp01((float)(currentPage - 1) / (totalPages - 1));
+
+    public float ActualScrollPosition =>
+        scrollRect != null ? scrollRect.horizontalNormalizedPosition : ExpectedScrollPosition;
+
+    /// <summary>
+    /// Stops any drag or momentum on the scroll view and puts it back on the current page. Paging here is
+    /// done by switching cards on and off, so a scroll view left partway through a drag (a controller ray
+    /// sliding off the panel mid-drag, or thumbstick input scrolling it) is out of step with what is shown.
+    /// </summary>
+    public void SnapToCurrentPage()
+    {
+        if (!_initialized)
+            return;
+        if (scrollRect != null)
+            scrollRect.StopMovement();
+        ScrollToPage();
+    }
+
     // Clear all items from the grid
     public void ClearAllItems()
     {

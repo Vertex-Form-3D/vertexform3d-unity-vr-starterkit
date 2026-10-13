@@ -7,8 +7,13 @@ public enum PhotonCcuAllocation
 {
     [InspectorName("10 CCU — session lobby + live player counts")]
     SessionLobbyAndPlayerCounts,
-    [InspectorName("20 CCU — no lobby runner; hide player counts")]
-    GameSessionsOnly
+    [InspectorName("20 CCU — no lobby runner; player counts need an external API")]
+    GameSessionsOnly,
+
+    // Appended rather than inserted: these values are serialised by index, so reordering them
+    // would silently change the setting on every project that already has an asset saved.
+    [InspectorName("Lobby until first world — counts in the menu, CCU freed on entering a world")]
+    SessionLobbyInMenuOnly
 }
 
 [CreateAssetMenu(fileName = "SettingsUI", menuName = "Scriptable Objects/SettingsUI")]
@@ -18,7 +23,11 @@ public class SettingsUISO : ScriptableObject
     public string anonymousUserNamePrefix = "Mystery Guest_";
     public SettingClass defaultSettings = new SettingClass();
 
-    [Tooltip("Session lobby uses a second NetworkRunner (one CCU) so the world list can show live player counts. Game-sessions-only avoids that runner to free a CCU for more concurrent players.")]
+    [Tooltip("Session lobby uses a second NetworkRunner (one CCU) so the world list can show live player counts. " +
+             "Game-sessions-only avoids that runner entirely to free a CCU for more concurrent players; with no lobby, player counts are hidden unless the app supplies them from an external API (see SessionDirectory). " +
+             "The third option keeps the counts while browsing and closes the lobby on entering a world, so " +
+             "players inside a world hold one connection instead of two — the lobby does not reopen " +
+             "afterwards, so counts stop updating until the app restarts.")]
     public PhotonCcuAllocation photonCcuAllocation = PhotonCcuAllocation.SessionLobbyAndPlayerCounts;
 
     [Tooltip("Minutes of no input before IdleQuitDetector quits the app or returns to the home scene.")]

@@ -52,6 +52,22 @@ namespace VertexFormCore
         public event Action<bool> onVoiceModeChanged;
         public float distanceFromCamera = 1.5f;
         public Transform xrCameraTransform;
+
+        [Header("VR Panel Placement")]
+        [Tooltip("How far below eye level a panel may follow the user's gaze, in degrees. Looking further down than this still opens the panel at this angle, so it cannot be pushed into the floor.")]
+        [SerializeField] private float maxPanelDownAngle = 15f;
+        [Tooltip("How far above eye level a panel may follow the user's gaze, in degrees.")]
+        [SerializeField] private float maxPanelUpAngle = 30f;
+        [Tooltip("Minimum gap kept between the bottom edge of a panel and the floor beneath the user.")]
+        [SerializeField] private float panelFloorClearance = 0.3f;
+
+        [Tooltip("Hard lower limit for the centre of a world-space panel, measured up from the floor under " +
+                 "the user. This is the guarantee that a panel never sinks: it does not depend on what the " +
+                 "panel is built from, so new art or a nested model cannot defeat it. Raise it if a panel " +
+                 "still reads as too low; the whole panel moves up together.")]
+        [SerializeField] private float minPanelCenterHeight = 1.3f;
+        [Tooltip("How far below the head to look for the floor.")]
+        [SerializeField] private float floorProbeDistance = 5f;
         public NetworkObject networkObject;
 
         private NetworkObject spawnedSelfieStick;
@@ -67,8 +83,17 @@ namespace VertexFormCore
         private bool isFlying = false; // true = Flying, false = Grounded
         private bool isMegaphone = false; // true = Megaphone On, false = Off
         public bool canFlyGlobally = false; // Set by scene/project
+
+        // What the person last chose, kept while the app runs so it travels with them between worlds.
+        // Null until they change that setting, which means 'use the project default'.
+        static bool? s_savedStanding;
+        static bool? s_savedVoiceOn;
+        static bool? s_savedNearGrab;
+        static bool? s_savedMegaphone;
         public bool IsFlying() { return isFlying; } // Set by scene/project
         public bool IsVoiceEnabled() { return isVoiceEnabled; } // Set by scene/project
+        public bool IsMainMenuOpen => menuUI != null && menuUI.activeInHierarchy;
+        public bool IsSettingsMenuOpen => settingUI != null && settingUI.activeInHierarchy;
 
         /// <summary>Runtime mic toggle (settings UI). True = unmuted / should transmit when voice is wired.</summary>
         public bool IsLocalVoiceUnmuted => isVoiceEnabled;
@@ -523,23 +548,55 @@ namespace VertexFormCore
 
         private void PollXrMenuAndSettingsButtons()
         {
-            bool rightHeld = ReadSecondaryButtonHeld(true);
+            // With bare hands the headset reports its own system pinch / menu gesture as these buttons, which
+            // opened the menus by accident. Hands open them on purpose (wrist menu, pinky gesture) instead.
+            // Decided per hand: a tracked hand's 'buttons' are the headset's own pinch, so skip THAT hand only.
+            // A controller in the other hand (or a dead one) is judged on its own.
+            bool rightIsHand = XrHandIsTracked(false);
+            bool leftIsHand = XrHandIsTracked(true);
+            if (rightIsHand) rightPrimaryButtonPressed = true;   // so letting go of the hand does not count as a fresh press
+            if (leftIsHand) leftPrimaryButtonPressed = true;
+            if (rightIsHand && leftIsHand)
+                return;
+
+            bool rightHeld = !rightIsHand && ReadSecondaryButtonHeld(true);
             if (rightHeld && !rightPrimaryButtonPressed)
             {
                 rightPrimaryButtonPressed = true;
                 HandleMenuUI();
             }
-            else if (!rightHeld)
+            else if (!rightHeld && !rightIsHand)
                 rightPrimaryButtonPressed = false;
 
-            bool leftHeld = ReadSecondaryButtonHeld(false);
+            bool leftHeld = !leftIsHand && ReadSecondaryButtonHeld(false);
             if (leftHeld && !leftPrimaryButtonPressed)
             {
                 leftPrimaryButtonPressed = true;
                 HandleSettingUI();
             }
-            else if (!leftHeld)
+            else if (!leftHeld && !leftIsHand)
                 leftPrimaryButtonPressed = false;
+        }
+
+        static readonly System.Collections.Generic.List<UnityEngine.XR.Hands.XRHandSubsystem> _handSubsForUi =
+            new System.Collections.Generic.List<UnityEngine.XR.Hands.XRHandSubsystem>();
+        static UnityEngine.XR.Hands.XRHandSubsystem _handSubForUi;
+        static float _handSubForUiLookup;
+
+        static bool XrHandIsTracked(bool left)
+        {
+            if ((_handSubForUi == null || !_handSubForUi.running) && Time.unscaledTime >= _handSubForUiLookup)
+            {
+                _handSubForUiLookup = Time.unscaledTime + 1f;
+                _handSubsForUi.Clear();
+                SubsystemManager.GetSubsystems(_handSubsForUi);
+                _handSubForUi = null;
+                foreach (var s in _handSubsForUi)
+                    if (s.running) { _handSubForUi = s; break; }
+            }
+            if (_handSubForUi == null || !_handSubForUi.running)
+                return false;
+            return left ? _handSubForUi.leftHand.isTracked : _handSubForUi.rightHand.isTracked;
         }
 
         public void ManageEmojiPanel()
@@ -586,7 +643,10 @@ namespace VertexFormCore
         }
         public void InitializeAllSettings()
         {
-            isStanding = ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on;
+            // The first time someone arrives they get the project's defaults (for example, muted). Once
+            // they change a setting, that choice is kept for the rest of the session and carried into
+            // every world they travel to, instead of resetting to the defaults at each scene load.
+            isStanding = s_savedStanding ?? (ProjectManager.instance.settingsUI.defaultSettings.standDefault == toggle.on);
 
             // Posture
             if (isStanding)
@@ -595,17 +655,20 @@ namespace VertexFormCore
                 Sit();
 
             // Voice
-            if (ProjectManager.instance.settingsUI.defaultSettings.micType == micType.mute)
+            bool startMuted = s_savedVoiceOn.HasValue
+                ? !s_savedVoiceOn.Value
+                : ProjectManager.instance.settingsUI.defaultSettings.micType == micType.mute;
+            if (startMuted)
                 MuteVoice();
             else
                 UnmuteVoice();
 
             // Grab Mode
-            isNearGrab = ProjectManager.instance.settingsUI.defaultSettings.grabMode == grabMode.near;
+            isNearGrab = s_savedNearGrab ?? (ProjectManager.instance.settingsUI.defaultSettings.grabMode == grabMode.near);
             ApplyGrabMode();
 
             // Megaphone
-            isMegaphone = ProjectManager.instance.settingsUI.defaultSettings.megaphone == toggle.on;
+            isMegaphone = s_savedMegaphone ?? (ProjectManager.instance.settingsUI.defaultSettings.megaphone == toggle.on);
             ApplyMegaphoneMode();
 
             // Fly Mode
@@ -666,6 +729,7 @@ namespace VertexFormCore
         {
             if (isStanding) Sit();
             else Stand();
+            s_savedStanding = isStanding;
             //  CloseSettingsUIIfOpen();
         }
 
@@ -673,12 +737,14 @@ namespace VertexFormCore
         {
             if (isVoiceEnabled) MuteVoice();
             else UnmuteVoice();
+            s_savedVoiceOn = isVoiceEnabled;
             onVoiceModeChanged?.Invoke(isVoiceEnabled);
         }
 
         public void OnTapGrabToggle()
         {
             isNearGrab = !isNearGrab;
+            s_savedNearGrab = isNearGrab;
             ApplyGrabMode();
             //  CloseSettingsUIIfOpen();
         }
@@ -698,6 +764,7 @@ namespace VertexFormCore
         public void OnTapMegaphoneToggle()
         {
             isMegaphone = !isMegaphone;
+            s_savedMegaphone = isMegaphone;
             ApplyMegaphoneMode();
             //CloseSettingsUIIfOpen();
         }
@@ -705,11 +772,8 @@ namespace VertexFormCore
         // ==================== APPLY FUNCTIONS ====================
         private void Sit()
         {
-            if (networkSetup == null) return;
-            if (networkSetup.IsSitting)
-            {
-                return;
-            }
+            if (!TryResolveNetworkSetup("Sit")) return;
+
             networkSetup.SetSittingHeight(false);
             isStanding = false;
             postureUISetting?.Disable(); // Sets disableSprite + disableText
@@ -717,14 +781,39 @@ namespace VertexFormCore
 
         private void Stand()
         {
-            if (networkSetup == null) return;
-            if (networkSetup.IsSitting)
-            {
-                return;
-            }
+            if (!TryResolveNetworkSetup("Stand")) return;
+
+            // Standing up from a seat is the whole point of this button, so it must NOT bail out
+            // when IsSitting is true. The old guard did exactly that, which meant pressing Stand
+            // while seated on a SitSpot silently did nothing — it only worked once something else
+            // cleared IsSitting, which reads to the player as the button being delayed or ignored.
+            networkSetup.LeaveCurrentSeatIfAny();
             networkSetup.SetStandingHeight(false);
             isStanding = true;
             postureUISetting?.Enable(); // Sets enableSprite + enableText
+        }
+
+        /// <summary>
+        /// Resolves networkSetup on demand instead of silently doing nothing when it is null.
+        ///
+        /// The posture buttons can be pressed in the first seconds after arriving, before the local
+        /// player has finished spawning and this reference has been assigned. The old code returned
+        /// without a word, so the press was simply lost and the player had to press again a few
+        /// seconds later — which is what "clicking Standing is delayed" actually was.
+        /// </summary>
+        private bool TryResolveNetworkSetup(string action)
+        {
+            if (networkSetup != null) return true;
+
+            networkSetup = RoomManager.Instance != null ? RoomManager.Instance.GetLocalPlayerSetup() : null;
+
+            if (networkSetup == null)
+            {
+                Debug.LogWarning($"[PlayerUIManager] {action} pressed before the local player finished spawning — ignored.");
+                return false;
+            }
+
+            return true;
         }
 
         private void MuteVoice()
@@ -827,6 +916,7 @@ namespace VertexFormCore
                 else
                 {
                     MoveCanvasToCamera(menuUI);
+                    RefreshVrUiInput(menuUI);
                     menuUI.SetActive(true);
                     if (settingUI != null) settingUI.SetActive(false);
                 }
@@ -877,6 +967,7 @@ namespace VertexFormCore
                 else
                 {
                     MoveCanvasToCamera(settingUI);
+                    RefreshVrUiInput(settingUI);
                     settingUI.SetActive(true);
                     if (menuUI != null) menuUI.SetActive(false);
                     SetupMicrophoneDropdown(); // Refresh device list when opening settings
@@ -920,20 +1011,282 @@ namespace VertexFormCore
                 xrRigController.SetUiInputLocked(false);
         }
 
+        /// <summary>
+        /// Called every time the VR Main UI / Settings panel is about to open. The panel is switched off and on each
+        /// time, but that alone does not reset the pieces outside it that decide whether a ray can hit it. If one of
+        /// those gets stuck (the ray draws but buttons never react), reopening the panel did not help. This resets them
+        /// on every open: the managed VR event system (and drops any stray one), each UI ray interactor, and the
+        /// panel canvases' event camera if it is missing. Never throws; a failure here must not stop the menu opening.
+        /// </summary>
+        void RefreshVrUiInput(GameObject panel)
+        {
+            try
+            {
+                // 1. One correct event system. Switching the managed VR one off and on makes the XR UI input module
+                //    pick up the rays again. Only done for a VR-style platform, because the handler would otherwise
+                //    choose the desktop event system (WebXR in a browser).
+                if (EventSystemHandler.Instance != null && ProjectManager.instance != null &&
+                    ProjectManager.instance.platforms != null && ProjectManager.instance.platforms.IsVrStylePlatform())
+                    EventSystemHandler.Instance.RemoveForeignEventSystems();
+
+                // 2. Re-register each UI ray interactor that is currently on (off then on in the same frame).
+                //    Interactors that are deliberately off (see HandleUIInteractor) stay off.
+                if (UIInteractors != null)
+                {
+                    foreach (var interactor in UIInteractors)
+                    {
+                        if (interactor == null || !interactor.gameObject.activeSelf) continue;
+                        interactor.gameObject.SetActive(false);
+                        interactor.gameObject.SetActive(true);
+                    }
+                }
+
+                // 3. A world-space canvas whose event camera was destroyed or switched off cannot be hit by a ray.
+                if (panel != null && xrCameraTransform != null)
+                {
+                    var cam = xrCameraTransform.GetComponent<Camera>();
+                    if (cam != null)
+                    {
+                        foreach (var canvas in panel.GetComponentsInChildren<Canvas>(true))
+                        {
+                            if (canvas.renderMode != RenderMode.WorldSpace) continue;
+                            if (canvas.worldCamera == null || !canvas.worldCamera.isActiveAndEnabled)
+                                canvas.worldCamera = cam;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[PlayerUIManager] RefreshVrUiInput failed: " + e.Message);
+            }
+        }
+
         void MoveCanvasToCamera(GameObject UIObject)
         {
             if (xrCameraTransform == null || UIObject == null)
                 return;
             if (UseHeadMountedMenuPath())
             {
-                UIObject.transform.position = xrCameraTransform.position + xrCameraTransform.forward * distanceFromCamera;
+                Vector3 head = xrCameraTransform.position;
+
+                // Horizontal facing. Looking straight up or down leaves almost nothing of forward once the
+                // vertical part is removed, so fall back to the head's up vector, which at that moment
+                // points the way the face is turned.
                 Vector3 flatForward = xrCameraTransform.forward;
-                flatForward.y = 0;
+                flatForward.y = 0f;
+                if (flatForward.sqrMagnitude < 0.0001f)
+                {
+                    flatForward = xrCameraTransform.forward.y < 0f ? xrCameraTransform.up : -xrCameraTransform.up;
+                    flatForward.y = 0f;
+                }
+                if (flatForward.sqrMagnitude < 0.0001f)
+                    flatForward = Vector3.forward;
                 flatForward.Normalize();
-                UIObject.transform.forward = -flatForward;
-                UIObject.transform.rotation = Quaternion.Euler(0, UIObject.transform.eulerAngles.y + 180, 0);
+
+                // Still opens where the user is looking, but the vertical part of the gaze is limited.
+                // Positioning along the raw camera forward is what put panels in the floor: looking 45
+                // degrees down with the Main Map at 3 m placed its centre over 2 m below the eyes.
+                float pitch = Mathf.Asin(Mathf.Clamp(xrCameraTransform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+                pitch = Mathf.Clamp(pitch, -maxPanelDownAngle, maxPanelUpAngle);
+                Vector3 direction = flatForward * Mathf.Cos(pitch * Mathf.Deg2Rad) +
+                                    Vector3.up * Mathf.Sin(pitch * Mathf.Deg2Rad);
+
+                // Upright and facing the user, as before.
+                UIObject.transform.rotation = Quaternion.LookRotation(flatForward, Vector3.up);
+                UIObject.transform.position = head + direction * distanceFromCamera;
+
+                KeepPanelAboveFloor(UIObject, head);
             }
 
+        }
+
+        /// <summary>
+        /// Hard guarantee on top of the angle limit: lifts the panel if its bottom edge would still sit
+        /// below the floor under the user. Covers a small room, a user sitting low, or a distance large
+        /// enough that even the limited downward angle reaches the ground.
+        /// </summary>
+        void KeepPanelAboveFloor(GameObject UIObject, Vector3 head)
+        {
+            if (!TryFindFloorBelow(head, out float floorY))
+            {
+                // No collider under the user (a floor mesh without a collider, for instance). The player's
+                // own root sits at their feet, so use that rather than skipping the check entirely.
+                if (xrCameraTransform == null)
+                    return;
+                floorY = xrCameraTransform.root.position.y;
+            }
+
+            // Only ever lifts, never lowers. Both rules below propose a lift and the larger one wins, so
+            // adding a rule can never drag a panel down into something the other rule was protecting it from.
+            float lift = 0f;
+
+            // Primary guarantee. Works off the panel's own transform, which is the one thing that is always
+            // there, so it holds regardless of what the panel is made of. The measurement below has now been
+            // wrong twice in the same direction — first it missed the Main Map's tab bar because it only read
+            // the root canvas, then it missed the laptop model because it only read UI graphics. This rule
+            // does not care.
+            float minimumCentre = floorY + minPanelCenterHeight;
+            if (UIObject.transform.position.y < minimumCentre)
+                lift = minimumCentre - UIObject.transform.position.y;
+
+            // Secondary. When the panel's extents can be measured, keep the lowest visible point clear of the
+            // floor too — that catches a panel taller than minPanelCenterHeight allows for.
+            if (TryGetLowestVisibleY(UIObject, out float bottom))
+            {
+                float liftForBottomEdge = (floorY + panelFloorClearance) - bottom;
+                if (liftForBottomEdge > lift)
+                    lift = liftForBottomEdge;
+            }
+
+            if (lift > 0f)
+                UIObject.transform.position += Vector3.up * lift;
+        }
+
+        /// <summary>
+        /// Lowest point of anything that will actually be drawn in the panel. Measures every graphic rather
+        /// than the root canvas, because parts of a panel can sit outside the canvas rectangle — the Main Map's
+        /// bottom tab bar does — and those were the parts still ending up under the floor.
+        ///
+        /// It also measures mesh renderers, because a panel is not only UI. The Main Map is framed by a 3D
+        /// laptop model (MainMapVisual Element, 8 mesh renderers), and its body and keyboard hang well below
+        /// the canvas that shows the map. Measuring graphics alone lifted the screen clear of the floor and
+        /// left the laptop underneath it sunk into the ground.
+        ///
+        /// Counts anything that will be visible once the panel is switched on, since this runs just before that.
+        /// </summary>
+        bool TryGetLowestVisibleY(GameObject UIObject, out float lowest)
+        {
+            lowest = float.MaxValue;
+            bool found = false;
+            var corners = new Vector3[4];
+            Transform root = UIObject.transform;
+
+            foreach (var graphic in UIObject.GetComponentsInChildren<UnityEngine.UI.Graphic>(true))
+            {
+                if (graphic == null || !graphic.enabled || !WillBeActive(graphic.transform, root))
+                    continue;
+
+                graphic.rectTransform.GetWorldCorners(corners);
+                for (int i = 0; i < 4; i++)
+                {
+                    if (corners[i].y < lowest)
+                    {
+                        lowest = corners[i].y;
+                        found = true;
+                    }
+                }
+            }
+
+            foreach (var renderer in UIObject.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer == null || !renderer.enabled || !WillBeActive(renderer.transform, root))
+                    continue;
+
+                // Effects have no meaningful resting extent and would drag the measurement around.
+                if (renderer is ParticleSystemRenderer || renderer is TrailRenderer || renderer is LineRenderer)
+                    continue;
+
+                if (TryGetRendererLowestY(renderer, out float rendererLowest) && rendererLowest < lowest)
+                {
+                    lowest = rendererLowest;
+                    found = true;
+                }
+            }
+
+            return found;
+        }
+
+        /// <summary>
+        /// Lowest world-space Y of a renderer's geometry.
+        ///
+        /// Built from the mesh rather than read off <see cref="Renderer.bounds"/> on purpose: that property
+        /// is only filled in once the object has been drawn, and this runs immediately before the panel is
+        /// switched on for the first time. A panel that has never been visible would otherwise measure as
+        /// nothing and be left where it was.
+        /// </summary>
+        static bool TryGetRendererLowestY(Renderer renderer, out float lowest)
+        {
+            lowest = float.MaxValue;
+
+            Mesh mesh = null;
+            if (renderer is SkinnedMeshRenderer skinned)
+                mesh = skinned.sharedMesh;
+            else if (renderer.TryGetComponent(out MeshFilter filter))
+                mesh = filter.sharedMesh;
+
+            if (mesh == null)
+            {
+                // Sprite renderers and anything else without a mesh filter. Bounds are the only option here,
+                // so skip it when they are still empty rather than reporting a false floor at the origin.
+                Bounds worldBounds = renderer.bounds;
+                if (worldBounds.size.sqrMagnitude <= 0f)
+                    return false;
+
+                lowest = worldBounds.min.y;
+                return true;
+            }
+
+            Bounds local = mesh.bounds;
+            Vector3 centre = local.center;
+            Vector3 extents = local.extents;
+            Matrix4x4 toWorld = renderer.transform.localToWorldMatrix;
+
+            // All eight corners: the panel is rotated to face the user, so the lowest corner in world space
+            // is not necessarily the one that is lowest in the mesh's own space.
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 corner = new Vector3(
+                    centre.x + ((i & 1) == 0 ? -extents.x : extents.x),
+                    centre.y + ((i & 2) == 0 ? -extents.y : extents.y),
+                    centre.z + ((i & 4) == 0 ? -extents.z : extents.z));
+
+                float y = toWorld.MultiplyPoint3x4(corner).y;
+                if (y < lowest)
+                    lowest = y;
+            }
+
+            return true;
+        }
+
+        /// <summary>True if every object from this one up to the panel root is switched on.</summary>
+        static bool WillBeActive(Transform t, Transform root)
+        {
+            for (Transform current = t; current != null; current = current.parent)
+            {
+                if (!current.gameObject.activeSelf)
+                    return false;
+                if (current == root)
+                    return true;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Floor height under the head. Ignores triggers and anything belonging to the local player's own
+        /// rig — the rig carries colliders of its own (its character controller, hands) that a straight
+        /// ray down from the head would otherwise hit first.
+        /// </summary>
+        bool TryFindFloorBelow(Vector3 head, out float floorY)
+        {
+            floorY = 0f;
+            Transform ownRoot = xrCameraTransform != null ? xrCameraTransform.root : null;
+
+            RaycastHit[] hits = Physics.RaycastAll(head, Vector3.down, floorProbeDistance, ~0, QueryTriggerInteraction.Ignore);
+            float nearest = float.MaxValue;
+            bool found = false;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (ownRoot != null && hits[i].collider.transform.IsChildOf(ownRoot))
+                    continue;
+                if (hits[i].distance < nearest)
+                {
+                    nearest = hits[i].distance;
+                    floorY = hits[i].point.y;
+                    found = true;
+                }
+            }
+            return found;
         }
     }
 
