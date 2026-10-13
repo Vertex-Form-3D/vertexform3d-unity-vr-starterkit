@@ -57,9 +57,15 @@ public class MainMap : MonoBehaviour
             : null;
         if (mainPanel != null)
         {
+            // Empty logo slot: hide the logo instead of showing a blank white square.
             if (logoImage != null)
-                logoImage.sprite = mainPanel.logoImage;
-            if (backgroundImage != null)
+            {
+                bool hasLogo = mainPanel.logoImage != null;
+                if (hasLogo)
+                    logoImage.sprite = mainPanel.logoImage;
+                logoImage.gameObject.SetActive(hasLogo);
+            }
+            if (backgroundImage != null && mainPanel.backgroundImage != null)
                 backgroundImage.sprite = mainPanel.backgroundImage;
         }
 
