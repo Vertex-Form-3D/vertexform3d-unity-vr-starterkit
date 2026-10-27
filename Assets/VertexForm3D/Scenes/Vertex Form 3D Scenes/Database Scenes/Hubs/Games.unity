@@ -194,6 +194,212 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 0.075}
   m_Center: {x: -0.005340099, y: 1.15265, z: 0.319816}
+--- !u!1001 &39222032
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 366349417295850675, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977961, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_Name
+      value: Complete XR Origin Set Up VariantMain
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977961, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -2.0900002
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1535270415050945640, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_RequestedTrackingOriginMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2958524496003487954, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_UseGravity
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2958524496003487954, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_EnableGrabMovement
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2958524496003487954, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_LeftHandLocomotionType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3691527760771623796, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5767715217220676053, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_RenderPostProcessing
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6010792718146615127, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_IgnoreTrackingState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183380161747931381, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6875081996172634699, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: m_ActionAssets.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6875081996172634699, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      propertyPath: 'm_ActionAssets.Array.data[1]'
+      value: 
+      objectReference: {fileID: -944628639613478452, guid: 2e52aefc8c982aa458ead95f51a6749e, type: 3}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 634674432}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1351904833967977961, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 39222036}
+    - targetCorrespondingSourceObject: {fileID: 366349417295850677, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 39222045}
+    - targetCorrespondingSourceObject: {fileID: 366349417295850677, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 39222038}
+    - targetCorrespondingSourceObject: {fileID: 366349417295850677, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 39222037}
+  m_SourcePrefab: {fileID: 100100000, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+--- !u!1 &39222033 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1351904833967977961, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+  m_PrefabInstance: {fileID: 39222032}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &39222034 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 366349417295850677, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+  m_PrefabInstance: {fileID: 39222032}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &39222035 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1351904833967977962, guid: 4e660da2419d1614198b2c073ddf863d, type: 3}
+  m_PrefabInstance: {fileID: 39222032}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &39222036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39222033}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <trackablesChanged>k__BackingField:
+    m_PersistentCalls:
+      m_Calls: []
+  m_PlanePrefab: {fileID: 5982963534685165758, guid: b08aa487cadd25e48bd9a7c9c00d7680, type: 3}
+  m_DetectionMode: -1
+--- !u!114 &39222037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39222034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 816b289ef451e094f9ae174fb4cf8db0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_UseCustomMaterial: 0
+  m_CustomMaterial: {fileID: 0}
+--- !u!114 &39222038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39222034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4966719baa26e4b0e8231a24d9bd491a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_FocusMode: -1
+  m_LightEstimationMode: -1
+  m_AutoFocus: 1
+  m_ImageStabilization: 0
+  m_LightEstimation: 0
+  m_FacingDirection: 1
+  m_RenderMode: 0
+--- !u!114 &39222045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39222034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a9f066792f1aac468d6c2074565bf3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeadCollisionBlocker
+  rigOverride: {fileID: 0}
+  radius: 5
+  blockers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  horizontalOnly: 0
+  allowUpwardPush: 1
+  teleportThreshold: 2
+  blackoutRadius: 0.08
 --- !u!1 &41599735 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5149536996622462063, guid: 06b4ece1c4423ab479d9282189c023c7, type: 3}
@@ -548,6 +754,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &51711258
@@ -565,6 +775,7 @@ MonoBehaviour:
   m_ProjectilePrefab: {fileID: 9031775881104408046, guid: 3976a13353f30c74891ad6e9052aaa18, type: 3}
   m_StartPoint: {fileID: 1128389887}
   m_LaunchSpeed: 500
+  playerName: 
 --- !u!114 &51711259
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2125,6 +2336,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &162304409
@@ -3079,10 +3294,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 0
 --- !u!114 &241677188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3095,17 +3306,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 241677187}
-  sceneViewId: 31
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1001 &258467444
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3282,6 +3482,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &258467457
@@ -4539,10 +4743,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 0
 --- !u!114 &368210522
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4555,17 +4755,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 368210521}
-  sceneViewId: 30
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1001 &370930770
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7375,7 +7564,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8437028974135710644, guid: 1ff0f8852dba09f44a33463b31d011bc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 667239773}
   m_SourcePrefab: {fileID: 100100000, guid: 1ff0f8852dba09f44a33463b31d011bc, type: 3}
 --- !u!1 &563523501
 GameObject:
@@ -9288,6 +9480,52 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 633178599}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &634674431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 634674432}
+  - component: {fileID: 634674433}
+  m_Layer: 0
+  m_Name: Hands Smoothing Post Processor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &634674432
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634674431}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 39222035}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &634674433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 634674431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc6980b6cb3b4f12b6b75074e4ef59f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_FilterMinCutoff: 0.1
+  m_FilterBeta: 0.2
 --- !u!1 &636995619
 GameObject:
   m_ObjectHideFlags: 0
@@ -10073,6 +10311,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &649429186
@@ -10894,6 +11136,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e601cf28e9702c945abe3b90e7f51974, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &667239767 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8437028974135710644, guid: 1ff0f8852dba09f44a33463b31d011bc, type: 3}
+  m_PrefabInstance: {fileID: 561854476}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &667239773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667239767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 130fdeacbbffe6648b39870225840b91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VertexFormTMPInputKeyboardPolicy
 --- !u!1 &669627765 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4769098102207602867, guid: c91b6479bcc5dc94f8290551ae3e6d76, type: 3}
@@ -10954,6 +11213,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &669627774
@@ -11384,10 +11647,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 0
 --- !u!114 &683626149
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11400,17 +11659,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 683626148}
-  sceneViewId: 40
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1 &688237900
 GameObject:
   m_ObjectHideFlags: 0
@@ -11822,6 +12070,32 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3981991060079075221, guid: 6f9a3398f45c39b47a75eba882b98181, type: 3}
   m_PrefabInstance: {fileID: 398243634743506180}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &753397852 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 366349417295850677, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+  m_PrefabInstance: {fileID: 1716275651}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &753397858
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 753397852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a9f066792f1aac468d6c2074565bf3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeadCollisionBlocker
+  rigOverride: {fileID: 1745285395}
+  radius: 0.8
+  blockers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  horizontalOnly: 0
+  allowUpwardPush: 1
+  teleportThreshold: 2
+  blackoutRadius: 0.5
 --- !u!1 &754971741
 GameObject:
   m_ObjectHideFlags: 0
@@ -13541,13 +13815,16 @@ GameObject:
   m_Component:
   - component: {fileID: 919317201}
   - component: {fileID: 919317200}
+  - component: {fileID: 919317202}
+  - component: {fileID: 919317204}
+  - component: {fileID: 919317203}
   m_Layer: 0
   m_Name: VR Walkthrough Steps
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &919317200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13600,6 +13877,118 @@ Transform:
   - {fileID: 1549079208}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &919317202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919317199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0cb9aa70a22847b5925ee5f067c10a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.XR.CoreUtils::Unity.XR.CoreUtils.XROrigin
+  m_Camera: {fileID: 1720051937}
+  m_OriginBaseGameObject: {fileID: 919317199}
+  m_CameraFloorOffsetObject: {fileID: 0}
+  m_RequestedTrackingOriginMode: 0
+  m_CameraYOffset: 1.1176
+--- !u!114 &919317203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919317199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
+--- !u!20 &919317204
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919317199}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
 --- !u!1001 &920850497
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14076,10 +14465,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 0
 --- !u!114 &927564326
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14092,17 +14477,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 927564325}
-  sceneViewId: 33
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!114 &927564327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14305,6 +14679,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &954011866
@@ -14741,6 +15119,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &962084216
@@ -15177,6 +15559,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!1 &994418475
@@ -15448,18 +15834,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShowLayerWeightsInspector: 1
-  ShowParameterInspector: 1
-  m_SynchronizeParameters:
-  - Type: 9
-    SynchronizeType: 1
-    Name: Activate
-  - Type: 9
-    SynchronizeType: 1
-    Name: Hit
-  m_SynchronizeLayers:
-  - SynchronizeType: 1
-    LayerIndex: 0
 --- !u!114 &1026560091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15472,17 +15846,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 1026560090}
-  sceneViewId: 22
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1001 &1027245749
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16589,6 +16952,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1100203657
@@ -17003,6 +17370,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1121475630
@@ -17646,6 +18017,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1148199415
@@ -17922,6 +18297,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1148264541
@@ -18455,18 +18834,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShowLayerWeightsInspector: 1
-  ShowParameterInspector: 1
-  m_SynchronizeParameters:
-  - Type: 9
-    SynchronizeType: 1
-    Name: Activate
-  - Type: 9
-    SynchronizeType: 1
-    Name: Hit
-  m_SynchronizeLayers:
-  - SynchronizeType: 1
-    LayerIndex: 0
 --- !u!114 &1162349050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18479,17 +18846,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 1162349049}
-  sceneViewId: 20
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!114 &1162349051
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18674,6 +19030,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1163028391
@@ -19836,6 +20196,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1236172480
@@ -20080,6 +20444,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1243242701
@@ -20434,18 +20802,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShowLayerWeightsInspector: 1
-  ShowParameterInspector: 1
-  m_SynchronizeParameters:
-  - Type: 9
-    SynchronizeType: 1
-    Name: Activate
-  - Type: 9
-    SynchronizeType: 1
-    Name: Hit
-  m_SynchronizeLayers:
-  - SynchronizeType: 1
-    LayerIndex: 0
 --- !u!114 &1278978918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20458,17 +20814,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 1278978917}
-  sceneViewId: 21
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!114 &1282602851
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21897,6 +22242,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1392977954
@@ -22329,6 +22678,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4297420317864066871, guid: 48e2cee497f58e349adce509e90fdf2d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1408840988}
+    - targetCorrespondingSourceObject: {fileID: 4297420317864066871, guid: 48e2cee497f58e349adce509e90fdf2d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1408840993}
   m_SourcePrefab: {fileID: 100100000, guid: 48e2cee497f58e349adce509e90fdf2d, type: 3}
 --- !u!224 &1408840983 stripped
 RectTransform:
@@ -22379,6 +22731,18 @@ MonoBehaviour:
   m_OnKeyboardFocusChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1408840993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148585486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 130fdeacbbffe6648b39870225840b91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VertexFormTMPInputKeyboardPolicy
 --- !u!1001 &1410077791
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22587,6 +22951,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1410077799
@@ -22821,6 +23189,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1418498899
@@ -22988,6 +23360,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1421164305
@@ -23589,6 +23965,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1467762837
@@ -25112,10 +25492,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 0
 --- !u!114 &1524259188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25128,17 +25504,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 1524259187}
-  sceneViewId: 32
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!114 &1524259189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25889,10 +26254,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizePosition: 1
-  m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
-  m_UseLocal: 0
 --- !u!114 &1552345013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25905,17 +26266,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObservedComponentsFoldoutOpen: 1
-  Group: 0
-  prefixField: -1
-  Synchronization: 3
-  OwnershipTransfer: 1
-  observableSearch: 2
-  ObservedComponents:
-  - {fileID: 1552345012}
-  sceneViewId: 34
-  InstantiationId: 0
-  isRuntimeInstantiated: 0
 --- !u!1001 &1554972634
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27903,6 +28253,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1633834945
@@ -28450,6 +28804,74 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7308607478092806258, guid: 224ab99c12567b94a8a7fad519daf55b, type: 3}
   m_PrefabInstance: {fileID: 1695029693}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1716275651
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 366349417295850678, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.598
+      objectReference: {fileID: 0}
+    - target: {fileID: 366349417295850678, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.271
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977961, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_Name
+      value: Complete XR Origin
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 11.3116
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.53292
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 5.11388
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 366349417295850677, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 753397858}
+  m_SourcePrefab: {fileID: 100100000, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
 --- !u!1 &1720051934
 GameObject:
   m_ObjectHideFlags: 0
@@ -28687,7 +29109,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 10.27, y: -3.22, z: -0.9}
-  m_LocalScale: {x: 6.9463124, y: 6.9463124, z: 6.9463124}
+  m_LocalScale: {x: 6, y: 6.9463124, z: 6.9463124}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -29033,6 +29455,11 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!4 &1745285395 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1351904833967977962, guid: 5ef56e7c555dd744f9ce05b7a0c00476, type: 3}
+  m_PrefabInstance: {fileID: 1716275651}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1746835496 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1703573813372912354, guid: eb062ec49f40b17408a5dc25961a60ef, type: 3}
@@ -31409,6 +31836,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1832961773
@@ -31482,6 +31913,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1832961776
@@ -32547,6 +32982,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1884230959
@@ -33574,6 +34013,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &1963227696
@@ -33591,6 +34034,7 @@ MonoBehaviour:
   m_ProjectilePrefab: {fileID: 9031775881104408046, guid: 3976a13353f30c74891ad6e9052aaa18, type: 3}
   m_StartPoint: {fileID: 1963227690}
   m_LaunchSpeed: 750
+  playerName: 
 --- !u!114 &1963227697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34348,6 +34792,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2006449395
@@ -34829,6 +35277,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2025200331
@@ -35192,6 +35644,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2033699634
@@ -35206,10 +35662,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64179f3720bbfe947b7724caa67b7c1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SynchronizeVelocity: 1
-  m_SynchronizeAngularVelocity: 1
-  m_TeleportEnabled: 1
-  m_TeleportIfDistanceGreaterThan: 3
 --- !u!114 &2033699636
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35821,6 +36273,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2060333762
@@ -36439,6 +36895,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2093842731
@@ -36850,6 +37310,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2102632367
@@ -37575,6 +38039,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2136319644
@@ -37802,6 +38270,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &2138056399
@@ -42847,6 +43319,10 @@ MonoBehaviour:
     _value: 0
   expectedIsKinematic: 1
   applyVelocityOnRelease: 1
+  resetWhenUngrabbedAndDrifted: 1
+  positionDriftThreshold: 0.05
+  rotationDriftThreshold: 2
+  driftCheckDelay: 1
   extrapolateWhileTakingAuthority: 1
   isTakingAuthority: 0
 --- !u!114 &6292147533412352675
@@ -44173,6 +44649,8 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1716275651}
+  - {fileID: 39222032}
   - {fileID: 919317201}
   - {fileID: 1477099516}
   - {fileID: 623940451}
