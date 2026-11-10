@@ -23,6 +23,29 @@ public class AddressablesDownloader : MonoBehaviour
     public long bundleSize;
     public static AddressablesDownloader Instance;
 
+    /// <summary>
+    /// Runs before the first scene loads, so it is in place before Addressables initialises.
+    /// Appends a unique query string to every catalog .hash/.json request. Cloud storage / CDN
+    /// edge caches key on the full URL, so this always reaches the current file on the server.
+    /// Without it, a cached copy of the catalog can be served for up to an hour after an upload
+    /// (Google Cloud Storage default: Cache-Control public, max-age=3600) and headsets keep
+    /// loading old bundles. Bundle requests are left untouched: their file names contain their
+    /// content hash, so a cached bundle is always the right one and caching them is desirable.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void InstallCatalogCacheBuster()
+    {
+        Addressables.WebRequestOverride = request =>
+        {
+            string url = request.url;
+            string path = url.Split('?')[0];
+            if (path.EndsWith(".hash") || path.EndsWith(".json"))
+            {
+                request.url = url + (url.Contains("?") ? "&" : "?") + "t=" + DateTime.UtcNow.Ticks;
+            }
+        };
+    }
+
     private void Awake()
     {
         if (Instance == null)

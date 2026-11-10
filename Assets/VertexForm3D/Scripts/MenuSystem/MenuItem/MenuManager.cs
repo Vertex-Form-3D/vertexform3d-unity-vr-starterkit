@@ -961,8 +961,26 @@ public class MenuManager : MonoBehaviour
         return screen;
     }
 
+    /// <summary>
+    /// The panel the person last opened, remembered for as long as the app is running, so the map
+    /// reopens where they left it instead of going back to the first panel after every scene load.
+    /// Kept by panel key rather than by object, because each scene has its own copy of the map.
+    /// A fresh launch starts on the first panel as before.
+    /// </summary>
+    static string s_lastOpenedPanelKey;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetLastOpenedPanel() => s_lastOpenedPanelKey = null;
+
     void OpenFirstEnabledPanel(UILayoutConfig cfg)
     {
+        if (TryGetLastOpenedScreen(cfg, out GameObject lastScreen))
+        {
+            HandleScreen(lastScreen);
+            lastScreen.GetComponent<WorldScreen>()?.OnPanelOpened();
+            return;
+        }
+
         GameObject firstScreen = MainMapPanelOrdering.GetFirstEnabledScreen(this, cfg);
         if (firstScreen != null)
         {
@@ -1070,10 +1088,48 @@ public class MenuManager : MonoBehaviour
             _ => pl.platformChoice.ToString()
         };
     }
+    /// <summary>The remembered panel, if it exists and is switched on in this app's layout.</summary>
+    bool TryGetLastOpenedScreen(UILayoutConfig cfg, out GameObject screen)
+    {
+        screen = null;
+        if (string.IsNullOrEmpty(s_lastOpenedPanelKey) || cfg == null)
+            return false;
+
+        foreach (var entry in MainMapPanelOrdering.BuildOrderedTabs(this, cfg))
+        {
+            if (entry.enabled && entry.screen != null && entry.panelKey == s_lastOpenedPanelKey)
+            {
+                screen = entry.screen;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void RememberOpenedPanel(GameObject screen)
+    {
+        var cfg = GetLayoutConfig();
+        if (cfg == null)
+            return;
+
+        foreach (var entry in MainMapPanelOrdering.BuildOrderedTabs(this, cfg))
+        {
+            if (entry.screen == screen && !string.IsNullOrEmpty(entry.panelKey))
+            {
+                s_lastOpenedPanelKey = entry.panelKey;
+                return;
+            }
+        }
+    }
+
     public void HandleScreen(GameObject screen)
     {
         if (screen == null)
             return;
+
+        // Only panels with a tab are remembered; anything else shown through here is left alone.
+        RememberOpenedPanel(screen);
 
         foreach (var panelScreen in CollectAllPanelScreens())
         {

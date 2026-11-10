@@ -134,27 +134,8 @@ namespace VertexFormCore
             Debug.Log("[SceneLoader] Base scene loaded, waiting for scene to be ready...");
             yield return new WaitForSeconds(0.5f);
 
-#if !UNITY_WEBGL
-            if (XRGeneralSettings.Instance != null && XRGeneralSettings.Instance.Manager != null)
-            {
-                if (XRGeneralSettings.Instance.Manager.isInitializationComplete)
-                {
-                    XRGeneralSettings.Instance.Manager.StopSubsystems();
-                    XRGeneralSettings.Instance.Manager.DeinitializeLoader();
-                    Debug.Log("[SceneLoader] XR session stopped for scene transition.");
-                }
-                yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
-                if (XRGeneralSettings.Instance.Manager.activeLoader != null)
-                {
-                    XRGeneralSettings.Instance.Manager.StartSubsystems();
-                    Debug.Log("[SceneLoader] XR session started: " + XRGeneralSettings.Instance.Manager.activeLoader.name);
-                }
-                else
-                {
-                    Debug.LogWarning("[SceneLoader] XR loader not found after scene transition — check XR Plug-in Management settings.");
-                }
-            }
-#endif
+            // XR is no longer stopped/deinitialized/reinitialized on every scene transition
+            // (that reload caused slow loads and hangs). XR is initialized once at startup.
 
             // DON'T load the addressable scene here - let Fusion do it!
             // This ensures NetworkObjects in the addressable scene are properly networked

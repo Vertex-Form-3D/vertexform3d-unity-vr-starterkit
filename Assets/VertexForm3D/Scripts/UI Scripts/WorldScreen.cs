@@ -51,7 +51,83 @@ public class WorldScreen : MonoBehaviour
     {
         // Every time this panel is shown (tab selected, menu reopened, etc.)
         // reset the info overlay so the user always lands on the worlds list.
-        if (worldInfoScreen != null)
+        RecoverInteractionState();
+    }
+
+    void OnDisable()
+    {
+        // Disabling this object also kills the info panel's fade-in coroutine wherever it had got to. Tidy up
+        // here so an interrupted fade can never leave the overlay switched on at partial or zero alpha — a
+        // CanvasGroup that is invisible still blocks the controller ray, and it covers every card.
+        // No SetActive here: changing a child's active state while this object is itself being switched
+        // off is not allowed. OnEnable hides the overlay on the next show.
+        HideInfoOverlay(deactivate: false);
+    }
+
+    /// <summary>
+    /// Clears every piece of state that can leave the world cards unresponsive while the tab bar still
+    /// works. VR testers found that switching Main → Worlds brought the cards back; this does the same
+    /// reset whenever the screen is shown, including when the menu is simply reopened.
+    ///
+    /// The cause has not been caught live, so anything found out of place is logged first. The next time
+    /// it happens, one line in the headset log (Android Logcat, filter "WorldScreen") says which it was.
+    /// </summary>
+    void RecoverInteractionState()
+    {
+        var found = new List<string>();
+
+        if (worldInfoScreen != null && worldInfoScreen.activeSelf)
+        {
+            var cg = worldInfoScreen.GetComponent<CanvasGroup>();
+            found.Add(cg != null
+                ? $"info overlay was still active (alpha {cg.alpha:0.00}, blocksRaycasts {cg.blocksRaycasts})"
+                : "info overlay was still active");
+        }
+
+        if (UIEffectManager.Instance != null && UIEffectManager.Instance.IsInputFieldSelected)
+        {
+            // Stuck true when a text field is closed without a deselect, e.g. the menu shut while typing.
+            // While it is set, every UIEffect-driven hover in the menu stops responding.
+            found.Add("UIEffectManager.IsInputFieldSelected was stuck on");
+            UIEffectManager.Instance.IsInputFieldSelected = false;
+        }
+
+        if (gridScrollViewPager != null && gridScrollViewPager.IsInitialized &&
+            Mathf.Abs(gridScrollViewPager.ActualScrollPosition - gridScrollViewPager.ExpectedScrollPosition) > 0.01f)
+        {
+            found.Add($"world grid scroll was off its page (at {gridScrollViewPager.ActualScrollPosition:0.00}, " +
+                      $"page {gridScrollViewPager.CurrentPage}/{gridScrollViewPager.TotalPages} expects " +
+                      $"{gridScrollViewPager.ExpectedScrollPosition:0.00})");
+        }
+
+        HideInfoOverlay();
+        if (gridScrollViewPager != null)
+            gridScrollViewPager.SnapToCurrentPage();
+
+        if (found.Count > 0)
+            Debug.LogWarning($"[WorldScreen] '{name}' recovered UI state on show: {string.Join("; ", found)}", this);
+    }
+
+    void HideInfoOverlay(bool deactivate = true)
+    {
+        if (_infoAnim != null)
+        {
+            StopCoroutine(_infoAnim);
+            _infoAnim = null;
+        }
+
+        if (worldInfoScreen == null)
+            return;
+
+        var cg = worldInfoScreen.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+            cg.blocksRaycasts = true;
+            cg.interactable = true;
+        }
+
+        if (deactivate)
             worldInfoScreen.SetActive(false);
     }
 
@@ -381,11 +457,7 @@ public class WorldScreen : MonoBehaviour
     /// </summary>
     public void ShowWorldList()
     {
-        if (_infoAnim != null)
-            StopCoroutine(_infoAnim);
-
-        if (worldInfoScreen != null)
-            worldInfoScreen.SetActive(false);
+        HideInfoOverlay();
     }
 
     /// <summary>
@@ -393,13 +465,17 @@ public class WorldScreen : MonoBehaviour
     /// </summary>
     public void CloseWorldInfoScreen()
     {
-        if (_infoAnim != null)
-            StopCoroutine(_infoAnim);
+        HideInfoOverlay();
 
-        if (worldInfoScreen != null)
-            worldInfoScreen.SetActive(false);
+        // Return to the main menu the same way the tab bar does. This used to switch only this screen off
+        // without switching Main on, which left an empty content area until a tab was pressed.
+        var menuManager = GetComponentInParent<MenuManager>(true);
+        if (menuManager != null)
+        {
+            menuManager.OpenMainScreen();
+            return;
+        }
 
-        // Close the whole WorldScreen panel so the user returns to the main menu
         gameObject.SetActive(false);
     }
 

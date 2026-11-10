@@ -3,6 +3,9 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Diagnostics;
@@ -208,8 +211,12 @@ public class AddressablesBuildEditor : EditorWindow
             bundledSchema.LoadPath.SetVariableByName(settings, remote ? "Remote.LoadPath" : "Local.LoadPath");
             bundledSchema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZ4;
             bundledSchema.UseAssetBundleCache = true;
-            bundledSchema.UseAssetBundleCrc = false;
-            bundledSchema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.FileNameHash;
+            // CRC on: a stale or corrupt download (e.g. an old copy served by a CDN edge cache)
+            // fails and retries instead of being stored in the device cache as the new version.
+            bundledSchema.UseAssetBundleCrc = true;
+            // Append Hash: every content change produces a new URL, so CDN caching of the old
+            // object at the same URL can never be served for a new build.
+            bundledSchema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.AppendHash;
             bundledSchema.IncludeAddressInCatalog = true;
             bundledSchema.IncludeGUIDInCatalog = true;
             bundledSchema.IncludeLabelsInCatalog = true;
@@ -277,6 +284,12 @@ public class AddressablesBuildEditor : EditorWindow
             return;
         }
 
+        // Before anything is rebuilt: remember the catalog name the LAST build produced. That is
+        // the name baked into any APK built since, so installed apps keep finding their catalog.
+        RememberCatalogName(ReadCatalogNameFromRuntimeSettings());
+
+        ApplySafeRemoteGroupSettings();
+
         ClearOldBundles(remoteBuildPath);
         AddressableAssetSettings.CleanPlayerContent();
         AddressableAssetSettings.BuildPlayerContent();
@@ -301,6 +314,111 @@ public class AddressablesBuildEditor : EditorWindow
         }
     }
 
+    // ------------------------------------------------------------------------------------------
+    // CATALOG NAME HISTORY
+    //
+    // An installed app asks the server for ONE catalog file, named when the APK was built
+    // (catalog_<Player Version Override>, e.g. catalog_1.3.0). If that file is missing, the app
+    // silently falls back to the catalog inside the APK and never sees new bundles again.
+    // The name changes whenever the app version changes, so after a few releases different
+    // headsets ask for different names.
+    //
+    // Every build therefore records the catalog name it produces, and writes the new catalog
+    // under EVERY name ever recorded. Old and new app versions all receive the same, current
+    // catalog. Nothing to configure: the history lives in a small per-project text file next
+    // to the Addressables settings (one file per platform). Commit it with the project.
+    // ------------------------------------------------------------------------------------------
+
+    private static string CatalogHistoryPath =>
+        $"Assets/AddressableAssetsData/VertexFormCatalogHistory_{EditorUserBuildSettings.activeBuildTarget}.txt";
+
+    private static List<string> LoadCatalogHistory()
+    {
+        if (!File.Exists(CatalogHistoryPath)) return new List<string>();
+        return File.ReadAllLines(CatalogHistoryPath)
+            .Select(l => l.Trim())
+            .Where(l => l.StartsWith("catalog_"))
+            .Distinct()
+            .ToList();
+    }
+
+    private static void RememberCatalogName(string catalogName)
+    {
+        if (string.IsNullOrEmpty(catalogName)) return;
+        var names = LoadCatalogHistory();
+        if (names.Contains(catalogName)) return;
+        names.Add(catalogName);
+        File.WriteAllLines(CatalogHistoryPath, new[]
+        {
+            "# Written by Vertex Form \"Build Addressables\". Do not delete: installed apps request these",
+            "# catalog names, and every build uploads the current catalog under all of them.",
+        }.Concat(names));
+        AssetDatabase.ImportAsset(CatalogHistoryPath);
+        UnityEngine.Debug.Log($"[Addressables] Remembered catalog name '{catalogName}' for installed apps.");
+    }
+
+    /// <summary>
+    /// Name (without extension) of the remote catalog that the runtime settings from the last
+    /// build point at. This is what an APK built since then requests. Null if not available.
+    /// </summary>
+    private static string ReadCatalogNameFromRuntimeSettings()
+    {
+        try
+        {
+            string settingsPath = Path.Combine(Addressables.BuildPath, "settings.json");
+            if (!File.Exists(settingsPath)) return null;
+            Match m = Regex.Match(File.ReadAllText(settingsPath), @"(catalog_[^/""\\]+?)\.hash");
+            return m.Success ? m.Groups[1].Value : null;
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"[Addressables] Could not read previous catalog name: {ex.Message}");
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // SAFE REMOTE GROUP SETTINGS, applied on every build so nobody has to know about them.
+    //  - Append Hash: a bundle's file name changes whenever its content changes. Hosts and CDNs
+    //    that keep saved copies of files can then never hand out an old bundle under the new
+    //    name.
+    //  - CRC: a damaged or stale download is rejected and retried instead of being stored on
+    //    the headset as the new version.
+    // Only groups loading from Remote.LoadPath are touched. Installed apps stay safe: they
+    // read the bundle names from the catalog, which every build writes under all known names.
+    // ------------------------------------------------------------------------------------------
+    private static void ApplySafeRemoteGroupSettings()
+    {
+        AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null) return;
+
+        foreach (AddressableAssetGroup group in settings.groups)
+        {
+            if (group == null) continue;
+            var schema = group.GetSchema<BundledAssetGroupSchema>();
+            if (schema == null) continue;
+            if (schema.LoadPath.GetName(settings) != "Remote.LoadPath") continue;
+
+            bool changed = false;
+            if (schema.BundleNaming != BundledAssetGroupSchema.BundleNamingStyle.AppendHash)
+            {
+                schema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.AppendHash;
+                changed = true;
+            }
+            if (!schema.UseAssetBundleCrc)
+            {
+                schema.UseAssetBundleCrc = true;
+                changed = true;
+            }
+            if (changed)
+            {
+                EditorUtility.SetDirty(schema);
+                UnityEngine.Debug.Log($"[Addressables] '{group.Name}': bundle names now include a content hash, download check (CRC) on.");
+            }
+        }
+        AssetDatabase.SaveAssets();
+    }
+
     private static void RenameCatalogFiles(string buildPath, string newCatalogName)
     {
         if (!Directory.Exists(buildPath))
@@ -309,22 +427,30 @@ public class AddressablesBuildEditor : EditorWindow
             return;
         }
 
-        string[] files = Directory.GetFiles(buildPath, "catalog_*");
-        foreach (var file in files)
+        // The build produces exactly one catalog_<name>.json/.hash (the folder is cleared first).
+        string builtJson = Directory.GetFiles(buildPath, "catalog_*.json").FirstOrDefault();
+        if (builtJson == null)
         {
-            string directory = Path.GetDirectoryName(file);
-            string extension = Path.GetExtension(file);
-            if (file.Contains(".hash"))
-            {
-                File.Move(file, Path.Combine(directory, $"{newCatalogName}.hash"));
-            }
-            else if (file.Contains(".json"))
-            {
-                File.Move(file, Path.Combine(directory, $"{newCatalogName}.json"));
-            }
+            UnityEngine.Debug.LogError("[Addressables] No remote catalog was built. Check that 'Build Remote Catalog' is on in Addressable Asset Settings.");
+            return;
+        }
+        string builtName = Path.GetFileNameWithoutExtension(builtJson);
+        string builtHash = Path.Combine(buildPath, builtName + ".hash");
+        RememberCatalogName(builtName);
+
+        // COPY, never move: the original name is what this build's apps request.
+        var names = new HashSet<string>(LoadCatalogHistory());
+        if (!string.IsNullOrEmpty(newCatalogName)) names.Add(newCatalogName);
+        names.Remove(builtName);
+        foreach (string name in names)
+        {
+            File.Copy(builtJson, Path.Combine(buildPath, name + ".json"), true);
+            if (File.Exists(builtHash))
+                File.Copy(builtHash, Path.Combine(buildPath, name + ".hash"), true);
         }
 
-        UnityEngine.Debug.Log("Remote catalog files successfully renamed.");
+        UnityEngine.Debug.Log($"[Addressables] Build ready in {Path.GetFullPath(buildPath)}. Upload EVERYTHING in this folder. " +
+                              $"Catalog written as: {builtName}" + (names.Count > 0 ? ", " + string.Join(", ", names) : "") + ".");
     }
 
     private static string GetRemoteBuildPath()
