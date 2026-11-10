@@ -11,6 +11,7 @@ using Photon.Voice.Fusion;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using Photon.Voice.Unity;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.InputSystem.XR;
 
 namespace VertexFormCore
@@ -24,8 +25,31 @@ namespace VertexFormCore
         [SerializeField] private TextMeshProUGUI PlayerName_Text;
         [SerializeField] private GameObject cameraOffset;
         [SerializeField] private XROrigin xROrigin;
+        [Tooltip("Desktop/web only. In VR the standing height is calibrated from the headset instead — see standingEyeHeight.")]
         public float standingHeight;
         public float sittingHeight;
+
+        [Header("VR eye heights")]
+        [Tooltip("Eye height, in metres, that every VR player is placed at when standing, regardless " +
+                 "of their real-world posture.")]
+        public float standingEyeHeight = 1.6f;
+
+        [Tooltip("Eye height, in metres, when seated. An average chair seat is ~0.45m and adult " +
+                 "seated eye height above the seat is ~0.75m, so ~1.20m puts the avatar at a " +
+                 "believable height for sitting in an ordinary chair.")]
+        public float sittingEyeHeight = 1.35f;
+
+        /// <summary>Below this the headset has not reported a real pose yet, so calibration is refused.</summary>
+        const float MinValidTrackedHeadHeight = 0.2f;
+
+        /// <summary>How long after a posture change to keep re-asserting the calibrated height.</summary>
+        const float HeightCalibrationWindowSeconds = 8f;
+
+        /// <summary>How far the eye height may drift before recalibrating, in metres.</summary>
+        const float HeightCalibrationTolerance = 0.05f;
+
+        bool _heightCalibrated;
+        Coroutine _heightCalibrationCoroutine;
         public TeleportationProvider tp;
         public GravityProvider gp;
         public GameObject leftHand;
@@ -68,6 +92,16 @@ namespace VertexFormCore
         [Networked] public NetworkString<_16> PlayerName { get; set; }
         [Networked] public platform Platform { get; set; }
         [Networked] public WebGpuBrowserKind WebGpuBrowserKind { get; set; }
+
+        /// <summary>
+        /// Megaphone state, replicated so late joiners get the current value. Applied in Render().
+        /// Set through <see cref="MegaphoneHandler"/>, never written directly by remote clients.
+        /// </summary>
+        [Networked] public bool MegaphoneOn { get; set; }
+
+        bool _megaphoneApplied;
+        bool _lastAppliedMegaphone;
+        Coroutine _remoteVoiceSetupCoroutine;
 
         public bool NetworkedIsVrStyle() => PlatformPresentation.IsVrStyle(Platform, WebGpuBrowserKind);
 
@@ -116,6 +150,9 @@ namespace VertexFormCore
 
             if (!Object.HasInputAuthority)
             {
+                // The avatar model just added may carry its own solid colliders.
+                DisableRemotePhysicsBody();
+
                 if (avatarInputConverter.AvatarHand_Left.GetComponentInChildren<AnimateHand>())
                 {
                     Debug.Log("-->destroying left hand");
@@ -142,6 +179,80 @@ namespace VertexFormCore
             avatarModelTransform.localRotation = Quaternion.identity;
         }
 
+        /// <summary>
+        /// Makes another player's copy of this rig non-physical on this machine.
+        ///
+        /// A remote player is only a picture of where someone else is: their position arrives from
+        /// the network every tick. But their rig still carried a full CharacterController — a
+        /// player-sized solid capsule — and a live GravityProvider pulling it down locally while
+        /// the network pulled it back. That is two bodies occupying space that nobody here controls.
+        ///
+        /// When a player joined next to someone already standing there, their capsule appeared
+        /// inside that person's capsule. The CharacterController resolves an overlap by pushing
+        /// out along the shortest way, and on a one-sided terrain or floor collider that is often
+        /// straight down, with no way back up. Fall recovery then returned them to their last safe
+        /// position — which was right beside the new arrival, still standing there — so they were
+        /// pushed through again, over and over. It was random because it depended on who was
+        /// standing where when someone joined.
+        ///
+        /// With the remote capsule and locomotion switched off, players can no longer shove each
+        /// other. They can walk through one another, which is the normal behaviour in social VR.
+        ///
+        /// 2026-10-01: the capsule alone was not enough. Players still fell the moment someone
+        /// joined. The remote rig also carries SOLID hand colliders (finger capsules, wrist and
+        /// watch boxes), and avatar models added later can bring their own. When a player joins,
+        /// their hands appear and move around wherever the network puts them, which can be
+        /// inside your capsule. Your CharacterController then resolves that overlap on its next
+        /// move and can be pushed down through a one-sided floor. So every SOLID collider on a
+        /// remote rig is switched off here. Trigger colliders stay on, so trigger-based features
+        /// still detect other players. Remote hands could never legitimately push anything on
+        /// this machine anyway: networked objects are moved by whoever owns them, not by local
+        /// physics.
+        /// Runs again after the remote avatar model is built (see InitializeSelectedAvatarModel).
+        /// </summary>
+        void DisableRemotePhysicsBody()
+        {
+            int controllers = 0, providers = 0, solidColliders = 0;
+
+            foreach (Collider col in GetComponentsInChildren<Collider>(true))
+            {
+                if (col == null || col is CharacterController || col.isTrigger || !col.enabled)
+                    continue;
+                col.enabled = false;
+                solidColliders++;
+            }
+
+            foreach (CharacterController cc in GetComponentsInChildren<CharacterController>(true))
+            {
+                if (cc != null && cc.enabled)
+                {
+                    cc.enabled = false;
+                    controllers++;
+                }
+            }
+
+            // Gravity, continuous move, turn, teleport, climb: none of them should ever move a
+            // remote player's rig here. Their position comes from the network alone.
+            foreach (LocomotionProvider provider in GetComponentsInChildren<LocomotionProvider>(true))
+            {
+                if (provider != null && provider.enabled)
+                {
+                    provider.enabled = false;
+                    providers++;
+                }
+            }
+
+            foreach (XRBodyTransformer body in GetComponentsInChildren<XRBodyTransformer>(true))
+            {
+                if (body != null)
+                    body.enabled = false;
+            }
+
+            Debug.Log($"[PlayerNetworkSetup] Remote player rig made non-physical: " +
+                      $"{controllers} CharacterController(s), {solidColliders} solid collider(s), " +
+                      $"{providers} locomotion provider(s) disabled.");
+        }
+
         public override void Spawned()
         {
             // Reset avatar initialization flag
@@ -162,11 +273,51 @@ namespace VertexFormCore
                     WebGpuBrowserKind = WebGpuBrowserKind.None;
                 }
             }
+
+            // Tell RoomManager the local rig now exists. When Fusion queues the spawn because the
+            // prefab was still loading, this is the only place RoomManager can learn the player
+            // arrived — without it the temporary loading rig stays on beside us (the double hands).
+            if (Object.HasInputAuthority && RoomManager.Instance != null)
+                RoomManager.Instance.NotifyLocalPlayerSpawned(Object);
+
+            // Done here, before anything else runs on the remote copy, rather than later in
+            // InitializePlayer: that coroutine waits, and every frame it waits is a frame in which a
+            // second solid body is standing in the world.
+            if (!Object.HasInputAuthority)
+                DisableRemotePhysicsBody();
+
             Debug.Log("-->spawning player");
             StartCoroutine(InitializePlayer());
             Debug.Log("-->spawning player done");
             Debug.Log("transform.position: " + transform.position + "transform.rotation: " + transform.rotation);
 
+        }
+
+        // Self-correcting safety net: InitializePlayer() below makes a one-time decision about
+        // whether to disable this player's AudioListener, based on Object.HasInputAuthority at
+        // that moment. If Fusion hasn't finished the input-authority handshake yet when that check
+        // runs, the LOCAL player's own listener can be disabled by mistake, which mutes everything
+        // for that client (ambiance included) rather than just avoiding a duplicate listener for
+        // remote players. Render() runs every frame with an authority value that is always
+        // up to date, so it corrects that mistake automatically instead of leaving audio dead
+        // for the rest of the session.
+        public override void Render()
+        {
+            if (audioListener != null && audioListener.enabled != Object.HasInputAuthority)
+            {
+                audioListener.enabled = Object.HasInputAuthority;
+                Debug.Log($"-->audio listener corrected to {(Object.HasInputAuthority ? "enabled (local player)" : "disabled (remote player)")}");
+            }
+
+            // Apply the networked megaphone state whenever it differs from what this client last
+            // applied. Two bool comparisons per frame, and it means a client that joined after the
+            // megaphone was switched on still picks up the correct value on its very first frame.
+            if (!_megaphoneApplied || _lastAppliedMegaphone != MegaphoneOn)
+            {
+                _lastAppliedMegaphone = MegaphoneOn;
+                _megaphoneApplied = true;
+                ApplyMegaphoneState();
+            }
         }
 
         private IEnumerator InitializePlayer()
@@ -280,8 +431,24 @@ namespace VertexFormCore
             {
                 Debug.Log("-->setting player name text");
                 PlayerName_Text.text = PlayerName.ToString();
-                float yRot = Object.HasInputAuthority == true ? 0 : 180;
-                PlayerName_Text.transform.localRotation = Quaternion.Euler(Vector3.up * yRot);
+
+                // The tag used to be rotated exactly once, here, to a fixed 0 or 180 degrees on the
+                // assumption that a remote avatar permanently faces the other way. It never updated
+                // again, so the moment either player turned — or you simply walked around someone —
+                // the name went edge-on or read back to front.
+                //
+                // PlayerTag already does this properly: it points the tag's +Z away from the local
+                // camera every frame, which is the orientation that renders text readable rather than
+                // mirrored, and it keeps the tag upright so looking down at someone does not tilt it.
+                // Attaching it here rather than duplicating that logic means there is one
+                // implementation to maintain, and it needs no change to the avatar prefab — this tag
+                // lives inside a nested prefab, where a YAML edit would be considerably riskier than
+                // an AddComponent.
+                if (PlayerName_Text.GetComponent<PlayerTag>() == null)
+                {
+                    PlayerName_Text.gameObject.AddComponent<PlayerTag>();
+                }
+
                 Debug.Log("-->player name text set");
             }
             SetStandingHeight(true);
@@ -408,7 +575,11 @@ namespace VertexFormCore
                 IsSitting = true;
             }
             IsSittingHeightFixed = true;
-            cameraOffset.transform.localPosition = Vector3.up * sittingHeight;
+
+            if (NetworkedIsVrStyle())
+                StartEyeHeightCalibration();
+            else
+                cameraOffset.transform.localPosition = Vector3.up * sittingHeight;
         }
 
         public void SetStandingHeight(bool calledFromSitSpot)
@@ -418,7 +589,12 @@ namespace VertexFormCore
                 IsSitting = false;
             }
             IsSittingHeightFixed = false;
-            cameraOffset.transform.localPosition = Vector3.up * standingHeight;
+
+            if (NetworkedIsVrStyle())
+                StartEyeHeightCalibration();
+            else
+                cameraOffset.transform.localPosition = Vector3.up * standingHeight;
+
             var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
             if (xrRig != null)
             {
@@ -428,28 +604,136 @@ namespace VertexFormCore
 
             }
         }
+
+        /// <summary>
+        /// Puts the VR player's eyes at <see cref="standingEyeHeight"/> regardless of what their body
+        /// is doing in the real world — sitting in a chair, lying down, standing on a box.
+        ///
+        /// The headset reports its real height above the physical floor, so writing a fixed offset
+        /// (the old behaviour) gave a different in-world height for every player and every posture:
+        /// someone seated arrived crouching. Instead the offset is SOLVED for, so the camera lands on
+        /// the target height right now:
+        ///
+        ///     offset = targetEyeHeight - currentTrackedHeadHeight
+        ///
+        /// Real head movement afterwards still works normally, because it is relative to this new
+        /// baseline — stand up out of the chair and you genuinely rise. Only the starting point is
+        /// normalised.
+        /// </summary>
+        /// <summary>Eye height the calibration aims for, following the current posture.</summary>
+        float TargetEyeHeight => IsSittingHeightFixed ? sittingEyeHeight : standingEyeHeight;
+
+        void CalibrateVrEyeHeight()
+        {
+            if (cameraOffset == null || xROrigin == null)
+            {
+                Debug.LogWarning("[PlayerNetworkSetup] Cannot calibrate standing height — cameraOffset or xROrigin is not assigned.");
+                return;
+            }
+
+            // Camera position in XR Origin space already includes the current offset, so subtract it
+            // back out to recover the headset's own tracked height.
+            float currentOffsetY = cameraOffset.transform.localPosition.y;
+            float trackedHeadHeight = xROrigin.CameraInOriginSpacePos.y - currentOffsetY;
+
+            // Before the headset reports a real pose this reads as ~0. Calibrating then would bake in
+            // a bogus offset — which is a version of the bug being fixed — so refuse and let the
+            // retry loop try again next frame.
+            if (trackedHeadHeight < MinValidTrackedHeadHeight)
+                return;
+
+            float target = TargetEyeHeight;
+            float newOffsetY = target - trackedHeadHeight;
+            Vector3 local = cameraOffset.transform.localPosition;
+            cameraOffset.transform.localPosition = new Vector3(local.x, newOffsetY, local.z);
+
+            if (!_heightCalibrated)
+            {
+                Debug.Log($"[PlayerNetworkSetup] Calibrated {(IsSittingHeightFixed ? "sitting" : "standing")} height: " +
+                          $"tracked head {trackedHeadHeight:F2}m, target {target:F2}m, offset {newOffsetY:F2}m.");
+            }
+
+            _heightCalibrated = true;
+        }
+
+        /// <summary>
+        /// Re-runs the standing-height calibration. Wire this to a recenter gesture (both thumbsticks
+        /// clicked, say) or a menu button so a player can reset themselves after changing posture.
+        /// </summary>
+        public void RecenterStandingHeight()
+        {
+            if (!NetworkedIsVrStyle())
+                return;
+
+            _heightCalibrated = false;
+            StartEyeHeightCalibration();
+        }
+
+        void StartEyeHeightCalibration()
+        {
+            if (_heightCalibrationCoroutine != null)
+                StopCoroutine(_heightCalibrationCoroutine);
+
+            _heightCalibrationCoroutine = StartCoroutine(KeepEyeHeightCalibrated());
+        }
+
+        /// <summary>
+        /// Keeps calibrating until it sticks, then stops.
+        ///
+        /// A single call at spawn is not reliable for two reasons. The headset may not report a valid
+        /// pose for the first few frames. And XROrigin re-asserts its own value for the camera offset
+        /// when the tracking origin mode resolves — which happens asynchronously, and again after
+        /// SceneLoader stops and restarts the XR subsystems during a scene transition. That
+        /// re-assertion landing after the spawn-time call is what wipes the height today. Rather than
+        /// guess the ordering, this re-applies over a short window and verifies the result held.
+        /// </summary>
+        IEnumerator KeepEyeHeightCalibrated()
+        {
+            float elapsed = 0f;
+
+            while (elapsed < HeightCalibrationWindowSeconds)
+            {
+                float target = TargetEyeHeight;
+                float actual = xROrigin != null ? xROrigin.CameraInOriginSpacePos.y : target;
+
+                if (!_heightCalibrated || Mathf.Abs(actual - target) > HeightCalibrationTolerance)
+                    CalibrateVrEyeHeight();
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            _heightCalibrationCoroutine = null;
+        }
         public void ResetPosition()
         {
             Debug.Log("Reset Position");
             transform.localPosition = Vector3.zero;
         }
+        /// <summary>
+        /// Turns this player's megaphone on or off.
+        ///
+        /// Writes networked STATE rather than firing an RPC. The previous implementation sent
+        /// RPC_MegaPhoneHandle to RpcTargets.All, and a Fusion RPC only reaches clients connected at
+        /// that instant — it is never replayed. So anyone who joined after the megaphone was switched
+        /// on never learned about it, kept this player at 3D positional audio, and could not hear
+        /// them from across the room. Whether it worked came down purely to join order, which is why
+        /// it appeared to work for some people and not others. As networked state, Fusion replicates
+        /// the current value to late joiners automatically.
+        /// </summary>
         public void MegaphoneHandler(bool active)
         {
             if (Object.HasInputAuthority)
             {
-                RPC_MegaPhoneHandle(active, Object.Id);
+                MegaphoneOn = active;
+                Debug.Log($"[PlayerNetworkSetup] Megaphone set to {active} for player {PlayerName}");
             }
         }
 
-        [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
-        public void RPC_MegaPhoneHandle(bool on, NetworkId objectId)
+        /// <summary>Applies the current networked megaphone state to this player's audio.</summary>
+        void ApplyMegaphoneState()
         {
-            // Only apply to the specific player that requested it
-            if (Object != null && Object.Id == objectId)
-            {
-                Debug.Log($"[PlayerNetworkSetup] RPC_MegaPhoneHandle called for player {PlayerName} - Megaphone: {on}");
-                SetMegaphoneMode(on);
-            }
+            SetSpatialBlend(MegaphoneOn ? 0f : 1f);
         }
 
         private void OnApplicationPause(bool pause)
@@ -508,68 +792,88 @@ namespace VertexFormCore
         }
 
         /// <summary>
-        /// Setup voice components for remote players to ensure their audio is heard
+        /// Sets up a remote player's voice and keeps checking until their audio is actually arriving.
+        ///
+        /// The previous version ran once, roughly half a second after spawn. If the Speaker object
+        /// existed it configured the AudioSource, logged success and stopped — but a Speaker existing
+        /// is not the same as it being LINKED to that player's voice stream. Photon links the stream
+        /// asynchronously, and on a client that was still streaming in the world it could easily be
+        /// late. The result was one specific remote player being inaudible on one specific client
+        /// while everyone else came through fine, with a log line claiming setup had succeeded.
+        ///
+        /// This version polls until speaker.IsLinked is true, so the log tells you whether voice is
+        /// genuinely working rather than whether an object reference was non-null.
         /// </summary>
         private void SetupRemotePlayerVoiceComponents()
         {
+            if (_remoteVoiceSetupCoroutine != null)
+                StopCoroutine(_remoteVoiceSetupCoroutine);
+
+            _remoteVoiceSetupCoroutine = StartCoroutine(SetupRemotePlayerVoiceRoutine());
+        }
+
+        private IEnumerator SetupRemotePlayerVoiceRoutine()
+        {
+            const float timeout = 30f;   // generous: a client may still be downloading the world
+            const float interval = 0.5f;
+
+            float elapsed = 0f;
+            bool configured = false;
+
             Debug.Log($"[PlayerNetworkSetup] Setting up remote player voice components for {PlayerName}");
 
-            // For remote players, we primarily need the Speaker component
-            if (playerSpeaker != null)
+            while (elapsed < timeout)
             {
-                AudioSource audioSource = playerSpeaker.GetComponent<AudioSource>();
-                if (audioSource != null)
-                {
-                    // Ensure audio source is properly configured for 3D spatial audio
-                    audioSource.spatialBlend = 1f; // Default to 3D spatial audio
-                    audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
-                    audioSource.minDistance = 1f;
-                    audioSource.maxDistance = 50f;
-                    Debug.Log($"[PlayerNetworkSetup] Remote player speaker audio source configured for {PlayerName}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[PlayerNetworkSetup] AudioSource not found on remote player speaker for {PlayerName}");
-                }
-            }
-            else if (voiceNetworkObject != null)
-            {
-                // Fallback: try to get speaker from VoiceNetworkObject
-                Debug.Log($"[PlayerNetworkSetup] Waiting for VoiceNetworkObject to initialize speaker for {PlayerName}");
-                StartCoroutine(WaitForRemotePlayerSpeaker());
-            }
-            else
-            {
-                Debug.LogError($"[PlayerNetworkSetup] No voice components found for remote player {PlayerName}!");
-            }
-        }
+                if (playerSpeaker == null)
+                    playerSpeaker = GetPlayerSpeaker();
 
-        /// <summary>
-        /// Coroutine to wait for remote player speaker to be initialized
-        /// </summary>
-        private IEnumerator WaitForRemotePlayerSpeaker()
-        {
-            float timeout = 10f;
-            float elapsed = 0f;
-
-            while (playerSpeaker == null && elapsed < timeout)
-            {
-                playerSpeaker = GetPlayerSpeaker();
                 if (playerSpeaker != null)
                 {
-                    Debug.Log($"[PlayerNetworkSetup] Remote player speaker found for {PlayerName}");
-                    SetupRemotePlayerVoiceComponents(); // Call setup again now that speaker exists
-                    yield break;
+                    if (!configured)
+                    {
+                        AudioSource audioSource = playerSpeaker.GetComponent<AudioSource>();
+                        if (audioSource != null)
+                        {
+                            audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+                            audioSource.minDistance = 1f;
+                            audioSource.maxDistance = 50f;
+
+                            // Deliberately NOT spatialBlend = 1f. Hardcoding 3D here overwrote the
+                            // megaphone every time this ran — including from the old retry path — so
+                            // a player who switched their megaphone on went quiet again the moment
+                            // their speaker finished linking. Derive it from the networked state.
+                            ApplyMegaphoneState();
+
+                            configured = true;
+                            Debug.Log($"[PlayerNetworkSetup] Remote player speaker audio source configured for {PlayerName}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[PlayerNetworkSetup] AudioSource not found on remote player speaker for {PlayerName}");
+                        }
+                    }
+
+                    if (playerSpeaker.IsLinked)
+                    {
+                        Debug.Log($"[PlayerNetworkSetup] Remote voice READY for {PlayerName} after {elapsed:F1}s (speaker linked).");
+                        _remoteVoiceSetupCoroutine = null;
+                        yield break;
+                    }
                 }
-                elapsed += 0.5f;
-                yield return new WaitForSeconds(0.5f);
+
+                elapsed += interval;
+                yield return new WaitForSeconds(interval);
             }
 
-            if (playerSpeaker == null)
-            {
-                Debug.LogError($"[PlayerNetworkSetup] Timeout: Could not find speaker for remote player {PlayerName}");
-            }
+            // Timed out. Say exactly which half failed — a missing speaker and an unlinked speaker
+            // are different problems, and "random voice issues" is what you get without this.
+            string state = playerSpeaker == null ? "speaker MISSING" : "speaker present but NOT LINKED";
+            Debug.LogError($"[PlayerNetworkSetup] Remote voice NOT ready for {PlayerName} after {timeout}s — {state}. " +
+                           $"This player will be inaudible on this client.");
+
+            _remoteVoiceSetupCoroutine = null;
         }
+
         /// <summary>
         /// Get the individual player recorder for muting
         /// </summary>

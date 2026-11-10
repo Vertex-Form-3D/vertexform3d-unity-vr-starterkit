@@ -12,18 +12,39 @@ public class SceneSwitcherTeleport : MonoBehaviour
     public string sceneName;
     public TMP_Text sceneNameText;
     [SerializeField] bool flyMode;
+    bool switching;
+
     void Start()
     {
-        if (GetComponent<Collider>() != null)
-        {
-            GetComponent<Collider>().isTrigger = true;
-        }
-        sceneNameText.text = sceneName;
+        var col = GetComponent<Collider>();
+        if (col != null)
+            col.isTrigger = true;
+
+        if (sceneNameText != null)
+            sceneNameText.text = sceneName;
     }
+
     public void SwitchScene()
     {
-        if (!ScenePlatformSupport.CanEnterScene(sceneName))
+        if (string.IsNullOrWhiteSpace(sceneName))
+        {
+            Debug.LogWarning("[SceneSwitcherTeleport] Scene name is empty. Set Scene Name before using this teleporter.");
+            switching = false;
             return;
+        }
+
+        if (!ScenePlatformSupport.CanEnterScene(sceneName))
+        {
+            switching = false;
+            return;
+        }
+
+        if (SceneLoader.Instance == null)
+        {
+            Debug.LogWarning("[SceneSwitcherTeleport] SceneLoader is missing. Cannot switch scenes.");
+            switching = false;
+            return;
+        }
 
         SceneLoader.Instance.isFlyModeEnabled = flyMode;
         SceneLoader.Instance.LoadScnene(sceneName);
@@ -31,23 +52,25 @@ public class SceneSwitcherTeleport : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Check for Fusion NetworkObject
-        if (other.GetComponent<NetworkObject>() != null)
+        if (switching || string.IsNullOrWhiteSpace(sceneName))
+            return;
+
+        var networkObject = other.GetComponentInParent<NetworkObject>();
+        if (networkObject != null)
         {
-            var networkObject = other.GetComponent<NetworkObject>();
-            if (other.GetComponent<PlayerNetworkSetup>() != null && networkObject.HasInputAuthority)
-            {
-                Invoke(nameof(SwitchScene), 1f);
-            }
-        }
-        else
-        {
-            // Fallback for non-networked XR Origin (local play)
-            if (other.GetComponent<XROrigin>() != null)
-            {
-                Invoke(nameof(SwitchScene), 1f);
-            }
+            if (other.GetComponentInParent<PlayerNetworkSetup>() != null && networkObject.HasInputAuthority)
+                QueueSwitch();
+            return;
         }
 
+        // Fallback for non-networked XR Origin (local play / WebGL)
+        if (other.GetComponentInParent<XROrigin>() != null)
+            QueueSwitch();
+    }
+
+    void QueueSwitch()
+    {
+        switching = true;
+        Invoke(nameof(SwitchScene), 1f);
     }
 }

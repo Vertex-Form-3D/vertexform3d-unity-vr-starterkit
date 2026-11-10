@@ -16,7 +16,7 @@ public class SettingsUIEditor : Editor
 
     private static readonly string PhotonCcuHelp =
         "Photon CCU: the session-list lobby uses a second NetworkRunner (one extra CCU) so worlds can show live player counts. " +
-        "Choose game-sessions-only to skip that runner and hide counts, freeing a CCU for more players in rooms.";
+        "Choose game-sessions-only to skip that runner, freeing a CCU for more players in rooms. Without the lobby runner the framework has no player counts to show, so the world list hides them unless your app supplies an external source (an API your app reports room counts to; see SessionDirectory).";
 
     private static readonly string IdleTimeoutHelp =
         "Set the number of minutes a user can remain inactive before IdleQuitDetector automatically quits the session or returns them to the Home scene (configured on the Login scene).";

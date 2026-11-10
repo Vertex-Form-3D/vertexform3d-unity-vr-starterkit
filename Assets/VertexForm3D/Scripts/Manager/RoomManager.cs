@@ -50,6 +50,36 @@ namespace VertexFormCore
         private bool _pendingVoiceJoin;
         private int _connectGeneration;
 
+        /// <summary>
+        /// Which connect <see cref="localVRPlayer"/> was spawned for.
+        ///
+        /// Moving between worlds means a new connect, a new runner and a new rig. The old rig is not
+        /// always dead by the time the next join arrives — it can still be a valid NetworkObject — so
+        /// "is it alive?" cannot tell a rig that belongs here from one left over from the world before.
+        /// This can: a rig whose generation is not the current one belongs to a world we have left,
+        /// whatever state it is in.
+        /// </summary>
+        private int _localRigGeneration = -1;
+
+        // Where the temporary loading rig was put, and whether it is currently being held there.
+        // See HoldTempRigInPlace.
+        private bool _tempRigAnchored;
+
+        // A spawn Fusion queued because the player prefab was still loading (TrySpawn -> Queued).
+        private bool _hasQueuedLocalSpawn;
+        private PlayerRef _queuedLocalSpawnPlayer;
+        private Vector3 _tempRigAnchor;
+
+        /// <summary>
+        /// True from the moment a world connect starts until the player is standing in that world.
+        ///
+        /// The temporary rig is only frozen during this window. It is a full XR rig with its own
+        /// locomotion — the same prefab the player uses to walk around the home scene — so holding
+        /// it whenever it happens to be switched on would pin the player to the spot at home. It is
+        /// inert only while a world is loading, which is the only time it is standing in nothing.
+        /// </summary>
+        private bool _worldTransitionInFlight;
+
         // Deferred spawn state: the networked VR player is only spawned once Fusion has finished
         // loading the addressable world scene, so spawn points from that scene are available.
         private bool _addressableSceneReady;
@@ -73,6 +103,17 @@ namespace VertexFormCore
         /// <summary>True while the runner is starting or in an active session (not fully shut down).</summary>
         public bool IsRunnerBusy =>
             _runner != null && (_runner.IsRunning || _runner.State == NetworkRunner.States.Starting);
+
+        /// <summary>
+        /// True once Fusion has finished loading the session scene(s) — i.e. there is a world around
+        /// the player.
+        ///
+        /// It goes false the moment a world transition begins and stays false until the next world is
+        /// in. During that gap the old world has unloaded, the player's rig is deliberately kept alive,
+        /// and there is nothing underneath them. Anything that reasons about the ground must sit that
+        /// window out rather than draw conclusions from it.
+        /// </summary>
+        public bool IsWorldSceneReady => _addressableSceneReady;
 
         GameObject connectVRObject;
         public Vector3 spawnPosition;
@@ -107,6 +148,15 @@ namespace VertexFormCore
             }
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
+
+            // Seatbelt for players who end up under the world anyway. Attached here rather than
+            // authored into a scene or prefab so that it cannot be lost in a merge, and so it
+            // ships with the framework instead of needing every project to remember it. This
+            // object already survives scene loads, which is exactly what the recovery needs.
+            if (GetComponent<PlayerFallRecovery>() == null)
+            {
+                gameObject.AddComponent<PlayerFallRecovery>();
+            }
         }
 
         void Start()
@@ -133,6 +183,8 @@ namespace VertexFormCore
         }
         void Update()
         {
+            HoldTempRigInPlace();
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 foreach (var player in playerNames)
@@ -140,6 +192,32 @@ namespace VertexFormCore
                     Debug.Log($"Player {player.Key.PlayerId} name is {player.Value} is in the room");
                 }
             }
+        }
+
+        /// <summary>
+        /// Pins the temporary loading rig to where it was placed.
+        ///
+        /// That rig is a placeholder to look through while a world downloads; it is never meant to
+        /// move. It had weight anyway. Taking its colliders away to stop it shoving people through
+        /// terrain also took away the floor it was resting on, so from the moment it was shown it
+        /// simply fell — one measured transition put it 114 metres down by the time the next world
+        /// finished loading, and since the rig is reused and repositioning it only ever "keeps it
+        /// where it is", each transition carried on from wherever the last one ended. That fall is
+        /// what players were looking through between worlds.
+        ///
+        /// Written as a position hold rather than by switching off whatever applies the gravity,
+        /// because the rig is a prefab any project can replace: a hold is true regardless of which
+        /// component is doing the moving. Only the rig root is held, so head and hand tracking
+        /// inside it are untouched.
+        /// </summary>
+        private void HoldTempRigInPlace()
+        {
+            if (!_worldTransitionInFlight || !_tempRigAnchored
+                || connectVRObject == null || !connectVRObject.activeSelf)
+                return;
+
+            if (connectVRObject.transform.position != _tempRigAnchor)
+                connectVRObject.transform.position = _tempRigAnchor;
         }
         public void GetMultiplayerData()
         {
@@ -256,11 +334,15 @@ namespace VertexFormCore
             Dictionary<string, SessionProperty> sessionProperties)
         {
             int generation = ++_connectGeneration;
+
+            // From here until the player is standing in the new world, the temporary rig is inert.
+            _worldTransitionInFlight = true;
             Debug.Log($"[RoomManager] ConnectToFusionSession session={sessionName}, world={(string.IsNullOrEmpty(mapName) ? "(base only)" : mapName)}, visible={isVisible}");
 
             await EnsureRunnerShutDownAsync();
             if (generation != _connectGeneration)
             {
+                // The newer connect owns the transition flag now, so it is deliberately left set.
                 Debug.Log("[RoomManager] Connect superseded by a newer request — aborting.");
                 return;
             }
@@ -357,6 +439,27 @@ namespace VertexFormCore
                 startGameArgs.PlayerCount = playerCount;
 
             // Start game session
+            // Optionally hand back the lobby's Photon connection before the game runner takes one.
+            //
+            // The session-list lobby is a second NetworkRunner living alongside this one, so while a
+            // player is inside a world they hold two connections, and two runners are delivering
+            // callbacks to whoever is listening. Closing the lobby here leaves exactly one runner for
+            // the duration of the session. The cost is that per-world player counts cannot update
+            // while the lobby is down, which is why it is a setting rather than the default.
+            //
+            // Awaited deliberately: the lobby must be fully down before StartGame, or the two overlap
+            // across the window where the local player object is spawned.
+            if (ProjectManager.ShutsDownLobbyRunnerOnWorldEntry && NetworkLobby.Instance != null)
+            {
+                await NetworkLobby.Instance.ShutdownLobbyRunner();
+
+                if (generation != _connectGeneration)
+                {
+                    Debug.Log("[RoomManager] Connect superseded while shutting the lobby runner down — aborting.");
+                    return;
+                }
+            }
+
             Debug.Log($"[RoomManager] About to call StartGame with session name: {sessionName} (scene path: {mapName})");
 
             var startGameTask = _runner.StartGame(startGameArgs);
@@ -381,6 +484,9 @@ namespace VertexFormCore
             }
             else
             {
+                // No world is coming, so the temporary rig must go back to behaving normally —
+                // otherwise a failed connect would leave the player frozen on the spot.
+                _worldTransitionInFlight = false;
                 Log("Failed to connect to room: " + result.ShutdownReason);
             }
         }
@@ -403,6 +509,31 @@ namespace VertexFormCore
             if (player == _runner.LocalPlayer)
             {
                 Debug.Log($"[SpawnManager] Local player joined: {player}");
+
+                // A rig left over from a previous world must go before we spawn into this one.
+                //
+                // Checking only whether it is DEAD was not enough, and that is what caused players to
+                // fall on every world change after the first. A world switch does not reliably kill the
+                // previous rig by the time this join arrives — it can still be a valid NetworkObject —
+                // so the dead-rig test passed it through as if it belonged here. Everything downstream
+                // then treated the player as already spawned: the temporary loading rig refused to
+                // show ("the networked player rig is already live"), and the spawn below skipped itself
+                // ("already spawned"). The result was a player left standing in the rig of a world that
+                // had just been unloaded, with nothing underneath them.
+                //
+                // Generation is the test that actually answers the question being asked. The first
+                // world of a session has no previous rig, which is exactly why the first transition
+                // always worked and every one after it did not.
+                bool rigIsFromAnotherWorld = localVRPlayer != null && _localRigGeneration != _connectGeneration;
+
+                if (localVRPlayer != null && (!HasLiveLocalPlayerRig() || rigIsFromAnotherWorld))
+                {
+                    Debug.LogWarning($"[SpawnManager] Clearing a local player rig that does not belong to this world " +
+                                     $"(rigGeneration={_localRigGeneration}, currentGeneration={_connectGeneration}, " +
+                                     $"stillLive={HasLiveLocalPlayerRig()}) so this join spawns properly.");
+                    ClearLocalPlayerRig("rig from a previous world at join");
+                }
+
                 SetAddressableSceneVisuals(false);
                 PositionTempVRPlayerInstantly();
                 TrySpawnNetworkPlayerWhenReady(player);
@@ -417,10 +548,16 @@ namespace VertexFormCore
         {
             _addressableSceneReady = false;
             _hasPendingNetworkSpawn = false;
+            _hasQueuedLocalSpawn = false;
             if (_spawnWhenReadyCoroutine != null)
             {
                 StopCoroutine(_spawnWhenReadyCoroutine);
                 _spawnWhenReadyCoroutine = null;
+            }
+            if (_spawnWhenGroundCoroutine != null)
+            {
+                StopCoroutine(_spawnWhenGroundCoroutine);
+                _spawnWhenGroundCoroutine = null;
             }
         }
 
@@ -460,6 +597,13 @@ namespace VertexFormCore
             if (localVRPlayer != null)
             {
                 Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+
+                // Nothing further runs on this path, so the temporary loading rig that
+                // PositionTempVRPlayerInstantly just switched on would stay on next to the real one.
+                // That is the two sets of hands and the second teleport ray: movement input goes to one
+                // rig while the camera renders the other, and the comfort vignette comes from whichever
+                // rig owns the locomotion provider.
+                ShowLocalTempVRPlayer(false);
                 return;
             }
 
@@ -478,14 +622,41 @@ namespace VertexFormCore
                 _spawnWhenReadyCoroutine = StartCoroutine(WaitForAddressableSceneThenSpawn(player));
         }
 
+        /// <summary>
+        /// Waits for the addressable world scene with NO timeout, by design.
+        ///
+        /// This wait spans a cloud download of the world bundle, which on a weak connection can
+        /// legitimately take minutes. The previous 60s limit gave up and force-spawned the
+        /// player into a scene that had no colliders yet — they fell forever, and because the
+        /// world finished loading underneath them afterwards they ended up below the terrain
+        /// with no way back up. Not spawning is strictly better than spawning into a world with
+        /// no ground: the loading screen simply stays up until the scene is genuinely ready.
+        ///
+        /// The coroutine is stopped by <see cref="ResetAddressableSceneSpawnState"/> when the
+        /// player leaves, and bails out on its own if the runner goes away, so it cannot leak.
+        /// </summary>
         private IEnumerator WaitForAddressableSceneThenSpawn(PlayerRef player)
         {
-            const float timeout = 60f;
             float elapsed = 0f;
+            float nextHeartbeat = 30f;
 
-            while (!_addressableSceneReady && elapsed < timeout)
+            while (!_addressableSceneReady)
             {
+                if (_runner == null || !_runner.IsRunning)
+                {
+                    Debug.LogWarning($"[SpawnManager] Runner went away after {elapsed:F0}s while waiting for the world scene — abandoning deferred spawn.");
+                    _spawnWhenReadyCoroutine = null;
+                    yield break;
+                }
+
                 elapsed += Time.deltaTime;
+
+                if (elapsed >= nextHeartbeat)
+                {
+                    Debug.Log($"[SpawnManager] Still waiting for the addressable world scene to download/load ({elapsed:F0}s elapsed). Player stays on the loading screen until it is ready.");
+                    nextHeartbeat += 30f;
+                }
+
                 yield return null;
             }
 
@@ -494,23 +665,25 @@ namespace VertexFormCore
             if (!_hasPendingNetworkSpawn || _pendingNetworkSpawnPlayer != player)
                 yield break;
 
-            if (!_addressableSceneReady)
-            {
-                Debug.LogWarning("[SpawnManager] Timed out waiting for addressable scene load — spawning networked player with fallback position.");
-                ConsumePendingNetworkSpawn(force: true);
-                yield break;
-            }
-
+            Debug.Log($"[SpawnManager] Addressable world scene ready after {elapsed:F0}s — spawning networked player.");
             ConsumePendingNetworkSpawn();
         }
 
-        private void ConsumePendingNetworkSpawn(bool force = false)
+        /// <summary>
+        /// Spawns the deferred player, but only once the world scene is genuinely ready.
+        /// There is deliberately no "force" path: spawning without a loaded world means
+        /// spawning without colliders, which drops the player through the map permanently.
+        /// </summary>
+        private void ConsumePendingNetworkSpawn()
         {
             if (!_hasPendingNetworkSpawn)
                 return;
 
-            if (!_addressableSceneReady && !force)
+            if (!_addressableSceneReady)
+            {
+                Debug.LogWarning("[SpawnManager] ConsumePendingNetworkSpawn called before the world scene was ready — ignoring, the deferred spawn will run when it loads.");
                 return;
+            }
 
             var player = _pendingNetworkSpawnPlayer;
             _hasPendingNetworkSpawn = false;
@@ -524,9 +697,7 @@ namespace VertexFormCore
             if (localVRPlayer != null)
                 return;
 
-            Debug.Log(force
-                ? "[SpawnManager] Forcing deferred networked VR player spawn (scene not marked ready)."
-                : "[SpawnManager] Addressable scene loaded — spawning deferred networked VR player.");
+            Debug.Log("[SpawnManager] Addressable scene loaded — spawning deferred networked VR player.");
             SpawnNetworkPlayerAtWorldSpawn(player);
         }
 
@@ -586,16 +757,35 @@ namespace VertexFormCore
         /// Prefers PlayerSpawnPointScript poses, then a non-zero inspector spawnPosition, then a safe
         /// elevated fallback so large terrains do not bury the player at world origin under the mesh.
         /// </summary>
-        private void ResolveSpawnPose(out Vector3 spawnPos, out Quaternion spawnRot)
+        private void ResolveSpawnPose(PlayerRef player, out Vector3 spawnPos, out Quaternion spawnRot)
         {
             PlayerSpawnPointScript[] playerSpawnPointScripts = GetSpawnPointsInWorldScene();
             if (playerSpawnPointScripts.Length > 0)
             {
-                int pspIndex = UnityEngine.Random.Range(0, playerSpawnPointScripts.Length);
+                // Deterministic slot assignment, NOT random.
+                //
+                // Every client spawns its own player locally, so a random pick cannot be
+                // coordinated between clients. When a group arrives together (e.g. everyone
+                // stepping through a Creator Toolkit teleport at once) two clients routinely
+                // draw the same index, spawn capsules inside one another, and PhysX resolves
+                // the overlap by ejecting one of them — frequently downward, through the
+                // terrain collider, which is one-sided and offers no way back up.
+                //
+                // Deriving the slot from the player id makes collisions impossible while
+                // players <= spawn points, and needs no network agreement at all.
+                int id = Mathf.Abs(player.PlayerId);
+                int pspIndex = id % playerSpawnPointScripts.Length;
                 PlayerSpawnPointScript pps = playerSpawnPointScripts[pspIndex];
-                spawnPos = pps.transform.position;
+
                 spawnRot = pps.transform.rotation;
-                Debug.Log($"[SpawnManager] Using spawn point {pspIndex} at position {spawnPos}");
+
+                // More players than spawn points (the common case — a scene with a single
+                // marker puts EVERY player through this path) so fan them out instead of
+                // stacking them on top of each other.
+                int wrap = id / playerSpawnPointScripts.Length;
+                spawnPos = ResolveScatteredSpawn(pps.transform.position, wrap);
+
+                Debug.Log($"[SpawnManager] Using spawn point {pspIndex} (player {player.PlayerId}, ring {wrap}) at position {spawnPos}");
                 return;
             }
 
@@ -609,13 +799,124 @@ namespace VertexFormCore
 
             if (TryGetWorldSceneSafeFallback(out spawnPos, out spawnRot))
             {
+                spawnPos = LiftOutOfGeometry(spawnPos, "world-scene safe fallback");
                 Debug.LogWarning($"[SpawnManager] No spawn points / spawnPosition — using world-scene safe fallback at {spawnPos}");
                 return;
             }
 
-            spawnPos = new Vector3(0f, 2f, 0f);
+            spawnPos = LiftOutOfGeometry(new Vector3(0f, 2f, 0f), "elevated origin fallback");
             spawnRot = Quaternion.identity;
             Debug.LogWarning($"[SpawnManager] No spawn points found — using elevated origin fallback {spawnPos} (set PlayerSpawnPointScript or RoomManager.spawnPosition).");
+        }
+
+        /// <summary>
+        /// Last-resort guard for the two fallback spawn positions, which are guesses rather than
+        /// authored places: world origin plus two metres, or two metres above the scene's first root
+        /// object. Both assume that spot is in open air.
+        ///
+        /// A terrain authored away from the origin breaks that assumption completely — the centre of
+        /// the world can sit several metres BELOW the ground surface. Spawning there puts the player
+        /// inside the terrain, and a terrain collider is one-sided, so PhysX ejects them downward and
+        /// there is no way back up. This needs no crowd and no spawn-point contention: one player
+        /// arriving alone falls through, every time.
+        ///
+        /// Applied ONLY to the fallbacks. An authored spawn point inside a building legitimately has
+        /// geometry above it, and lifting those would stand people on the roof.
+        /// </summary>
+        private static Vector3 LiftOutOfGeometry(Vector3 candidate, string reason)
+        {
+            const float columnHeight = 1000f;
+            const float standOffset = 0.05f;
+
+            RaycastHit[] hits = Physics.RaycastAll(candidate + Vector3.up * columnHeight, Vector3.down,
+                                                   columnHeight * 2f, ~0, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0)
+                return candidate;
+
+            // Anything the column hits ABOVE the candidate is something the candidate is underneath.
+            // Take the LOWEST such surface rather than the first one the ray meets: the first is the
+            // roof of whatever is overhead, while the lowest is the floor immediately above the
+            // player, which is where they were actually meant to be standing.
+            bool buried = false;
+            float surfaceY = float.MaxValue;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                float y = hits[i].point.y;
+                if (y > candidate.y && y < surfaceY)
+                {
+                    surfaceY = y;
+                    buried = true;
+                }
+            }
+
+            if (!buried)
+                return candidate;
+
+            Vector3 lifted = new Vector3(candidate.x, surfaceY + standOffset, candidate.z);
+            Debug.LogWarning($"[SpawnManager] {reason} at {candidate} was underneath geometry — lifted to {lifted}. " +
+                             "This world has no reachable PlayerSpawnPoint; the fallback is a guess, not a place. Add one.");
+            return lifted;
+        }
+
+        /// <summary>
+        /// Places the Nth arrival around a spawn marker in a sunflower (phyllotaxis) pattern:
+        /// golden angle with radius growing as sqrt(n). That keeps neighbours roughly
+        /// <c>ringSpacing</c> apart however many players share one marker, where a fixed-radius
+        /// ring would bunch up badly — which matters most in a scene with a single spawn point,
+        /// because then every player is scattered and nothing else is keeping them apart.
+        ///
+        /// Each scattered position is ground-checked before it is accepted. If a spot has no
+        /// ground under it — a ledge, a hole, the far side of a wall — the radius is halved and
+        /// tried again, walking back toward the marker. Standing slightly close to someone is
+        /// always better than spawning over a drop.
+        /// </summary>
+        private static Vector3 ResolveScatteredSpawn(Vector3 basePos, int wrap)
+        {
+            if (wrap <= 0)
+                return TryFindGround(basePos, out Vector3 atMarker) ? atMarker : basePos;
+
+            const float ringSpacing = 0.8f;
+            float angle = wrap * 137.508f * Mathf.Deg2Rad;
+            Vector3 dir = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+            float radius = ringSpacing * Mathf.Sqrt(wrap);
+
+            for (int attempt = 0; attempt < 4; attempt++)
+            {
+                if (TryFindGround(basePos + dir * radius, out Vector3 grounded))
+                    return grounded;
+                radius *= 0.5f;
+            }
+
+            Debug.LogWarning($"[SpawnManager] No ground found around spawn marker {basePos} for ring {wrap} — falling back to the marker itself.");
+            return TryFindGround(basePos, out Vector3 fallback) ? fallback : basePos;
+        }
+
+        /// <summary>
+        /// Finds the solid ground directly beneath a candidate spawn position.
+        ///
+        /// Spawn markers are authored at floor level, so using one verbatim can leave the player
+        /// capsule slightly intersecting the floor; PhysX then resolves that penetration by
+        /// ejecting the capsule, and on a terrain that often means downward and through.
+        ///
+        /// Deliberately short-range: the probe starts just above the candidate and reaches only
+        /// a couple of metres down, so it corrects small placement errors but can never relocate
+        /// a player onto a different storey or onto a ceiling above them.
+        /// </summary>
+        private static bool TryFindGround(Vector3 candidate, out Vector3 grounded)
+        {
+            const float probeUp = 0.5f;
+            const float probeDown = 2.0f;
+            const float standOffset = 0.05f;
+
+            Vector3 origin = candidate + Vector3.up * probeUp;
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, probeUp + probeDown, ~0, QueryTriggerInteraction.Ignore))
+            {
+                grounded = hit.point + Vector3.up * standOffset;
+                return true;
+            }
+
+            grounded = candidate;
+            return false;
         }
 
         private static bool TryGetWorldSceneSafeFallback(out Vector3 spawnPos, out Quaternion spawnRot)
@@ -667,11 +968,83 @@ namespace VertexFormCore
             if (localVRPlayer != null)
             {
                 Debug.Log("[SpawnManager] Networked VR player already spawned — skipping.");
+
+                // Nothing further runs on this path, so the temporary loading rig that
+                // PositionTempVRPlayerInstantly just switched on would stay on next to the real one.
+                // That is the two sets of hands and the second teleport ray: movement input goes to one
+                // rig while the camera renders the other, and the comfort vignette comes from whichever
+                // rig owns the locomotion provider.
+                ShowLocalTempVRPlayer(false);
                 return;
             }
 
-            ResolveSpawnPose(out Vector3 spawnPos, out Quaternion spawnRot);
-            SpawnVRPlayer(player, spawnPos, spawnRot);
+            if (_spawnWhenGroundCoroutine != null)
+                return;                                 // already waiting for this world's ground
+            _spawnWhenGroundCoroutine = StartCoroutine(SpawnWhenGroundIsPresent(player));
+        }
+
+        private Coroutine _spawnWhenGroundCoroutine;
+
+        /// <summary>
+        /// Spawns the player only once there is solid ground under their spawn position.
+        ///
+        /// 2026-10-01, seen live in Luxury Villa: a Quest joining as the second player was placed on
+        /// the spawn marker at the world origin and fell straight through the terrain, at x=0, z=0,
+        /// forever. The ground probe around the marker had found nothing, so the player was placed
+        /// on the marker itself, which sits on (or just inside) the terrain surface. On a slower
+        /// device the world scene reports "loaded" a moment before its colliders are queryable;
+        /// spawning a capsule that overlaps a one-sided terrain makes PhysX push it out downward.
+        /// The editor, being fast, always found the ground, which is why it never happened there.
+        ///
+        /// So: sync physics, look for ground, and if there is none yet keep the loading rig up
+        /// and look again next frame. If the world genuinely has no ground at the marker after
+        /// the timeout, spawn ABOVE it rather than in it, so the player drops onto whatever is
+        /// there instead of being ejected through it.
+        /// </summary>
+        private IEnumerator SpawnWhenGroundIsPresent(PlayerRef player)
+        {
+            const float timeout = 15f;
+            const float liftWhenNoGround = 1.5f;
+            float waited = 0f;
+
+            while (true)
+            {
+                if (_runner == null || !_runner.IsRunning || !_addressableSceneReady || localVRPlayer != null)
+                {
+                    _spawnWhenGroundCoroutine = null;
+                    yield break;
+                }
+
+                // Make sure colliders that were just loaded or moved are visible to raycasts.
+                Physics.SyncTransforms();
+
+                ResolveSpawnPose(player, out Vector3 spawnPos, out Quaternion spawnRot);
+
+                if (TryFindGround(spawnPos, out Vector3 grounded))
+                {
+                    if (waited > 0f)
+                        Debug.Log($"[SpawnManager] Ground under the spawn position became available after {waited:F1}s.");
+                    _spawnWhenGroundCoroutine = null;
+                    SpawnVRPlayer(player, grounded, spawnRot);
+                    yield break;
+                }
+
+                if (waited >= timeout)
+                {
+                    Vector3 lifted = spawnPos + Vector3.up * liftWhenNoGround;
+                    Debug.LogWarning($"[SpawnManager] No ground under spawn position {spawnPos} after {timeout:F0}s — " +
+                                     $"spawning {liftWhenNoGround}m above it at {lifted}. Check that the floor at this spawn point has a collider.");
+                    _spawnWhenGroundCoroutine = null;
+                    SpawnVRPlayer(player, lifted, spawnRot);
+                    yield break;
+                }
+
+                if (waited == 0f)
+                    Debug.Log($"[SpawnManager] No ground under spawn position {spawnPos} yet — waiting for the world's colliders before spawning.");
+
+                waited += Time.deltaTime;
+                yield return null;
+            }
         }
 
         private void SpawnVRPlayer(PlayerRef player, Vector3 spawnPos, Quaternion spawnRot)
@@ -695,46 +1068,258 @@ namespace VertexFormCore
 
             ShowLocalTempVRPlayer(false);
 
-            NetworkObject vrpNetworkObject = _runner.Spawn(prefabToSpawn, spawnPos, spawnRot, player);
-            Debug.Log($"[SpawnManager] Runner.Spawn returned: {(vrpNetworkObject != null ? vrpNetworkObject.name : "NULL")}");
+            // TrySpawn rather than Spawn, because Spawn cannot tell "failed" apart from "queued".
+            //
+            // NetworkProjectConfig has EnqueueIncompleteSynchronousSpawns switched on. With that flag,
+            // when the player prefab is not loaded yet — typically the FIRST entry of a session —
+            // Spawn returns null, and Fusion then spawns the player anyway a frame or two later.
+            // We used to read that null as a failure: the temporary loading rig was switched back on,
+            // and because localVRPlayer is only ever set from the return value, nothing ever learned
+            // that the real player had arrived. That is the double hands: the temp rig frozen where it
+            // was put, next to a real player who can move. A respawn "fixed" it because by then the
+            // prefab was loaded and Spawn returned the object directly.
+            //
+            // Queued spawns now complete through NotifyLocalPlayerSpawned, which the player object
+            // calls from its own Spawned() — the one moment that is true on every path.
+            NetworkSpawnStatus spawnStatus = _runner.TrySpawn(prefabToSpawn, out NetworkObject vrpNetworkObject, spawnPos, spawnRot, player);
+            Debug.Log($"[SpawnManager] Runner.TrySpawn returned {spawnStatus}: {(vrpNetworkObject != null ? vrpNetworkObject.name : "NULL")}");
+
+            if (spawnStatus == NetworkSpawnStatus.Queued)
+            {
+                _queuedLocalSpawnPlayer = player;
+                _hasQueuedLocalSpawn = true;
+
+                // Keep the loading rig up at the spawn point until the real player arrives, so the
+                // headset is never left without a camera for those frames. NotifyLocalPlayerSpawned
+                // takes it down.
+                Debug.Log("[SpawnManager] Player prefab still loading — spawn queued by Fusion. Holding the temp rig until the player object arrives.");
+                ConnectVRObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
+                ShowLocalTempVRPlayer(true);
+                return;
+            }
 
             if (vrpNetworkObject != null)
             {
                 Debug.Log("vrpNetworkObject.transform.position: " + vrpNetworkObject.transform.position);
                 Debug.Log("vrpNetworkObject.transform.rotation: " + vrpNetworkObject.transform.rotation);
 
-                // Track the spawned player
-                spawnedPlayers[player] = vrpNetworkObject;
-
                 if (vrpNetworkObject.HasInputAuthority)
                 {
-                    localVRPlayer = vrpNetworkObject.gameObject;
-
-                    if (SceneLoader.Instance != null)
-                        SceneLoader.Instance.ActivateScene();
-                    Debug.Log($"[SpawnManager] VR Player spawned successfully! GameObject: {localVRPlayer.name}");
-                    // Manually join voice lobby now that local player is spawned (with a small delay)
-                    StartCoroutine(JoinVoiceLobbyDelayed(1f));
+                    RegisterLocalPlayerRig(vrpNetworkObject, "TrySpawn");
                 }
                 else
                 {
+                    spawnedPlayers[player] = vrpNetworkObject;
                     Debug.Log($"[SpawnManager] Remote VR Player spawned: {vrpNetworkObject.name}");
                 }
             }
             else
             {
-                Debug.LogError("[SpawnManager] Failed to spawn VR Player - Runner.Spawn returned null. Restoring temp VR player.");
+                // This is the branch that produces the "double hands". The spawn failed, so we put the
+                // player back in the loading rig — and if a player object then arrives from the network
+                // anyway, there are two of them. Log everything needed to work out WHY the spawn failed,
+                // because the failure itself is the bug; restoring the temp rig is only the symptom.
+                Debug.LogError(
+                    $"[SpawnManager] Failed to spawn VR Player - TrySpawn returned {spawnStatus}. Restoring temp VR player. " +
+                    $"runner='{(_runner != null ? _runner.name : "NULL")}' " +
+                    $"runnerRunning={(_runner != null && _runner.IsRunning)} " +
+                    $"runnerState={(_runner != null ? _runner.State.ToString() : "n/a")} " +
+                    $"isSharedModeMaster={(_runner != null && _runner.IsSharedModeMasterClient)} " +
+                    $"player={player} playerIsLocal={(_runner != null && player == _runner.LocalPlayer)} " +
+                    $"localPlayer={(_runner != null ? _runner.LocalPlayer.ToString() : "n/a")} " +
+                    $"prefab='{(prefabToSpawn != null ? prefabToSpawn.name : "NULL")}' " +
+                    $"activeRunners={FindObjectsByType<NetworkRunner>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length} " +
+                    $"spawnPos={spawnPos}");
+
                 ConnectVRObject.transform.SetPositionAndRotation(spawnPos, spawnRot);
                 ShowLocalTempVRPlayer(true);
             }
         }
 
+        /// <summary>
+        /// Called by the local player object from its own <c>Spawned()</c>. This is the only signal that
+        /// is true on every spawn path, including a spawn Fusion queued because the prefab was still
+        /// loading. If RoomManager already registered this object (the normal, immediate case) it does
+        /// nothing; otherwise it completes the registration the queued spawn skipped, and takes the
+        /// temporary loading rig down.
+        /// </summary>
+        public void NotifyLocalPlayerSpawned(NetworkObject netObj)
+        {
+            if (netObj == null || !netObj.HasInputAuthority)
+                return;
+
+            // Only our own game runner's player counts; another runner's object is not us.
+            if (_runner == null || netObj.Runner != _runner)
+            {
+                Debug.Log($"[SpawnManager] Ignoring local-player Spawned() from another runner ('{(netObj.Runner != null ? netObj.Runner.name : "NULL")}').");
+                return;
+            }
+
+            if (localVRPlayer == netObj.gameObject)
+                return;
+
+            RegisterLocalPlayerRig(netObj, _hasQueuedLocalSpawn ? "queued spawn completed" : "Spawned() callback");
+        }
+
+        /// <summary>
+        /// Everything that must happen once the local networked rig exists. Shared by the immediate
+        /// spawn and the queued spawn so the two can never drift apart again.
+        /// </summary>
+        private void RegisterLocalPlayerRig(NetworkObject netObj, string source)
+        {
+            PlayerRef owner = netObj.InputAuthority;
+            if (_hasQueuedLocalSpawn)
+                owner = _queuedLocalSpawnPlayer;
+
+            _hasQueuedLocalSpawn = false;
+
+            spawnedPlayers[owner] = netObj;
+            localVRPlayer = netObj.gameObject;
+
+            // Stamp the rig with the connect it belongs to, so the next world change can tell
+            // it apart from the rig it is about to spawn.
+            _localRigGeneration = _connectGeneration;
+
+            // The player is in the world. The temporary rig is no longer standing in nothing,
+            // so it stops being held.
+            _worldTransitionInFlight = false;
+
+            // The real rig is here, so the loading rig goes — whichever path got us here.
+            ShowLocalTempVRPlayer(false);
+
+            if (SceneLoader.Instance != null)
+                SceneLoader.Instance.ActivateScene();
+            Debug.Log($"[SpawnManager] VR Player spawned successfully ({source})! GameObject: {localVRPlayer.name}");
+            // Manually join voice lobby now that local player is spawned (with a small delay)
+            StartCoroutine(JoinVoiceLobbyDelayed(1f));
+        }
+
         public void ShowLocalTempVRPlayer(bool status)
         {
+            // The temporary rig and the real networked rig must never be on together: each carries its own
+            // camera, hands and locomotion, so two of them means two teleport rays, and movement input goes
+            // to one rig while you are looking through the other.
+            if (status && HasLiveLocalPlayerRig())
+            {
+                Debug.LogWarning("[SpawnManager] Refusing to show the temporary VR rig — the networked player rig is already live. Showing both leaves two sets of hands and splits movement input.");
+                _tempRigAnchored = false;
+                ConnectVRObject.SetActive(false);
+                return;
+            }
+
             Debug.Log("ConnectVRObject.transform.position: " + ConnectVRObject.transform.position);
             Debug.Log("ConnectVRObject.transform.rotation: " + ConnectVRObject.transform.rotation);
             ConnectVRObject.SetActive(status);
+
+            if (status)
+            {
+                SuppressTempRigCollision(ConnectVRObject);
+
+                // Whatever position it was just given is the one it keeps until it is hidden again.
+                _tempRigAnchor = ConnectVRObject.transform.position;
+                _tempRigAnchored = true;
+            }
+            else
+            {
+                _tempRigAnchored = false;
+            }
+
             Debug.Log($"[SpawnManager] Temp VR Player visibility set to: {status}");
+        }
+
+        /// <summary>
+        /// Takes the temporary loading rig out of physics entirely.
+        ///
+        /// It is a placeholder to look through while the world downloads; it never needs to
+        /// collide with anything. Leaving it solid is what turns the "double hands" glitch into
+        /// people falling out of the world: when this rig is up at the same time as the real
+        /// player rig there are two capsules in one spot, PhysX is already pushing them apart,
+        /// and the moment another player's capsule arrives nearby that push gets big enough to
+        /// drive somebody down through a terrain collider — which is one-sided, so there is no
+        /// way back up.
+        ///
+        /// Deliberately a blunt safety net rather than a fix for the handoff itself. Whatever
+        /// path leaves this rig switched on, and whenever it started happening, it can no longer
+        /// throw anyone out of the world — the worst case becomes a cosmetic second pair of hands.
+        ///
+        /// Triggers are left alone: those are used for interaction, not for blocking movement.
+        /// </summary>
+        private static void SuppressTempRigCollision(GameObject rig)
+        {
+            if (rig == null)
+                return;
+
+            int disabled = 0;
+            foreach (Collider col in rig.GetComponentsInChildren<Collider>(true))
+            {
+                if (col == null || !col.enabled || col.isTrigger)
+                    continue;
+
+                col.enabled = false;
+                disabled++;
+            }
+
+            if (disabled > 0)
+            {
+                Debug.Log($"[SpawnManager] Temp VR rig removed from physics ({disabled} collider(s) disabled).");
+            }
+        }
+
+        /// <summary>
+        /// True when <see cref="localVRPlayer"/> still refers to a real, networked rig. A rig despawned by
+        /// Fusion leaves a destroyed reference behind, which must not count as "already spawned".
+        /// </summary>
+        private bool HasLiveLocalPlayerRig()
+        {
+            if (localVRPlayer == null)
+                return false;
+
+            var netObj = localVRPlayer.GetComponent<NetworkObject>();
+            return netObj != null && netObj.IsValid;
+        }
+
+        /// <summary>
+        /// Forgets (and removes) the local networked rig. Nothing used to clear <see cref="localVRPlayer"/>,
+        /// so the reference outlived the session. On the next join the spawn was skipped as "already
+        /// spawned" while the temporary loading rig stayed switched on — the double hands and rays, with
+        /// movement going to a rig that was no longer the one being rendered.
+        /// </summary>
+        private void ClearLocalPlayerRig(string reason)
+        {
+            GameObject rig = localVRPlayer;
+
+            localVRPlayer = null;
+            _localRigGeneration = -1;
+            _hasQueuedLocalSpawn = false;
+            spawnedPlayers.Clear();
+
+            if (rig == null)
+                return;
+
+            Debug.Log($"[SpawnManager] Clearing local player rig ({reason}).");
+
+            NetworkObject netObj = rig.GetComponent<NetworkObject>();
+
+            // Fusion owns anything it spawned. Destroying one of its objects behind its back logs errors
+            // and can leave the room with a phantom player, so despawn through the runner while that is
+            // still possible, and leave anything we don't own for the shutdown that follows.
+            //
+            // The runner has to be the one that spawned THIS rig. A rig left over from the previous
+            // world belongs to the previous runner, and asking the current runner to despawn it is
+            // asking about an object it has never heard of — which errors and, worse, returns here
+            // without removing anything, leaving the stale rig in the scene.
+            if (netObj != null && netObj.IsValid && _runner != null && _runner.IsRunning && netObj.Runner == _runner)
+            {
+                if (netObj.HasStateAuthority)
+                {
+                    _runner.Despawn(netObj);
+                }
+
+                return;
+            }
+
+            // No live runner behind it any more — this is a leftover GameObject, safe to remove directly.
+            Destroy(rig);
         }
 
         /// <summary>
@@ -928,8 +1513,32 @@ namespace VertexFormCore
 #endif
             return appSettings;
         }
+        /// <summary>
+        /// "I'm stuck" — puts the local player back on the last ground they stood on.
+        ///
+        /// Exists so a menu Button can be wired to it in the Inspector. The recovery component
+        /// itself is attached at runtime and so cannot be dragged into an OnClick slot, but this
+        /// manager is a real object in the scene, so it can.
+        ///
+        /// Covers what the automatic recovery cannot see on its own: being wedged inside geometry
+        /// rather than below it, where there is still ground underneath and nothing looks wrong.
+        /// </summary>
+        public void UnstickLocalPlayer()
+        {
+            var recovery = GetComponent<PlayerFallRecovery>();
+            if (recovery == null)
+            {
+                Debug.LogWarning("[RoomManager] Unstick requested but no PlayerFallRecovery is attached.");
+                return;
+            }
+
+            recovery.RecoverNow();
+        }
+
         public void LeaveRoom()
         {
+            ClearLocalPlayerRig("LeaveRoom");
+
             if (_runner != null && IsRunnerBusy)
             {
                 _runner.Shutdown();
@@ -979,8 +1588,40 @@ namespace VertexFormCore
 
         #region Fusion Callback Methods 
 
+        /// <summary>
+        /// True when this callback came from the runner this manager owns.
+        ///
+        /// More than one runner can be alive at once: the session-list lobby runs its own, so worlds can
+        /// show live player counts. Both call these same callbacks, and nothing here used to distinguish
+        /// them.
+        ///
+        /// That is not harmless. A PlayerRef belongs to the runner that issued it, so handing a lobby
+        /// PlayerRef to <c>_runner.Spawn()</c> asks the game runner to spawn for a player it has never
+        /// heard of — and Fusion answers with null. That null is what sends us down the failure branch
+        /// that restores the temporary rig, which is where the second pair of hands comes from.
+        ///
+        /// Session-list events are deliberately NOT filtered through this: receiving those is the lobby
+        /// runner's entire purpose.
+        /// </summary>
+        private bool IsGameRunner(NetworkRunner runner)
+        {
+            // Our own runner does not exist yet, so nothing arriving now can belong to it.
+            if (_runner == null)
+                return false;
+
+            if (runner == _runner)
+                return true;
+
+            Debug.Log($"[RoomManager] Ignoring callback from another runner " +
+                      $"('{(runner != null ? runner.name : "NULL")}'); this manager owns '{_runner.name}'.");
+            return false;
+        }
+
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
         {
+            if (!IsGameRunner(runner))
+                return;
+
             Debug.Log($"[RoomManager] OnPlayerJoined callback triggered for player: {player}, Total players: {runner.SessionInfo.PlayerCount}");
             if (player == runner.LocalPlayer)
             {
@@ -1094,6 +1735,9 @@ namespace VertexFormCore
         }
         public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
         {
+            if (!IsGameRunner(runner))
+                return;
+
             // Release any grabbed interactables that were held by this player (so they don't stay stuck)
             var interactables = FindObjectsByType<XRGrabNetworkInteractable>(FindObjectsSortMode.None);
             foreach (var interactable in interactables)
@@ -1153,6 +1797,9 @@ namespace VertexFormCore
         }
         public void OnConnectedToServer(NetworkRunner runner)
         {
+            if (!IsGameRunner(runner))
+                return;
+
             Debug.Log($"[RoomManager] OnConnectedToServer called - Connected to Fusion server. Runner: {runner.name}, State: {runner.State}");
             Log("Connected to server - Ready to join sessions");
             TryConsumePendingVoiceJoin("OnConnectedToServer");
@@ -1160,12 +1807,23 @@ namespace VertexFormCore
 
         public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
         {
+            // Guarded hard. HandleUnexpectedDisconnect drops the player out of their world and
+            // back to the main scene; the lobby runner losing its connection is no reason at all
+            // to do that to someone who is happily standing in a world.
+            if (!IsGameRunner(runner))
+                return;
+
             Log($"Disconnected from server: {reason}");
             HandleUnexpectedDisconnect($"Disconnected from server: {reason}");
         }
 
         public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
         {
+            // Same reasoning as OnDisconnectedFromServer: a failed lobby connection must not
+            // evict a player from the world they are already in.
+            if (!IsGameRunner(runner))
+                return;
+
             Debug.LogError($"[RoomManager] OnConnectFailed called - Connection failed: {reason}");
             Log($"Connection failed: {reason}");
             HandleUnexpectedDisconnect($"Connection failed: {reason}");
@@ -1173,9 +1831,36 @@ namespace VertexFormCore
 
         public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
         {
+            // The lobby runner is shut down routinely — every time the session list is no longer
+            // needed. Letting that run the block below would reset the addressable scene state of
+            // a world that is still loading, and on a non-Ok reason boot the player out of it.
+            if (!IsGameRunner(runner))
+                return;
+
             Log($"Runner shutdown: {shutdownReason}");
             _pendingVoiceJoin = false;
+
+            // Deliberately does NOT clear _worldTransitionInFlight. A world change shuts the old
+            // runner down *after* the new connect has already begun, so clearing here would switch
+            // the temporary rig's hold off again halfway through the very transition it exists for.
+            // That flag is cleared where the transition actually ends: a successful spawn, or a
+            // StartGame that failed.
+
             ResetAddressableSceneSpawnState();
+
+            // Deliberately does NOT clear the local player rig here.
+            //
+            // An earlier version did, on the reasoning that a shutdown ends the session. It does
+            // not: moving between worlds also shuts the runner down, and that is an ordinary
+            // transition rather than an ending. Destroying the rig on that path pulled the player
+            // out of their own body midway through the transition screen — they fell, with nothing
+            // to stand in, until the next spawn put them back. "Fell during the transition, then
+            // respawned in the scene" was this, and nothing else.
+            //
+            // The stale reference this was meant to catch is handled where it can be judged
+            // safely: PlayerJoined checks HasLiveLocalPlayerRig() and clears the reference only
+            // when the rig behind it is genuinely gone. LeaveRoom still clears explicitly, because
+            // leaving really is an ending.
 
             // Avoid scene fallback on user-initiated / normal shutdown.
             if (shutdownReason != ShutdownReason.Ok)
@@ -1241,11 +1926,20 @@ namespace VertexFormCore
 
         public void OnSceneLoadStart(NetworkRunner runner)
         {
+            if (!IsGameRunner(runner))
+                return;
+
             Debug.Log($"[RoomManager] OnSceneLoadStart - Fusion is loading scene(s)");
         }
 
         public void OnSceneLoadDone(NetworkRunner runner)
         {
+            // This one ends in ConsumePendingNetworkSpawn(). If the lobby runner ever reaches it,
+            // the pending spawn is consumed against the wrong runner and the player object is
+            // lost — exactly the shape of failure we are chasing.
+            if (!IsGameRunner(runner))
+                return;
+
             Debug.Log($"[RoomManager] OnSceneLoadDone - Fusion finished loading scene(s)");
             _addressableSceneReady = true;
             TryConsumePendingVoiceJoin("OnSceneLoadDone");

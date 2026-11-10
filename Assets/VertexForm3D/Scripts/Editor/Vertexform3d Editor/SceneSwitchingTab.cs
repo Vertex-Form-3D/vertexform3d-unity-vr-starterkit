@@ -82,14 +82,10 @@ namespace VertexFormCore.Editor
                     {
                         Debug.LogWarning("Already attached.");
                     }
-                    if (obj.GetComponent<Collider>() != null)
-                    {
-                        obj.GetComponent<Collider>().isTrigger = true;
-                    }
-                    else
-                    {
-                        obj.AddComponent<Collider>().isTrigger = true;
-                    }
+                    var col = obj.GetComponent<Collider>();
+                    if (col == null)
+                        col = obj.AddComponent<BoxCollider>();
+                    col.isTrigger = true;
                     EditorSceneManager.MarkSceneDirty(obj.scene);
                 }
             }

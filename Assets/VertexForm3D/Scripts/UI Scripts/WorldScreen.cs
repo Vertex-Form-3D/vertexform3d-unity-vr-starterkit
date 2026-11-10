@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -27,6 +28,10 @@ public class WorldScreen : MonoBehaviour
     [SerializeField] Sprite starSprite;
     [SerializeField] Sprite unStarSprite;
 
+    [Header("Info Panel Animation")]
+    [SerializeField] float infoPanelAnimDuration = 0.22f;
+
+    Coroutine _infoAnim;
     int _placesListIndex = -1;
     string _favoritesPanelKey;
     CategoryItemView _starCategoryItemView;
@@ -40,6 +45,90 @@ public class WorldScreen : MonoBehaviour
     {
         ResolveReferences();
         WorldFavorites.FavoritesChanged += OnFavoritesChanged;
+    }
+
+    void OnEnable()
+    {
+        // Every time this panel is shown (tab selected, menu reopened, etc.)
+        // reset the info overlay so the user always lands on the worlds list.
+        RecoverInteractionState();
+    }
+
+    void OnDisable()
+    {
+        // Disabling this object also kills the info panel's fade-in coroutine wherever it had got to. Tidy up
+        // here so an interrupted fade can never leave the overlay switched on at partial or zero alpha — a
+        // CanvasGroup that is invisible still blocks the controller ray, and it covers every card.
+        // No SetActive here: changing a child's active state while this object is itself being switched
+        // off is not allowed. OnEnable hides the overlay on the next show.
+        HideInfoOverlay(deactivate: false);
+    }
+
+    /// <summary>
+    /// Clears every piece of state that can leave the world cards unresponsive while the tab bar still
+    /// works. VR testers found that switching Main → Worlds brought the cards back; this does the same
+    /// reset whenever the screen is shown, including when the menu is simply reopened.
+    ///
+    /// The cause has not been caught live, so anything found out of place is logged first. The next time
+    /// it happens, one line in the headset log (Android Logcat, filter "WorldScreen") says which it was.
+    /// </summary>
+    void RecoverInteractionState()
+    {
+        var found = new List<string>();
+
+        if (worldInfoScreen != null && worldInfoScreen.activeSelf)
+        {
+            var cg = worldInfoScreen.GetComponent<CanvasGroup>();
+            found.Add(cg != null
+                ? $"info overlay was still active (alpha {cg.alpha:0.00}, blocksRaycasts {cg.blocksRaycasts})"
+                : "info overlay was still active");
+        }
+
+        if (UIEffectManager.Instance != null && UIEffectManager.Instance.IsInputFieldSelected)
+        {
+            // Stuck true when a text field is closed without a deselect, e.g. the menu shut while typing.
+            // While it is set, every UIEffect-driven hover in the menu stops responding.
+            found.Add("UIEffectManager.IsInputFieldSelected was stuck on");
+            UIEffectManager.Instance.IsInputFieldSelected = false;
+        }
+
+        if (gridScrollViewPager != null && gridScrollViewPager.IsInitialized &&
+            Mathf.Abs(gridScrollViewPager.ActualScrollPosition - gridScrollViewPager.ExpectedScrollPosition) > 0.01f)
+        {
+            found.Add($"world grid scroll was off its page (at {gridScrollViewPager.ActualScrollPosition:0.00}, " +
+                      $"page {gridScrollViewPager.CurrentPage}/{gridScrollViewPager.TotalPages} expects " +
+                      $"{gridScrollViewPager.ExpectedScrollPosition:0.00})");
+        }
+
+        HideInfoOverlay();
+        if (gridScrollViewPager != null)
+            gridScrollViewPager.SnapToCurrentPage();
+
+        if (found.Count > 0)
+            Debug.LogWarning($"[WorldScreen] '{name}' recovered UI state on show: {string.Join("; ", found)}", this);
+    }
+
+    void HideInfoOverlay(bool deactivate = true)
+    {
+        if (_infoAnim != null)
+        {
+            StopCoroutine(_infoAnim);
+            _infoAnim = null;
+        }
+
+        if (worldInfoScreen == null)
+            return;
+
+        var cg = worldInfoScreen.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+            cg.blocksRaycasts = true;
+            cg.interactable = true;
+        }
+
+        if (deactivate)
+            worldInfoScreen.SetActive(false);
     }
 
     void OnDestroy()
@@ -76,7 +165,7 @@ public class WorldScreen : MonoBehaviour
 
         var allCat = new Category
         {
-            categoryName = "All Places",
+            categoryName = "All",
             environments = new List<WorldData>(_allWorlds)
         };
         InitWorlds(allCat);
@@ -107,8 +196,14 @@ public class WorldScreen : MonoBehaviour
                 worldNameText = FindTextInChildren(worldInfoScreen.transform, "WorldName");
             if (worldDescriptionText == null)
                 worldDescriptionText = FindTextInChildren(worldInfoScreen.transform, "WorldDescription");
-            if (worldImage == null)
-                worldImage = FindImageInChildren(worldInfoScreen.transform, "WorldImage");
+
+            // Prefer the thumbnail named WorldImage; an older prefab wiring pointed at the
+            // full-screen black overlay also named "Image", which hid the sprite.
+            var resolvedWorldImage = FindImageInChildren(worldInfoScreen.transform, "WorldImage");
+            if (resolvedWorldImage != null)
+                worldImage = resolvedWorldImage;
+            else if (worldImage == null)
+                worldImage = FindImageInChildren(worldInfoScreen.transform, "Image");
         }
 
         if (gridScrollViewPager == null)
@@ -259,12 +354,14 @@ public class WorldScreen : MonoBehaviour
 
         var allCat = new Category
         {
-            categoryName = "All Places",
+            categoryName = "All",
             environments = new List<WorldData>(_allWorlds)
         };
 
         var allCatObj = Instantiate(categoryPrefab, categoryParent);
         allCatObj.GetComponent<CategoryItemView>().SetCategory(allCat, this);
+        // Keep "All" pinned as the first category regardless of config order
+        allCatObj.transform.SetAsFirstSibling();
 
         RebuildFavouritesFromStarred();
         InitWorlds(allCat);
@@ -333,7 +430,7 @@ public class WorldScreen : MonoBehaviour
         if (worldInfoScreen == null || worldData == null)
             return;
 
-        worldInfoScreen.SetActive(true);
+        // Populate data first, then animate in
         if (worldNameText != null)
             worldNameText.text = worldData.worldName;
         if (worldDescriptionText != null)
@@ -342,13 +439,81 @@ public class WorldScreen : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate(worldDescriptionText.rectTransform);
         }
         if (worldImage != null)
+        {
             worldImage.sprite = worldData.worldImage;
+            worldImage.enabled = worldData.worldImage != null;
+            worldImage.color = worldData.worldImage != null ? Color.white : new Color(1f, 1f, 1f, 0f);
+        }
+
+        worldInfoScreen.SetActive(true);
+
+        if (_infoAnim != null)
+            StopCoroutine(_infoAnim);
+        _infoAnim = StartCoroutine(AnimateInfoPanelIn());
     }
 
+    /// <summary>
+    /// Called by the Back (←) button: hides the info overlay and returns to the world list.
+    /// </summary>
+    public void ShowWorldList()
+    {
+        HideInfoOverlay();
+    }
+
+    /// <summary>
+    /// Called by the Close (✕) button: hides the info overlay and closes the entire WorldScreen panel.
+    /// </summary>
     public void CloseWorldInfoScreen()
     {
-        if (worldInfoScreen != null)
-            worldInfoScreen.SetActive(false);
+        HideInfoOverlay();
+
+        // Return to the main menu the same way the tab bar does. This used to switch only this screen off
+        // without switching Main on, which left an empty content area until a tab was pressed.
+        var menuManager = GetComponentInParent<MenuManager>(true);
+        if (menuManager != null)
+        {
+            menuManager.OpenMainScreen();
+            return;
+        }
+
+        gameObject.SetActive(false);
+    }
+
+    IEnumerator AnimateInfoPanelIn()
+    {
+        var rt = worldInfoScreen.GetComponent<RectTransform>();
+        var cg = worldInfoScreen.GetComponent<CanvasGroup>();
+        if (cg == null)
+            cg = worldInfoScreen.AddComponent<CanvasGroup>();
+
+        // Slide in from the right edge and fade in
+        float panelW = rt.rect.width;
+        if (panelW <= 0f) panelW = 800f; // fallback before layout pass
+
+        Vector3 startPos = rt.localPosition + new Vector3(panelW * 0.15f, 0f, 0f);
+        Vector3 endPos   = rt.localPosition - new Vector3(panelW * 0.15f, 0f, 0f); // reset to 0
+        // Keep the destination at current (0,0,0) from anchor
+        endPos = new Vector3(0f, rt.localPosition.y, rt.localPosition.z);
+        startPos = endPos + new Vector3(panelW * 0.15f, 0f, 0f);
+
+        rt.localPosition = startPos;
+        cg.alpha = 0f;
+
+        float elapsed = 0f;
+        while (elapsed < infoPanelAnimDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / infoPanelAnimDuration);
+            // Ease-out quad
+            float eased = 1f - (1f - t) * (1f - t);
+            rt.localPosition = Vector3.Lerp(startPos, endPos, eased);
+            cg.alpha = eased;
+            yield return null;
+        }
+
+        rt.localPosition = endPos;
+        cg.alpha = 1f;
+        _infoAnim = null;
     }
 
     static void ClearChildren(Transform parent)

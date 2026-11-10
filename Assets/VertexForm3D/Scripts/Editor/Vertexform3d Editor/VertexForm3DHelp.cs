@@ -25,6 +25,18 @@ public class VertexForm3DHelp : EditorWindow
         EditorGUILayout.LabelField("Need Help? Reach Out to Us!", EditorStyles.boldLabel);
         GUILayout.Space(5);
 
+        // Tutorials Section
+        EditorGUILayout.BeginVertical("box");
+        EditorGUILayout.LabelField("Tutorials", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Follow step-by-step guides to install, configure, and build with Vertex Form 3D.", EditorStyles.wordWrappedLabel);
+        if (GUILayout.Button("Open Tutorials", GUILayout.Height(25)))
+        {
+            Application.OpenURL("https://vertexform3d.com/tutorials/");
+        }
+        EditorGUILayout.EndVertical();
+
+        GUILayout.Space(10);
+
         // Discord Section
         EditorGUILayout.BeginVertical("box");
         EditorGUILayout.LabelField("Join Our Discord", EditorStyles.boldLabel);

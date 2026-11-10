@@ -1,17 +1,5 @@
 {
   "dependencies": {
-    "com.cesium.unity": {
-      "version": "1.20.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.mathematics": "1.2.0",
-        "com.unity.test-framework": "1.1.31",
-        "com.unity.shadergraph": "12.1.6",
-        "com.unity.inputsystem": "1.4.2"
-      },
-      "url": "https://unity.pkg.cesium.com"
-    },
     "com.de-panther.webxr": {
       "version": "0.22.1",
       "depth": 0,

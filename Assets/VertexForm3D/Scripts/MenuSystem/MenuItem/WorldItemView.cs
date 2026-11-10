@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,6 +18,11 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     [SerializeField] Button starBtn;
     public bool isinCache;
     bool isDownloading;
+
+    // Whether the pointer (mouse or controller ray) is over this card right now. Tracked so the card can
+    // bring its buttons back the moment a download finishes: until now only a fresh pointer-enter could do
+    // that, so anyone who kept pointing at the card while it downloaded had to move away and back to Enter.
+    bool _pointerInside;
     public GameObject howerUI;
     public WorldData worlddata = new WorldData();
     public bool InitalizeInStart;
@@ -28,10 +34,9 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
         infoBtn.onClick.AddListener(ShowInfo);
         downloadBtn.onClick.AddListener(OnDownloadCliked);
         starBtn.onClick.AddListener(OnTapStar);
-        if (ProjectManager.UsesPhotonSessionLobbyRunner)
-            InvokeRepeating(nameof(SetPlayerCountText), 0, 1);
-        else if (playerCountTxt != null)
-            playerCountTxt.gameObject.SetActive(false);
+        // Always polled: whether counts are available can change after this card exists, because an
+        // app's session source (see SessionDirectory) registers once its settings have loaded.
+        InvokeRepeating(nameof(SetPlayerCountText), 0, 1);
         if (InitalizeInStart)
         {
             UpdateView(worlddata);
@@ -85,19 +90,29 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void SetPlayerCountText()
     {
-        if (!ProjectManager.UsesPhotonSessionLobbyRunner || playerCountTxt == null)
+        if (playerCountTxt == null)
+            return;
+
+        // No lobby runner and no external source: nothing can know the counts, so hide the label.
+        bool showCounts = SessionDirectory.ShowsPlayerCounts;
+        if (playerCountTxt.gameObject.activeSelf != showCounts)
+            playerCountTxt.gameObject.SetActive(showCounts);
+        if (!showCounts)
             return;
 
         int playersInSession = 0;
-        int maxPlayersInSession = 100; // Default value if session info is not available
-        if (NetworkLobby.Instance != null)
+        IReadOnlyList<SessionInfoData> sessions = SessionDirectory.Sessions;
+        for (int i = 0; i < sessions.Count; i++)
         {
-            SessionInfoData ssid = NetworkLobby.Instance.Sessions.Find(s => s.SessionID == worlddata.worldKey);
-            playersInSession = ssid != null ? ssid.PlayerCount : 0;
-            maxPlayersInSession = ssid != null ? ssid.MaxPlayers : 100;
+            if (sessions[i].SessionID == worlddata.worldKey)
+            {
+                playersInSession = sessions[i].PlayerCount;
+                break;
+            }
         }
-        maxPlayersInSession = 10; //for now making 100 as max players
-        playerCountTxt.text = $"{playersInSession}/{maxPlayersInSession}";
+
+        // 10 for the lobby runner (as before), or whatever the app's session source says.
+        playerCountTxt.text = $"{playersInSession}/{SessionDirectory.DefaultMaxPlayers}";
     }
 
     public void UpdateView(WorldData t)
@@ -165,15 +180,24 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
     public void OnFinishDownload(bool status)
     {
         downloadPanel.gameObject.SetActive(false);
+
+        // Cleared on failure too. It used to stay true after a failed download, and OnPointerEnter
+        // refuses to show the buttons while it is set, so the card went dead until the menu was rebuilt.
+        isDownloading = false;
+
         if (status)
         {
             clikedBtn.gameObject.SetActive(true);
-            isDownloading = false;
         }
         else
         {
             downloadBtn.gameObject.SetActive(true);
         }
+
+        // Show Enter (or Download again, after a failure) straight away if the user is still pointing at
+        // the card, rather than waiting for a pointer-enter that is never going to come.
+        if (howerUI != null && (_pointerInside || DesktopMobileControlSettings.UseMobileMenuHoverUx))
+            howerUI.SetActive(true);
     }
 
     public void OnDownloadProgress(string message, float downloadedSizeMB, float totalSizeMB, float downloadPecentage)
@@ -185,6 +209,7 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        _pointerInside = false;
         if (DesktopMobileControlSettings.UseMobileMenuHoverUx)
             return;
         howerUI.SetActive(false);
@@ -192,9 +217,17 @@ public class WorldItemView : MonoBehaviour, IBundleDownloadCallBack, IPointerEnt
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        _pointerInside = true;
         if (!isDownloading)
         {
             howerUI.SetActive(true);
         }
+    }
+
+    private void OnDisable()
+    {
+        // Closing the menu while hovering sends no pointer-exit, so reset here or the card would think it
+        // is still being pointed at next time the menu opens.
+        _pointerInside = false;
     }
 }
