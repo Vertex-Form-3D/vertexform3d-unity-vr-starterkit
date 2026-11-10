@@ -184,6 +184,9 @@ public class VoiceRecorderManager : MonoBehaviour
 
 
 
+    /// <summary>What the mic should be doing right now (true = transmitting).</summary>
+    public bool DesiredTransmit => desiredTransmitEnabled;
+
     public void EnableRecorder()
     {
         desiredTransmitEnabled = true;

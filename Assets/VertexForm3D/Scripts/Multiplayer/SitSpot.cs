@@ -6,6 +6,9 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using VertexFormCore;
 using Fusion;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 [RequireComponent(typeof(SphereCollider))]
 public class SitSpot : NetworkBehaviour
@@ -31,6 +34,9 @@ public class SitSpot : NetworkBehaviour
     [SerializeField][Min(0.5f)] private float sitGracePeriod = 1.5f;
     [SerializeField] private bool isSpecialSeat = false;
     private const float MinGracePeriod = 1.2f; // Enforced minimum so prefabs with 0 still work
+
+    private Camera _eventCam;
+    private float _lastSitAttempt = -10f;
 
     private void Start()
     {
@@ -58,6 +64,8 @@ public class SitSpot : NetworkBehaviour
     public void HandleSit()
     {
         if (Runner == null || isOccupied) return;
+        if (Time.unscaledTime - _lastSitAttempt < 0.5f) return;   // the button, E and a click can all arrive together
+        _lastSitAttempt = Time.unscaledTime;
 
         if (RoomManager.Instance != null)
         {
@@ -99,9 +107,11 @@ public class SitSpot : NetworkBehaviour
 
         if (other.CompareTag("Player"))
         {
-            uiCanvas.transform.LookAt(other.transform.GetComponentInChildren<Camera>().transform);
-            uiCanvas.transform.rotation *= Quaternion.Euler(Vector3.up * 180);
+            // The old code needed a Camera under the player object. On desktop / web the camera is a separate orbit camera, so that
+            // threw and the Sit button never appeared. Use whichever camera is really rendering.
+            _eventCam = FindViewCamera(other);
             isPlayerNearby = true;
+            FaceCamera();
             UpdateUI();
             Debug.Log("Player entered sit spot trigger");
         }
@@ -116,10 +126,54 @@ public class SitSpot : NetworkBehaviour
         }
     }
 
+    private static Camera FindViewCamera(Collider other)
+    {
+        if (other != null)
+            foreach (var c in other.transform.root.GetComponentsInChildren<Camera>(false))
+                if (c != null && c.isActiveAndEnabled && c.targetTexture == null) return c;
+        var m = Camera.main;
+        if (m != null && m.isActiveAndEnabled) return m;
+        Camera best = null;
+        foreach (var c in Camera.allCameras)
+            if (c != null && c.isActiveAndEnabled && c.targetTexture == null && (best == null || c.depth > best.depth)) best = c;
+        return best;
+    }
+
+    private void FaceCamera()
+    {
+        if (_eventCam == null || !_eventCam.isActiveAndEnabled) _eventCam = FindViewCamera(null);
+        if (_eventCam == null || uiCanvas == null) return;
+        if (uiCanvas.renderMode == RenderMode.WorldSpace && uiCanvas.worldCamera != _eventCam) uiCanvas.worldCamera = _eventCam;   // a world-space button needs its camera to be clickable
+        Vector3 away = uiCanvas.transform.position - _eventCam.transform.position;
+        away.y = 0f;                                                  // stay upright
+        if (away.sqrMagnitude > 1e-4f) uiCanvas.transform.rotation = Quaternion.LookRotation(away.normalized, Vector3.up);
+    }
+
+    /// <summary>Desktop / web / phone: E, or a click or tap on the Sit button, sits down, even if the UI event system did not deliver it.</summary>
+    private void PollSitInput()
+    {
+#if ENABLE_INPUT_SYSTEM
+        var kb = Keyboard.current;
+        if (kb != null && kb.eKey.wasPressedThisFrame) { HandleSit(); return; }
+        if (sitButton == null || _eventCam == null) return;
+        var rt = sitButton.transform as RectTransform;
+        var m = Mouse.current;
+        if (m != null && m.leftButton.wasPressedThisFrame && RectTransformUtility.RectangleContainsScreenPoint(rt, m.position.ReadValue(), _eventCam)) { HandleSit(); return; }
+        var ts = Touchscreen.current;
+        if (ts != null && ts.primaryTouch.press.wasPressedThisFrame && RectTransformUtility.RectangleContainsScreenPoint(rt, ts.primaryTouch.position.ReadValue(), _eventCam)) { HandleSit(); return; }
+#endif
+    }
+
     private void Update()
     {
         // Only check movement if the NetworkBehaviour is spawned
         if (Runner == null) return;
+
+        if (isPlayerNearby && !isOccupied && uiCanvas != null && uiCanvas.enabled)
+        {
+            FaceCamera();
+            PollSitInput();
+        }
 
         // Check if player has moved away from the seat (after grace period to avoid one-frame glitches)
         float grace = Mathf.Max(sitGracePeriod, MinGracePeriod);

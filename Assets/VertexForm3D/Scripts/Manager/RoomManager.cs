@@ -757,8 +757,12 @@ namespace VertexFormCore
         /// Prefers PlayerSpawnPointScript poses, then a non-zero inspector spawnPosition, then a safe
         /// elevated fallback so large terrains do not bury the player at world origin under the mesh.
         /// </summary>
+        // True when the last pose came from the origin / safe-fallback guess instead of a PlayerSpawnPoint or the configured spawnPosition.
+        private bool _lastSpawnWasFallback;
+
         private void ResolveSpawnPose(PlayerRef player, out Vector3 spawnPos, out Quaternion spawnRot)
         {
+            _lastSpawnWasFallback = false;
             PlayerSpawnPointScript[] playerSpawnPointScripts = GetSpawnPointsInWorldScene();
             if (playerSpawnPointScripts.Length > 0)
             {
@@ -797,6 +801,7 @@ namespace VertexFormCore
                 return;
             }
 
+            _lastSpawnWasFallback = true;
             if (TryGetWorldSceneSafeFallback(out spawnPos, out spawnRot))
             {
                 spawnPos = LiftOutOfGeometry(spawnPos, "world-scene safe fallback");
@@ -1165,6 +1170,52 @@ namespace VertexFormCore
         /// Everything that must happen once the local networked rig exists. Shared by the immediate
         /// spawn and the queued spawn so the two can never drift apart again.
         /// </summary>
+        private Coroutine _lateSpawnWatch;
+
+        /// <summary>
+        /// The player was placed by the origin guess because the scene holding the PlayerSpawnPoints was not loaded yet
+        /// (a scene loaded on top of the room after the player spawned, a Creator Toolkit scene, a slow bundle).
+        /// When spawn points show up, move the player onto one - the same pick as a normal spawn - as long as they
+        /// have not wandered off in the meantime. Gives up after a minute.
+        /// </summary>
+        private IEnumerator MoveToSpawnPointWhenTheyAppear(PlayerRef player, GameObject rigObject)
+        {
+            Vector3 guessed = rigObject != null ? rigObject.transform.position : Vector3.zero;
+            float until = Time.unscaledTime + 60f;
+            while (Time.unscaledTime < until)
+            {
+                yield return new WaitForSeconds(0.5f);
+                if (rigObject == null || localVRPlayer != rigObject || _runner == null || !_runner.IsRunning)
+                    yield break;
+
+                if (FindObjectsByType<PlayerSpawnPointScript>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length == 0)
+                    continue;
+
+                yield return null; yield return null;           // let the new scene's colliders settle
+                Physics.SyncTransforms();
+
+                Vector3 here = rigObject.transform.position;
+                if (new Vector2(here.x - guessed.x, here.z - guessed.z).magnitude > 3f)
+                {
+                    Debug.Log("[SpawnManager] Spawn points appeared late, but the player has already moved away from the fallback spot — leaving them where they are.");
+                    yield break;
+                }
+
+                ResolveSpawnPose(player, out Vector3 pos, out Quaternion rot);
+                if (_lastSpawnWasFallback) continue;
+                if (TryFindGround(pos, out Vector3 grounded)) pos = grounded;
+
+                var rc = rigObject.GetComponentInChildren<XRRigController>(true);
+                if (rc != null) { rc.TeleportTo(pos); rc.transform.rotation = Quaternion.Euler(0f, rot.eulerAngles.y, 0f); }
+                else rigObject.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, rot.eulerAngles.y, 0f));
+                Physics.SyncTransforms();
+                Debug.Log($"[SpawnManager] Spawn points appeared after the player spawned — moved the player onto one at {pos}.");
+                _lateSpawnWatch = null;
+                yield break;
+            }
+            _lateSpawnWatch = null;
+        }
+
         private void RegisterLocalPlayerRig(NetworkObject netObj, string source)
         {
             PlayerRef owner = netObj.InputAuthority;
@@ -1190,6 +1241,11 @@ namespace VertexFormCore
             if (SceneLoader.Instance != null)
                 SceneLoader.Instance.ActivateScene();
             Debug.Log($"[SpawnManager] VR Player spawned successfully ({source})! GameObject: {localVRPlayer.name}");
+            if (_lastSpawnWasFallback)
+            {
+                if (_lateSpawnWatch != null) StopCoroutine(_lateSpawnWatch);
+                _lateSpawnWatch = StartCoroutine(MoveToSpawnPointWhenTheyAppear(owner, localVRPlayer));
+            }
             // Manually join voice lobby now that local player is spawned (with a small delay)
             StartCoroutine(JoinVoiceLobbyDelayed(1f));
         }

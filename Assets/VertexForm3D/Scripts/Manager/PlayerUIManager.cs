@@ -696,24 +696,80 @@ namespace VertexFormCore
             }
         }
 
+        // Selfie camera. It is OFF at start. One tap spawns it in front of the player, another tap removes it,
+        // and it removes itself when the player walks away from it.
+        const float SelfieWalkAwayMetres = 5f;
+        float _nextSelfieCheck;
+
+        /// <summary>True while this player's selfie camera exists.</summary>
+        public bool IsSelfieOn
+        {
+            get
+            {
+                if (spawnedSelfieStick == null) return false;           // never spawned, or Unity destroyed it
+                try { return spawnedSelfieStick.IsValid; }
+                catch (Exception) { return false; }
+            }
+        }
+
         public void OnTapSelfieStick()
         {
-            if (networkRunner == null)
+            if (networkRunner == null && RoomManager.Instance != null)
                 networkRunner = RoomManager.Instance.Runner;
 
-            if (spawnedSelfieStick != null)
+            if (networkRunner == null)
             {
-                networkRunner.Despawn(spawnedSelfieStick);
-                spawnedSelfieStick = null;
+                Debug.LogWarning("[Selfie] No network runner yet, so the selfie camera cannot be created or removed.");
+                return;
             }
-            else
+
+            if (IsSelfieOn)
             {
-                HandleSettingUI();
-                Vector3 pos = xrCameraTransform.position + xrCameraTransform.forward * 0.5f;
-                pos.y -= 0.4f;
-                Debug.Log("Spawning Selfie Stick at: " + pos + "  " + (xrCameraTransform.forward * 0.5f));
-                spawnedSelfieStick = networkRunner.Spawn(selfieStickPrefab, pos, Quaternion.identity, networkRunner.LocalPlayer);
+                RemoveSelfie("tap");
+                return;
             }
+
+            spawnedSelfieStick = null;                                  // forget a stale reference
+            CloseSettingsUIIfOpen();                                    // close Settings, never toggle it open
+            Vector3 pos = xrCameraTransform.position + xrCameraTransform.forward * 0.5f;
+            pos.y -= 0.4f;
+            Debug.Log("[Selfie] Spawning selfie camera at: " + pos);
+            spawnedSelfieStick = networkRunner.Spawn(selfieStickPrefab, pos, Quaternion.identity, networkRunner.LocalPlayer);
+            _nextSelfieCheck = Time.unscaledTime + 2f;                  // give it a moment before the distance check
+        }
+
+        void RemoveSelfie(string why)
+        {
+            NetworkObject stick = spawnedSelfieStick;
+            spawnedSelfieStick = null;                                  // the button turns red straight away
+            if (stick == null) return;
+
+            try
+            {
+                if (!stick.HasStateAuthority)
+                    stick.RequestStateAuthority();
+                networkRunner.Despawn(stick);
+                Debug.Log("[Selfie] Selfie camera removed (" + why + ")");
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[Selfie] Could not despawn the selfie camera (" + why + "): " + e.Message);
+                if (stick != null) Destroy(stick.gameObject);
+            }
+        }
+
+        void CheckSelfieWalkAway()
+        {
+            if (Time.unscaledTime < _nextSelfieCheck) return;
+            _nextSelfieCheck = Time.unscaledTime + 0.5f;
+
+            if (spawnedSelfieStick == null) return;
+            if (!IsSelfieOn) { spawnedSelfieStick = null; return; }     // it was removed by someone else
+
+            if (xrCameraTransform == null) return;
+            float distance = Vector3.Distance(xrCameraTransform.position, spawnedSelfieStick.transform.position);
+            if (distance > SelfieWalkAwayMetres)
+                RemoveSelfie("walked " + distance.ToString("0.0") + " m away");
         }
 
         bool rightPrimaryButtonPressed;
@@ -722,6 +778,8 @@ namespace VertexFormCore
         private void Update()
         {
             PollXrMenuAndSettingsButtons();
+            CheckSelfieWalkAway();
+            SyncMicToRecorder();
         }
 
         // ==================== TOGGLE HANDLERS ====================
@@ -816,8 +874,25 @@ namespace VertexFormCore
             return true;
         }
 
+        float _nextMicSync;
+
+        // The mic switch must reach the recorder even when the recorder was not ready at the moment of the tap
+        // (the voice manager can appear later than the menu). Re-apply it every second until they agree.
+        void SyncMicToRecorder()
+        {
+            if (Time.unscaledTime < _nextMicSync) return;
+            _nextMicSync = Time.unscaledTime + 1f;
+
+            VoiceRecorderManager vrm = VoiceRecorderManager.Instance;
+            if (vrm == null || vrm.DesiredTransmit == isVoiceEnabled) return;
+
+            Debug.Log("[Mic] Recorder was out of step with the menu, setting it to " + (isVoiceEnabled ? "ON" : "MUTED"));
+            if (isVoiceEnabled) vrm.EnableRecorder(); else vrm.DisableRecorder();
+        }
+
         private void MuteVoice()
         {
+            Debug.Log("[Mic] Muting (recorder " + (VoiceRecorderManager.Instance == null ? "NOT FOUND yet" : "found") + ")");
             VoiceRecorderManager.Instance?.DisableRecorder();
             isVoiceEnabled = false;
             voiceUISetting?.Disable();
@@ -825,6 +900,7 @@ namespace VertexFormCore
 
         private void UnmuteVoice()
         {
+            Debug.Log("[Mic] Unmuting (recorder " + (VoiceRecorderManager.Instance == null ? "NOT FOUND yet" : "found") + ")");
             VoiceRecorderManager.Instance?.EnableRecorder();
             isVoiceEnabled = true;
             voiceUISetting?.Enable();

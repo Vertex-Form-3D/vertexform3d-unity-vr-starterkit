@@ -549,14 +549,30 @@ namespace VertexFormCore
             if (!Object.HasInputAuthority || sittingPosition == null) return;
 
             IsSitting = true;
-            transform.position = sittingPosition.position;
-            transform.rotation = sittingPosition.rotation;
+
+            var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
+
+            // Snap onto the seat and face the way its SitPoint arrow points. A plain transform.position = ... is overwritten by the
+            // CharacterController on its next move (the player stayed where they were), so go through TeleportTo, which switches it off for the write.
+            Vector3 seatPos = sittingPosition.position;
+            Quaternion seatYaw = Quaternion.Euler(0f, sittingPosition.eulerAngles.y, 0f);      // upright, facing the arrow
+            if (xrRig != null && xrRig.transform == transform)
+                xrRig.TeleportTo(seatPos);
+            else
+            {
+                var cc = GetComponent<CharacterController>();
+                bool ccWasOn = cc != null && cc.enabled;
+                if (ccWasOn) cc.enabled = false;
+                transform.position = seatPos;
+                if (ccWasOn) cc.enabled = true;
+            }
+            transform.rotation = seatYaw;
+            Physics.SyncTransforms();
 
             // Sync desktop camera/orbit to face the seat forward (so we look in sitting direction)
-            var xrRig = GetComponent<XRRigController>() ?? GetComponentInParent<XRRigController>() ?? GetComponentInChildren<XRRigController>();
             if (xrRig != null)
             {
-                xrRig.SetLookRotation(sittingPosition.rotation);
+                xrRig.SetLookRotation(seatYaw);
                 xrRig.orbitCamera.targetOffset = new Vector3(0, 0.8f, 0);
             }
 
